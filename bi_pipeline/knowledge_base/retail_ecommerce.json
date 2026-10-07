@@ -1,0 +1,108 @@
+{
+  "domain_id": "retail_ecommerce",
+  "domain_name": "Retail & E-Commerce",
+  "description": "Retail, online commerce, wholesale merchandise, transactional store sales, orders, discounts, shipping, profit, and product catalogs.",
+  "keywords": [
+    "sales", "revenue", "profit", "discount", "quantity", "order", "product",
+    "customer", "category", "sub_category", "segment", "ship_mode", "store",
+    "ecommerce", "retail", "superstore", "unit_price", "cost", "inventory", "margin"
+  ],
+  "column_mapping_rules": {
+    "monetary_sales": ["sales", "revenue", "price", "payment_value", "total_sales", "turnover", "gross_sales", "amount"],
+    "monetary_profit": ["profit", "net_profit", "gross_profit", "earnings"],
+    "discount": ["discount", "discount_rate", "discount_pct", "discount_amount"],
+    "quantity": ["quantity", "qty", "units_sold", "units", "items", "order_item_id"],
+    "order_id": ["order_id", "order_number", "transaction_id", "invoice_id"],
+    "customer_id": ["customer_id", "client_id", "user_id", "customer_name", "account_id"],
+    "date": ["order_date", "order_purchase_timestamp", "shipping_limit_date", "transaction_date", "date", "purchase_date"],
+    "category": ["category", "product_category", "product_category_name", "payment_type", "dept", "department"],
+    "sub_category": ["sub_category", "sub_dept", "product_sub_category", "product_type"],
+    "region": ["region", "customer_state", "state", "customer_city", "city", "country", "market", "zone"]
+  },
+  "kpi_templates": [
+    {
+      "id": "kpi_total_revenue",
+      "name": "Total Revenue",
+      "category": "financial",
+      "unit": "$",
+      "description": "Aggregate gross revenue across all transactions.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_sales}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_sales"]
+    },
+    {
+      "id": "kpi_total_profit",
+      "name": "Total Profit",
+      "category": "financial",
+      "unit": "$",
+      "description": "Aggregate net profit generated across all sales.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_profit"]
+    },
+    {
+      "id": "kpi_profit_margin_pct",
+      "name": "Profit Margin",
+      "category": "efficiency",
+      "unit": "%",
+      "description": "Net profit margin expressed as a percentage of total revenue.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) * 100.0 / NULLIF(SUM({monetary_sales}), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_sales", "monetary_profit"]
+    },
+    {
+      "id": "kpi_average_order_value",
+      "name": "Average Order Value (AOV)",
+      "category": "operational",
+      "unit": "$",
+      "description": "Average revenue generated per distinct order transaction.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_sales}) / NULLIF(COUNT(DISTINCT {order_id}), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_sales", "order_id"]
+    },
+    {
+      "id": "kpi_total_units_sold",
+      "name": "Total Units Sold",
+      "category": "volume",
+      "unit": "units",
+      "description": "Total volume of product units sold.",
+      "sql_template": "SELECT CAST(SUM({quantity}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": ["quantity"]
+    },
+    {
+      "id": "kpi_average_discount_pct",
+      "name": "Average Discount Rate",
+      "category": "efficiency",
+      "unit": "%",
+      "description": "Average promotional discount rate granted across orders.",
+      "sql_template": "SELECT ROUND(CAST(AVG({discount}) * 100.0 AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["discount"]
+    }
+  ],
+  "dimensional_templates": [
+    {
+      "id": "dim_category_performance",
+      "dimension_name": "category",
+      "description": "Revenue and order volume breakdown by product category.",
+      "sql_template": "SELECT CAST({category} AS VARCHAR) AS entity, ROUND(CAST(SUM({monetary_sales}) AS DOUBLE), 2) AS revenue, COUNT(DISTINCT {order_id}) AS order_count FROM df WHERE {category} IS NOT NULL GROUP BY {category} ORDER BY revenue DESC LIMIT 25",
+      "required_roles": ["category", "monetary_sales", "order_id"]
+    },
+    {
+      "id": "dim_category_profitability",
+      "dimension_name": "category_profit",
+      "description": "Net profit and margin breakdown by product category.",
+      "sql_template": "SELECT CAST({category} AS VARCHAR) AS entity, ROUND(CAST(SUM({monetary_profit}) AS DOUBLE), 2) AS profit, ROUND(CAST(SUM({monetary_profit}) * 100.0 / NULLIF(SUM({monetary_sales}), 0) AS DOUBLE), 2) AS margin_pct FROM df WHERE {category} IS NOT NULL GROUP BY {category} ORDER BY profit ASC",
+      "required_roles": ["category", "monetary_sales", "monetary_profit"]
+    },
+    {
+      "id": "dim_regional_performance",
+      "dimension_name": "region",
+      "description": "Revenue and order distribution by geographic region.",
+      "sql_template": "SELECT CAST({region} AS VARCHAR) AS entity, ROUND(CAST(SUM({monetary_sales}) AS DOUBLE), 2) AS revenue, COUNT(DISTINCT {order_id}) AS order_count FROM df WHERE {region} IS NOT NULL GROUP BY {region} ORDER BY revenue DESC LIMIT 25",
+      "required_roles": ["region", "monetary_sales", "order_id"]
+    },
+    {
+      "id": "dim_monthly_trend",
+      "dimension_name": "period",
+      "description": "Monthly chronological progression of revenue and order volume.",
+      "sql_template": "SELECT strftime(TRY_CAST({date} AS TIMESTAMP), '%Y-%m') AS entity, ROUND(CAST(SUM({monetary_sales}) AS DOUBLE), 2) AS revenue, COUNT(DISTINCT {order_id}) AS order_count FROM df WHERE {date} IS NOT NULL AND TRY_CAST({date} AS TIMESTAMP) IS NOT NULL GROUP BY entity ORDER BY entity ASC",
+      "required_roles": ["date", "monetary_sales", "order_id"]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "domain_id": "universal_heuristics",
+  "domain_name": "Universal Heuristic Induction",
+  "description": "Zero-shot statistical induction rules for unseen domains, fallback universal metric generators, and automatic column semantic classification.",
+  "role_detection_rules": {
+    "monetary_or_primary_measure": {
+      "name_patterns": ["amount", "value", "cost", "price", "fee", "total", "sum", "charge", "balance", "spend", "sales", "revenue", "profit", "measurement", "metric", "reading"],
+      "dtype_classes": ["float64", "float32", "int64"],
+      "priority": 1
+    },
+    "volume_or_secondary_measure": {
+      "name_patterns": ["count", "units", "quantity", "qty", "volume", "items", "records", "frequency", "score", "hours", "duration"],
+      "dtype_classes": ["int64", "int32", "float64"],
+      "priority": 2
+    },
+    "entity_identifier": {
+      "name_patterns": ["id", "code", "key", "number", "uuid", "guid", "entity", "name", "identifier"],
+      "cardinality_ratio_min": 0.3,
+      "priority": 3
+    },
+    "categorical_dimension": {
+      "name_patterns": ["category", "type", "segment", "status", "group", "class", "region", "zone", "state", "city", "department", "tier", "gender"],
+      "max_distinct_values": 50,
+      "priority": 4
+    },
+    "temporal_dimension": {
+      "name_patterns": ["date", "time", "timestamp", "year", "month", "day", "created", "updated", "period", "at"],
+      "priority": 5
+    }
+  },
+  "universal_kpi_templates": [
+    {
+      "id": "tier2_total_volume",
+      "name": "Total Record Volume",
+      "category": "volume",
+      "unit": "records",
+      "description": "Total count of records or events captured in the dataset.",
+      "sql_template": "SELECT CAST(COUNT(*) AS BIGINT) AS metric_value FROM df",
+      "required_roles": []
+    },
+    {
+      "id": "tier2_primary_measure_sum",
+      "name": "Aggregate Primary Measure",
+      "category": "aggregate",
+      "unit": "units",
+      "description": "Total sum of the inferred primary quantitative measure.",
+      "sql_template": "SELECT ROUND(CAST(SUM({primary_measure}) AS DOUBLE), 2) AS metric_value FROM df WHERE {primary_measure} IS NOT NULL",
+      "required_roles": ["primary_measure"]
+    },
+    {
+      "id": "tier2_primary_measure_avg",
+      "name": "Average Primary Measure",
+      "category": "efficiency",
+      "unit": "units",
+      "description": "Mean value of the primary quantitative measure per record.",
+      "sql_template": "SELECT ROUND(CAST(AVG({primary_measure}) AS DOUBLE), 2) AS metric_value FROM df WHERE {primary_measure} IS NOT NULL",
+      "required_roles": ["primary_measure"]
+    },
+    {
+      "id": "tier2_entity_cardinality",
+      "name": "Unique Entity Cardinality",
+      "category": "volume",
+      "unit": "entities",
+      "description": "Total number of unique entities or subjects observed.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {entity_id}) AS BIGINT) AS metric_value FROM df WHERE {entity_id} IS NOT NULL",
+      "required_roles": ["entity_id"]
+    },
+    {
+      "id": "tier2_measure_per_entity_ratio",
+      "name": "Measure per Entity Ratio",
+      "category": "ratio",
+      "unit": "ratio",
+      "description": "Aggregate primary measure normalized by unique entity count.",
+      "sql_template": "SELECT ROUND(CAST(SUM({primary_measure}) / NULLIF(COUNT(DISTINCT {entity_id}), 0) AS DOUBLE), 2) AS metric_value FROM df WHERE {primary_measure} IS NOT NULL",
+      "required_roles": ["primary_measure", "entity_id"]
+    }
+  ],
+  "universal_dimensional_templates": [
+    {
+      "id": "tier2_category_distribution",
+      "dimension_name": "primary_dimension",
+      "description": "Universal distribution and volume breakdown across primary categorical dimension.",
+      "sql_template": "SELECT CAST({primary_dimension} AS VARCHAR) AS entity, ROUND(CAST(SUM({primary_measure}) AS DOUBLE), 2) AS revenue, COUNT(*) AS order_count FROM df WHERE {primary_dimension} IS NOT NULL GROUP BY {primary_dimension} ORDER BY revenue DESC LIMIT 15",
+      "required_roles": ["primary_dimension", "primary_measure"]
+    },
+    {
+      "id": "tier2_temporal_distribution",
+      "dimension_name": "temporal_dimension",
+      "description": "Temporal chronological trajectory of primary quantitative measure.",
+      "sql_template": "SELECT strftime(TRY_CAST({temporal_dimension} AS TIMESTAMP), '%Y-%m') AS entity, ROUND(CAST(SUM({primary_measure}) AS DOUBLE), 2) AS revenue, COUNT(*) AS order_count FROM df WHERE {temporal_dimension} IS NOT NULL AND TRY_CAST({temporal_dimension} AS TIMESTAMP) IS NOT NULL GROUP BY entity ORDER BY entity ASC",
+      "required_roles": ["temporal_dimension", "primary_measure"]
+    }
+  ]
+}

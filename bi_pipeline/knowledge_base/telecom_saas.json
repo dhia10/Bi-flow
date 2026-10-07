@@ -1,0 +1,83 @@
+{
+  "domain_id": "telecom_saas",
+  "domain_name": "Telecom & Subscription SaaS",
+  "description": "Telecommunications, software-as-a-service (SaaS), recurring subscriptions, monthly recurring revenue, customer churn, and subscriber lifetime value.",
+  "keywords": [
+    "subscription", "mrr", "arr", "churn", "churned", "tenure", "contract",
+    "ltv", "arpu", "plan", "monthly_charges", "total_charges", "payment_method",
+    "fiber", "internet", "customer_id", "telecom", "saas", "subscriber", "renewal"
+  ],
+  "column_mapping_rules": {
+    "monetary_recurring": ["monthly_charges", "mrr", "monthly_fee", "recurring_revenue", "plan_price"],
+    "monetary_total": ["total_charges", "lifetime_revenue", "total_paid", "arr"],
+    "churn_flag": ["churn", "churned", "is_churned", "churn_flag", "cancelled"],
+    "subscriber_id": ["customer_id", "user_id", "account_id", "subscriber_id", "client_id"],
+    "tenure": ["tenure", "tenure_months", "months_active", "subscription_months"],
+    "contract_type": ["contract", "contract_type", "billing_cycle", "plan_tier", "plan"],
+    "service_type": ["internet_service", "service_type", "product", "tier", "plan_name"],
+    "date": ["signup_date", "start_date", "join_date", "created_at", "date"]
+  },
+  "kpi_templates": [
+    {
+      "id": "kpi_mrr",
+      "name": "Monthly Recurring Revenue (MRR)",
+      "category": "financial",
+      "unit": "$",
+      "description": "Normalized monthly recurring subscription revenue across active subscribers.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_recurring}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_recurring"]
+    },
+    {
+      "id": "kpi_arpu",
+      "name": "Average Revenue Per User (ARPU)",
+      "category": "efficiency",
+      "unit": "$",
+      "description": "Average monthly recurring revenue generated per subscriber.",
+      "sql_template": "SELECT ROUND(CAST(AVG({monetary_recurring}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_recurring"]
+    },
+    {
+      "id": "kpi_churn_rate_pct",
+      "name": "Customer Churn Rate",
+      "category": "operational",
+      "unit": "%",
+      "description": "Percentage of subscribers that have cancelled or churned.",
+      "sql_template": "SELECT ROUND(CAST(SUM(CASE WHEN LOWER(CAST({churn_flag} AS VARCHAR)) IN ('1', 'yes', 'true') THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["churn_flag"]
+    },
+    {
+      "id": "kpi_active_subscribers",
+      "name": "Active Subscribers",
+      "category": "volume",
+      "unit": "users",
+      "description": "Total count of active, non-churned subscriber accounts.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {subscriber_id}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": ["subscriber_id"]
+    },
+    {
+      "id": "kpi_average_tenure",
+      "name": "Average Tenure",
+      "category": "operational",
+      "unit": "months",
+      "description": "Average customer relationship duration in months.",
+      "sql_template": "SELECT ROUND(CAST(AVG({tenure}) AS DOUBLE), 1) AS metric_value FROM df",
+      "required_roles": ["tenure"]
+    }
+  ],
+  "dimensional_templates": [
+    {
+      "id": "dim_contract_distribution",
+      "dimension_name": "contract_type",
+      "description": "Subscriber count and recurring revenue distribution by contract type.",
+      "sql_template": "SELECT CAST({contract_type} AS VARCHAR) AS entity, ROUND(CAST(SUM({monetary_recurring}) AS DOUBLE), 2) AS revenue, COUNT(DISTINCT {subscriber_id}) AS order_count FROM df GROUP BY {contract_type} ORDER BY revenue DESC",
+      "required_roles": ["contract_type", "monetary_recurring", "subscriber_id"]
+    },
+    {
+      "id": "dim_service_distribution",
+      "dimension_name": "service_type",
+      "description": "Revenue and subscriber segmentation by service tier.",
+      "sql_template": "SELECT CAST({service_type} AS VARCHAR) AS entity, ROUND(CAST(SUM({monetary_recurring}) AS DOUBLE), 2) AS revenue, COUNT(DISTINCT {subscriber_id}) AS order_count FROM df GROUP BY {service_type} ORDER BY revenue DESC",
+      "required_roles": ["service_type", "monetary_recurring", "subscriber_id"]
+    }
+  ]
+}
