@@ -1,0 +1,187 @@
+{
+  "name": "Bi-Flow: Multi-Agent BI Pipeline (DuckDB + RAG + XAI)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1e11a3b5-4b02-4871-9876-000000000001",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bi-analyze",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000002",
+      "name": "Webhook Trigger (CSV / Data)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 480],
+      "webhookId": "bi-analyze-webhook"
+    },
+    {
+      "parameters": {
+        "command": "python bi_pipeline/n8n_runner.py --format full"
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000003",
+      "name": "Agent 5 & 6 (DuckDB + RAG + Stats)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [480, 380]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = $input.item.json.stdout;\nlet data = {};\ntry {\n  data = JSON.parse(rawOutput);\n} catch (e) {\n  data = { error: 'Failed parsing JSON', raw: rawOutput };\n}\n\n// Format KPI Scorecard for Executive View\nconst kpis = data.kpis || [];\nconst anomalies = data.anomalies || [];\nconst takeaways = data.strategic_takeaways || [];\n\nconst hasCriticalRisk = anomalies.some(a => a.severity === 'critical');\nconst totalRevenue = kpis.find(k => k.name.includes('Revenue'))?.value || 0;\n\nreturn {\n  json: {\n    dataset: data.dataset,\n    total_revenue: totalRevenue,\n    execution_latency_ms: data.execution_ms,\n    has_critical_risk: hasCriticalRisk,\n    kpi_count: kpis.length,\n    kpis: kpis,\n    critical_anomalies: anomalies.filter(a => a.severity === 'critical' || a.severity === 'high'),\n    strategic_takeaways: takeaways,\n    executive_narrative: data.narrative_report,\n    xai_proof: {\n      verified_engine: 'DuckDB In-Memory (:memory:)',\n      sql_sample: kpis[0]?.sql || 'N/A',\n      rag_source: kpis[0]?.rag_source || 'N/A'\n    }\n  }\n};"
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000004",
+      "name": "Parse & XAI Extraction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_critical_risk }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000005",
+      "name": "Critical Anomaly Detected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [940, 380]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\nconst alertHeader = '🚨 [ALERTE CRITIQUE DIRECTION COMMERCIALE]\\n\\n';\nconst summary = data.strategic_takeaways[0]?.summary || 'Perte de marge ou concentration critique détectée.';\nconst action = data.strategic_takeaways[0]?.action || 'Audit immédiat des prix et de la rentabilité.';\n\nconst message = `${alertHeader}Dataset: ${data.dataset}\\nChiffre d'Affaires: $${data.total_revenue.toLocaleString()}\\nLatence DuckDB: ${data.execution_latency_ms} ms\\n\\n${summary}\\n\\nAction Prioritaire:\\n👉 ${action}\\n\\nPreuve XAI (Requête SQL):\\n${data.xai_proof.sql_sample}`;\n\nreturn { json: { alert_message: message, status: 'ALERT_TRIGGERED', ...data } };"
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000006",
+      "name": "Build Critical Risk Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\nconst header = '✅ [RAPPORT BI STANDARD COMEX]\\n\\n';\nconst message = `${header}Dataset: ${data.dataset}\\nChiffre d'Affaires: $${data.total_revenue.toLocaleString()}\\nPerformance: Conforme aux seuils opérationnels.\\n\\nPreuve SQL DuckDB:\\n${data.xai_proof.sql_sample}`;\n\nreturn { json: { report_message: message, status: 'NOMINAL', ...data } };"
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000007",
+      "name": "Build Standard Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 480]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000008",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1440, 380]
+    }
+  ],
+  "connections": {
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agent 5 & 6 (DuckDB + RAG + Stats)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger (CSV / Data)": {
+      "main": [
+        [
+          {
+            "node": "Agent 5 & 6 (DuckDB + RAG + Stats)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 5 & 6 (DuckDB + RAG + Stats)": {
+      "main": [
+        [
+          {
+            "node": "Parse & XAI Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & XAI Extraction": {
+      "main": [
+        [
+          {
+            "node": "Critical Anomaly Detected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical Anomaly Detected?": {
+      "main": [
+        [
+          {
+            "node": "Build Critical Risk Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Standard Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Critical Risk Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Standard Report": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
