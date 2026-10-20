@@ -1,5 +1,5 @@
 {
-  "name": "Bi-Flow: Multi-Agent BI Pipeline (DuckDB + RAG + XAI)",
+  "name": "Bi-Flow: Decoupled Multi-Agent BI Microservices (DuckDB + Hybrid RAG + XAI)",
   "nodes": [
     {
       "parameters": {},
@@ -7,7 +7,7 @@
       "name": "Manual Test Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [240, 300]
+      "position": [160, 300]
     },
     {
       "parameters": {
@@ -20,65 +20,105 @@
       "name": "Webhook Trigger (CSV / Data)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 480],
+      "position": [160, 480],
       "webhookId": "bi-analyze-webhook"
     },
     {
       "parameters": {
-        "command": "python bi_pipeline/n8n_runner.py --format full"
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/ingest",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"force_rebuild\": false\n}",
+        "options": {}
       },
       "id": "1e11a3b5-4b02-4871-9876-000000000003",
-      "name": "Agent 5 & 6 (DuckDB + RAG + Stats)",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [480, 380]
+      "name": "Node 1: POST /api/v1/ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [400, 380]
     },
     {
       "parameters": {
-        "jsCode": "const rawOutput = $input.item.json.stdout;\nlet data = {};\ntry {\n  data = JSON.parse(rawOutput);\n} catch (e) {\n  data = { error: 'Failed parsing JSON', raw: rawOutput };\n}\n\n// Format KPI Scorecard for Executive View\nconst kpis = data.kpis || [];\nconst anomalies = data.anomalies || [];\nconst takeaways = data.strategic_takeaways || [];\n\nconst hasCriticalRisk = anomalies.some(a => a.severity === 'critical');\nconst totalRevenue = kpis.find(k => k.name.includes('Revenue'))?.value || 0;\n\nreturn {\n  json: {\n    dataset: data.dataset,\n    total_revenue: totalRevenue,\n    execution_latency_ms: data.execution_ms,\n    has_critical_risk: hasCriticalRisk,\n    kpi_count: kpis.length,\n    kpis: kpis,\n    critical_anomalies: anomalies.filter(a => a.severity === 'critical' || a.severity === 'high'),\n    strategic_takeaways: takeaways,\n    executive_narrative: data.narrative_report,\n    xai_proof: {\n      verified_engine: 'DuckDB In-Memory (:memory:)',\n      sql_sample: kpis[0]?.sql || 'N/A',\n      rag_source: kpis[0]?.rag_source || 'N/A'\n    }\n  }\n};"
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/agent5/map-and-query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dataset_name\": \"Superstore Retail\",\n  \"query_intent\": \"retail ecommerce kpi sales revenue profit\"\n}",
+        "options": {}
       },
       "id": "1e11a3b5-4b02-4871-9876-000000000004",
-      "name": "Parse & XAI Extraction",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [720, 380]
+      "name": "Node 2: POST /api/v1/agent5/map-and-query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/agent6/detect-anomalies",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"z_threshold\": 2.0\n}",
+        "options": {}
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000005",
+      "name": "Node 3: POST /api/v1/agent6/detect-anomalies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/v1/agent6/comex-synthesis",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dataset_name\": $('Node 2: POST /api/v1/agent5/map-and-query').first().json.dataset_name,\n  \"detected_domain\": $('Node 2: POST /api/v1/agent5/map-and-query').first().json.detected_domain,\n  \"retrieval_confidence\": $('Node 2: POST /api/v1/agent5/map-and-query').first().json.retrieval_relevance_score,\n  \"duckdb_proofs\": $('Node 2: POST /api/v1/agent5/map-and-query').first().json.duckdb_proofs,\n  \"statistical_anomalies\": $('Node 3: POST /api/v1/agent6/detect-anomalies').first().json.anomalies\n}",
+        "options": {}
+      },
+      "id": "1e11a3b5-4b02-4871-9876-000000000006",
+      "name": "Node 4: POST /api/v1/agent6/comex-synthesis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 380]
     },
     {
       "parameters": {
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.has_critical_risk }}",
+              "value1": "={{ $('Node 3: POST /api/v1/agent6/detect-anomalies').first().json.has_critical_risk }}",
               "value2": true
             }
           ]
         }
       },
-      "id": "1e11a3b5-4b02-4871-9876-000000000005",
+      "id": "1e11a3b5-4b02-4871-9876-000000000007",
       "name": "Critical Anomaly Detected?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [940, 380]
+      "position": [1360, 380]
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.item.json;\nconst alertHeader = '🚨 [ALERTE CRITIQUE DIRECTION COMMERCIALE]\\n\\n';\nconst summary = data.strategic_takeaways[0]?.summary || 'Perte de marge ou concentration critique détectée.';\nconst action = data.strategic_takeaways[0]?.action || 'Audit immédiat des prix et de la rentabilité.';\n\nconst message = `${alertHeader}Dataset: ${data.dataset}\\nChiffre d'Affaires: $${data.total_revenue.toLocaleString()}\\nLatence DuckDB: ${data.execution_latency_ms} ms\\n\\n${summary}\\n\\nAction Prioritaire:\\n👉 ${action}\\n\\nPreuve XAI (Requête SQL):\\n${data.xai_proof.sql_sample}`;\n\nreturn { json: { alert_message: message, status: 'ALERT_TRIGGERED', ...data } };"
+        "jsCode": "const node2 = $('Node 2: POST /api/v1/agent5/map-and-query').first().json;\nconst node3 = $('Node 3: POST /api/v1/agent6/detect-anomalies').first().json;\nconst node4 = $('Node 4: POST /api/v1/agent6/comex-synthesis').first().json;\n\nconst crit = node3.anomalies.find(a => a.severity === 'critical') || node3.anomalies[0];\nconst kpi = node2.duckdb_proofs[0];\n\nconst alertHeader = '🚨 [ALERTE CRITIQUE DIRECTION COMMERCIALE]\\n\\n';\nconst message = `${alertHeader}` +\n  `Dataset : ${node2.dataset_name} (Domaine: ${node2.detected_domain})\\n` +\n  `Score RAG Calibre : ${(node2.retrieval_relevance_score * 100).toFixed(1)}%\\n` +\n  `Metrique Principale : ${kpi ? kpi.kpi_name + ' = ' + kpi.value + ' ' + (kpi.unit || '') : 'N/A'}\\n\\n` +\n  `Anomalie Critique : ${crit ? crit.entity + ' (' + crit.metric + ' = ' + crit.observed_value + ' $)' : 'None'}\\n` +\n  `Diagnostic : ${crit ? crit.description : ''}\\n\\n` +\n  `Preuve SQL DuckDB (:memory:) :\\n${kpi ? kpi.exact_sql : 'N/A'}\\n\\n` +\n  `Synthese Executive Ancree :\\n${node4.executive_narrative}`;\n\nreturn { json: { status: 'ALERT_TRIGGERED', alert_message: message, kpi, anomaly: crit, synthesis: node4 } };"
       },
-      "id": "1e11a3b5-4b02-4871-9876-000000000006",
+      "id": "1e11a3b5-4b02-4871-9876-000000000008",
       "name": "Build Critical Risk Alert",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1180, 280]
+      "position": [1600, 260]
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.item.json;\nconst header = '✅ [RAPPORT BI STANDARD COMEX]\\n\\n';\nconst message = `${header}Dataset: ${data.dataset}\\nChiffre d'Affaires: $${data.total_revenue.toLocaleString()}\\nPerformance: Conforme aux seuils opérationnels.\\n\\nPreuve SQL DuckDB:\\n${data.xai_proof.sql_sample}`;\n\nreturn { json: { report_message: message, status: 'NOMINAL', ...data } };"
+        "jsCode": "const node2 = $('Node 2: POST /api/v1/agent5/map-and-query').first().json;\nconst node4 = $('Node 4: POST /api/v1/agent6/comex-synthesis').first().json;\nconst kpi = node2.duckdb_proofs[0];\n\nconst header = '✅ [RAPPORT BI STANDARD COMEX]\\n\\n';\nconst message = `${header}` +\n  `Dataset : ${node2.dataset_name}\\n` +\n  `Score RRF & Rerank : ${(node2.retrieval_relevance_score * 100).toFixed(1)}%\\n` +\n  `Metrique : ${kpi ? kpi.kpi_name + ' = ' + kpi.value : 'N/A'}\\n\\n` +\n  `Preuve SQL DuckDB : ${kpi ? kpi.exact_sql : 'N/A'}\\n\\n` +\n  `Synthese :\\n${node4.executive_narrative}`;\n\nreturn { json: { status: 'NOMINAL', report_message: message, kpi, synthesis: node4 } };"
       },
-      "id": "1e11a3b5-4b02-4871-9876-000000000007",
+      "id": "1e11a3b5-4b02-4871-9876-000000000009",
       "name": "Build Standard Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1180, 480]
+      "position": [1600, 480]
     },
     {
       "parameters": {
@@ -86,11 +126,11 @@
         "responseBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "1e11a3b5-4b02-4871-9876-000000000008",
+      "id": "1e11a3b5-4b02-4871-9876-000000000010",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1440, 380]
+      "position": [1840, 380]
     }
   ],
   "connections": {
@@ -98,7 +138,7 @@
       "main": [
         [
           {
-            "node": "Agent 5 & 6 (DuckDB + RAG + Stats)",
+            "node": "Node 1: POST /api/v1/ingest",
             "type": "main",
             "index": 0
           }
@@ -109,25 +149,47 @@
       "main": [
         [
           {
-            "node": "Agent 5 & 6 (DuckDB + RAG + Stats)",
+            "node": "Node 1: POST /api/v1/ingest",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent 5 & 6 (DuckDB + RAG + Stats)": {
+    "Node 1: POST /api/v1/ingest": {
       "main": [
         [
           {
-            "node": "Parse & XAI Extraction",
+            "node": "Node 2: POST /api/v1/agent5/map-and-query",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse & XAI Extraction": {
+    "Node 2: POST /api/v1/agent5/map-and-query": {
+      "main": [
+        [
+          {
+            "node": "Node 3: POST /api/v1/agent6/detect-anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node 3: POST /api/v1/agent6/detect-anomalies": {
+      "main": [
+        [
+          {
+            "node": "Node 4: POST /api/v1/agent6/comex-synthesis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node 4: POST /api/v1/agent6/comex-synthesis": {
       "main": [
         [
           {
@@ -178,10 +240,5 @@
         ]
       ]
     }
-  },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "tags": []
+  }
 }

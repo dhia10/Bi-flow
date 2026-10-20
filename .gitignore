@@ -42,3 +42,5 @@ Thumbs.db
 olist_*.csv
 product_category_name_translation.csv
 *.log
+*.sqlite
+data/cache/

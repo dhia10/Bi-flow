@@ -1,0 +1,33 @@
+system:
+  environment: "production"
+  log_level: "INFO"
+
+models:
+  primary_llm: "gemini-2.5-flash"
+  fallback_llm: "gpt-4o-mini"
+  embedding_model: "tfidf-l2-dense"
+  embedding_version: "v1.2.0"
+
+retrieval:
+  top_k: 5
+  dense_weight: 0.6
+  lexical_weight: 0.4
+  rrf_k: 60
+  rerank_threshold: 0.85
+  min_relevance_threshold: 0.40
+
+statistical_mining:
+  z_score_threshold: 2.0
+  z_score_critical: 2.5
+  iqr_multiplier: 1.5
+  pareto_concentration_threshold: 0.45
+
+cache:
+  enabled: true
+  db_path: "data/cache/semantic_cache.sqlite"
+  ttl_seconds: 86400
+
+data:
+  default_dataset: "bi_pipeline/data/mock_clean_data.csv"
+  knowledge_base_dir: "bi_pipeline/knowledge_base"
+  index_storage_dir: "data/indices"
