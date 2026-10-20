@@ -342,6 +342,7 @@ def agent6_comex_synthesis(req: Agent6SynthesisRequest):
         target_concepts=["sales_amount", "order_identifier"],
         duckdb_proofs=req.duckdb_proofs,
         executive_narrative=narrative,
+        anomalies=req.statistical_anomalies,
     )
 
     return Agent6SynthesisResponse(

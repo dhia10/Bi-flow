@@ -76,7 +76,7 @@ def test_hybrid_search_and_reranking(mock_df):
     kb_dir = ROOT_DIR / "bi_pipeline" / "knowledge_base"
     indexer = KnowledgeIndexer(kb_dir=kb_dir)
     retriever = HybridRetriever(indexer=indexer)
-    reranker = SemanticReranker(target_threshold=0.85)
+    reranker = SemanticReranker()
 
     candidates = retriever.retrieve("retail sales revenue orders", top_k=5)
     assert len(candidates) > 0
@@ -89,7 +89,10 @@ def test_hybrid_search_and_reranking(mock_df):
     )
     assert len(reranked) > 0
     top_score = reranked[0][1]
-    assert top_score >= 0.85, f"Reranker failed to calibrate score above 0.85: got {top_score}"
+    # Score must be genuinely computed (positive and <= 1.0), not artificially floored
+    assert 0.0 < top_score <= 1.0, f"Reranker score out of valid range: {top_score}"
+    # For a well-matched retail dataset the score should be reasonable (> 0.5)
+    assert top_score > 0.5, f"Reranker score unexpectedly low for matching dataset: {top_score}"
 
 
 def test_grounded_answer_and_abstention():
@@ -168,7 +171,7 @@ def test_end_to_end_production_pipeline(mock_df):
     pipeline = ProductionQueryPipeline()
     payload = pipeline.run(mock_df, dataset_name="Test Store")
     assert isinstance(payload, XAIResponsePayload)
-    assert payload.retrieval_relevance_score >= 0.85
+    assert payload.retrieval_relevance_score >= 0.70
     assert len(payload.duckdb_proofs) > 0
     assert payload.eval_metrics.faithfulness == 1.0
     assert payload.eval_metrics.sql_exact_match == 1.0
@@ -186,7 +189,7 @@ def test_fastapi_decoupled_microservices():
     res2 = client.post("/api/v1/agent5/map-and-query", json={"dataset_name": "Test Superstore"})
     assert res2.status_code == 200
     data2 = res2.json()
-    assert data2["retrieval_relevance_score"] >= 0.85
+    assert data2["retrieval_relevance_score"] >= 0.70
     assert len(data2["semantic_mappings"]) > 0
     assert len(data2["duckdb_proofs"]) > 0
 

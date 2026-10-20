@@ -66,9 +66,7 @@ class ProductionQueryPipeline:
             lexical_weight=self.cfg["retrieval"]["lexical_weight"],
             rrf_k=self.cfg["retrieval"]["rrf_k"],
         )
-        self.reranker = SemanticReranker(
-            target_threshold=self.cfg["retrieval"]["rerank_threshold"]
-        )
+        self.reranker = SemanticReranker()
         self.llm = ProductionLLMClient(
             primary_model=self.cfg["models"]["primary_llm"],
             fallback_model=self.cfg["models"]["fallback_llm"],
@@ -104,7 +102,7 @@ class ProductionQueryPipeline:
         with tracer.time_step("hybrid_retrieval_ms"):
             raw_candidates = self.retriever.retrieve(
                 query=f"{dataset_name} {' '.join(df.columns)} {query_intent}",
-                top_k=self.cfg["retrieval"]["top_k"] * 2,
+                top_k=self.cfg["retrieval"]["top_k"] * 3,
             )
 
         # 3. Semantic Reranking (>0.85 calibrated score)
@@ -296,6 +294,7 @@ class ProductionQueryPipeline:
             target_concepts=target_concepts,
             duckdb_proofs=duckdb_proofs,
             executive_narrative=grounded_narrative,
+            anomalies=anomalies,
         )
 
         output_payload = XAIResponsePayload(

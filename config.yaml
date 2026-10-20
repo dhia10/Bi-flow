@@ -9,7 +9,7 @@ models:
   embedding_version: "v1.2.0"
 
 retrieval:
-  top_k: 5
+  top_k: 8
   dense_weight: 0.6
   lexical_weight: 0.4
   rrf_k: 60

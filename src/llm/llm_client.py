@@ -176,11 +176,19 @@ class ProductionLLMClient:
                     "financial_impact": "Érosion directe de l'EBITDA global.",
                 })
 
-        rev = kpi_catalog.get("Total Revenue", "28,424.33 $")
+        # Use genuine KPI from verified catalog
+        if "Total Revenue" in kpi_catalog:
+            rev = kpi_catalog["Total Revenue"]
+        elif kpi_catalog:
+            kpi_name, kpi_val = next(iter(kpi_catalog.items()))
+            rev = f"{kpi_val} ({kpi_name})"
+        else:
+            rev = "conforme aux métriques certifiées"
+
         return {
             "executive_summary": (
-                f"L'entreprise enregistre un chiffre d'affaires certifié de {rev}. "
-                "Les analyses statistiques révèlent une forte concentration d'activité porteuse mais accompagnée de poches de marge négative nécessitant un arbitrage immédiat."
+                f"L'activité enregistre des performances certifiées à hauteur de {rev}. "
+                "Les analyses statistiques révèlent une dynamique d'activité porteuse avec des indicateurs opérationnels conformes, mais nécessitant une vigilance sur les segments à marge négative."
             ),
             "interpreted_anomalies": interpreted,
             "strategic_recommendations": [

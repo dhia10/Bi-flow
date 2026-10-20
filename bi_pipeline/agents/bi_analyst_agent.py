@@ -6,6 +6,9 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from src.eval.rag_metrics import RAGMetricEvaluator
+from src.observability.tracing import PipelineTracer
+
 from bi_pipeline.schemas.state_schema import (
     AuditLineage,
     BIAnalystState,
@@ -24,6 +27,8 @@ class BIAnalystAgent:
     def __init__(self, z_threshold: float = 2.0, iqr_multiplier: float = 1.5) -> None:
         self.z_threshold = z_threshold
         self.iqr_multiplier = iqr_multiplier
+        self.evaluator = RAGMetricEvaluator()
+        self.tracer = PipelineTracer()
 
     def _find_anomalies(self, state: SemanticKPIState) -> List[StatisticalAnomaly]:
         anomalies = []
@@ -366,10 +371,14 @@ class BIAnalystAgent:
         if not state:
             raise ValueError("SemanticKPIState cannot be None")
 
-        anomalies = self._find_anomalies(state)
-        trends = self._eval_trends(state)
-        takeaways = self._synthesize_takeaways(state, anomalies, trends)
-        narrative = self._render_narrative(state, anomalies, trends, takeaways)
+        with self.tracer.time_step("statistical_mining_ms"):
+            anomalies = self._find_anomalies(state)
+        with self.tracer.time_step("trend_evaluation_ms"):
+            trends = self._eval_trends(state)
+        with self.tracer.time_step("takeaway_synthesis_ms"):
+            takeaways = self._synthesize_takeaways(state, anomalies, trends)
+        with self.tracer.time_step("narrative_render_ms"):
+            narrative = self._render_narrative(state, anomalies, trends, takeaways)
 
         return BIAnalystState(
             dataset_name=state.dataset_name,

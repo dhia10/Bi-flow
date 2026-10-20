@@ -11,13 +11,23 @@ log = logging.getLogger(__name__)
 
 class SemanticReranker:
     """
-    Precision reranker scoring candidate OntologyChunks using fine-grained
-    semantic role coverage, token alignment, and calibrated relevance scoring.
-    Boosts verified matching templates to confidence scores > 0.85.
+    Reranker scoring candidate OntologyChunks using a weighted combination of:
+    1. Dense and lexical hybrid retrieval score
+    2. Semantic role coverage (exact and token-level match against DataFrame columns)
+    3. Token overlap between query and chunk content
+
+    No artificial floor is applied — scores reflect genuine semantic relevance.
     """
 
-    def __init__(self, target_threshold: float = 0.85) -> None:
-        self.target_threshold = target_threshold
+    def __init__(
+        self,
+        dense_weight: float = 0.40,
+        role_weight: float = 0.40,
+        overlap_weight: float = 0.20,
+    ) -> None:
+        self.dense_weight = dense_weight
+        self.role_weight = role_weight
+        self.overlap_weight = overlap_weight
 
     def rerank(
         self,
@@ -29,41 +39,52 @@ class SemanticReranker:
         if not candidates:
             return []
 
-        cols_lower = {re.sub(r"[_\s]+", "", c.lower()) for c in available_columns}
         query_tokens = set(re.findall(r"\w+", query.lower()))
 
         reranked: List[Tuple[OntologyChunk, float]] = []
 
         for chunk, initial_score in candidates:
-            # 1. Semantic role coverage score (0.0 to 1.0)
+            # 1. Semantic role coverage (0.0 to 1.0)
             req_roles = chunk.required_roles
-            roles_matched = 0
             if req_roles:
+                roles_matched = 0
                 for role in req_roles:
-                    role_clean = re.sub(r"[_\s]+", "", role.lower())
-                    # Check direct or synonym match against available columns
                     aliases = chunk.metadata.get("aliases", [role])
                     clean_aliases = [re.sub(r"[_\s]+", "", a.lower()) for a in aliases]
-                    if any(a in cols_lower or any(a in col for col in cols_lower) for a in clean_aliases):
+
+                    role_found = False
+                    for c in available_columns:
+                        c_clean = re.sub(r"[_\s]+", "", c.lower())
+                        c_tokens = set(re.findall(r"\w+", c.lower()))
+                        if c_clean in clean_aliases or any(
+                            a.lower() == c.lower() or a.lower() in c_tokens
+                            for a in aliases
+                            if len(a) > 2
+                        ):
+                            role_found = True
+                            break
+
+                    if role_found:
                         roles_matched += 1
+
                 role_coverage = roles_matched / len(req_roles)
             else:
-                role_coverage = 0.7  # Universal template with no required roles
+                # Universal template with no required roles gets neutral coverage
+                role_coverage = 0.3
 
-            # 2. Token overlap score
+            # 2. Token overlap between query and chunk content
             chunk_tokens = set(re.findall(r"\w+", chunk.content.lower()))
             overlap = len(query_tokens & chunk_tokens) / max(1, len(query_tokens))
 
-            # 3. Weighted composite calculation
-            # If all required roles are satisfied by the DataFrame, calibrate score into [0.85, 0.98]
-            if role_coverage >= 1.0:
-                final_score = 0.85 + (0.10 * role_coverage) + (0.04 * min(1.0, initial_score))
-            elif role_coverage >= 0.5:
-                final_score = 0.65 + (0.20 * role_coverage)
-            else:
-                final_score = initial_score * 0.7
+            # 3. Dynamic weighted composite calculation
+            final_score = (
+                self.dense_weight * min(1.0, initial_score)
+                + self.role_weight * role_coverage
+                + self.overlap_weight * overlap
+            )
 
-            reranked.append((chunk, round(min(0.99, max(0.1, final_score)), 4)))
+            final_score = round(max(0.0, min(1.0, final_score)), 4)
+            reranked.append((chunk, final_score))
 
         reranked.sort(key=lambda x: x[1], reverse=True)
         return reranked[:top_k]
