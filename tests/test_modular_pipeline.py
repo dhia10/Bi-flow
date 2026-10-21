@@ -214,3 +214,34 @@ def test_fastapi_decoupled_microservices():
     data4 = res4.json()
     assert len(data4["executive_narrative"]) > 0
     assert data4["eval_metrics"]["faithfulness"] == 1.0
+
+
+def test_dashboard_and_demo_endpoints():
+    client = TestClient(app)
+
+    # 1. Test GET / serves HTML dashboard
+    res_root = client.get("/")
+    assert res_root.status_code == 200
+    assert "text/html" in res_root.headers.get("content-type", "")
+    assert "BI-FLOW" in res_root.text
+    assert "Orchestration Multi-Agents" in res_root.text
+
+    # 2. Test POST /api/v1/clear-cache
+    res_cache = client.post("/api/v1/clear-cache")
+    assert res_cache.status_code == 200
+    assert res_cache.json()["status"] == "success"
+
+    # 3. Test POST /api/v1/run-demo/superstore
+    res_demo = client.post("/api/v1/run-demo/superstore")
+    assert res_demo.status_code == 200
+    data = res_demo.json()
+    assert len(data["duckdb_proofs"]) >= 6
+    assert data["eval_metrics"]["faithfulness"] == 1.0
+    assert len(data["strategic_recommendations"]) >= 4
+
+    # 4. Test POST /api/v1/run-demo/iot (Tier-2 routing)
+    res_iot = client.post("/api/v1/run-demo/iot")
+    assert res_iot.status_code == 200
+    data_iot = res_iot.json()
+    assert data_iot["dataset_name"] == "Industrial IoT Sensors Telemetry"
+

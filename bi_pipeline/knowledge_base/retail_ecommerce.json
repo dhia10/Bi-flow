@@ -5,7 +5,7 @@
   "keywords": [
     "sales", "revenue", "profit", "discount", "quantity", "order", "product",
     "customer", "category", "sub_category", "segment", "ship_mode", "store",
-    "ecommerce", "retail", "superstore", "unit_price", "cost", "inventory", "margin"
+    "ecommerce", "retail", "superstore", "unit_price", "cost", "inventory", "margin", "freight"
   ],
   "column_mapping_rules": {
     "monetary_sales": ["sales", "revenue", "price", "payment_value", "total_sales", "turnover", "gross_sales", "amount"],
@@ -17,7 +17,8 @@
     "date": ["order_date", "order_purchase_timestamp", "shipping_limit_date", "transaction_date", "date", "purchase_date"],
     "category": ["category", "product_category", "product_category_name", "payment_type", "dept", "department"],
     "sub_category": ["sub_category", "sub_dept", "product_sub_category", "product_type"],
-    "region": ["region", "customer_state", "state", "customer_city", "city", "country", "market", "zone"]
+    "region": ["region", "customer_state", "state", "customer_city", "city", "country", "market", "zone"],
+    "freight_value": ["freight_value", "freight", "shipping_cost", "shipping_fee", "delivery_fee", "transport_cost"]
   },
   "kpi_templates": [
     {
@@ -28,24 +29,6 @@
       "description": "Aggregate gross revenue across all transactions.",
       "sql_template": "SELECT ROUND(CAST(SUM({monetary_sales}) AS DOUBLE), 2) AS metric_value FROM df",
       "required_roles": ["monetary_sales"]
-    },
-    {
-      "id": "kpi_total_profit",
-      "name": "Total Profit",
-      "category": "financial",
-      "unit": "$",
-      "description": "Aggregate net profit generated across all sales.",
-      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) AS DOUBLE), 2) AS metric_value FROM df",
-      "required_roles": ["monetary_profit"]
-    },
-    {
-      "id": "kpi_profit_margin_pct",
-      "name": "Profit Margin",
-      "category": "efficiency",
-      "unit": "%",
-      "description": "Net profit margin expressed as a percentage of total revenue.",
-      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) * 100.0 / NULLIF(SUM({monetary_sales}), 0) AS DOUBLE), 2) AS metric_value FROM df",
-      "required_roles": ["monetary_sales", "monetary_profit"]
     },
     {
       "id": "kpi_average_order_value",
@@ -66,6 +49,42 @@
       "required_roles": ["quantity"]
     },
     {
+      "id": "kpi_total_orders",
+      "name": "Total Orders",
+      "category": "volume",
+      "unit": "orders",
+      "description": "Total count of distinct completed orders processed.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {order_id}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": ["order_id"]
+    },
+    {
+      "id": "kpi_unique_customers",
+      "name": "Unique Active Customers",
+      "category": "customer",
+      "unit": "customers",
+      "description": "Total unique customer accounts purchasing within the dataset.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {customer_id}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": ["customer_id"]
+    },
+    {
+      "id": "kpi_total_profit",
+      "name": "Total Net Profit",
+      "category": "financial",
+      "unit": "$",
+      "description": "Aggregate net operational profit generated across sales.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_profit"]
+    },
+    {
+      "id": "kpi_profit_margin_pct",
+      "name": "Profit Margin",
+      "category": "efficiency",
+      "unit": "%",
+      "description": "Net operational profit margin as a percentage of total revenue.",
+      "sql_template": "SELECT ROUND(CAST(SUM({monetary_profit}) * 100.0 / NULLIF(SUM({monetary_sales}), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["monetary_sales", "monetary_profit"]
+    },
+    {
       "id": "kpi_average_discount_pct",
       "name": "Average Discount Rate",
       "category": "efficiency",
@@ -73,6 +92,24 @@
       "description": "Average promotional discount rate granted across orders.",
       "sql_template": "SELECT ROUND(CAST(AVG({discount}) * 100.0 AS DOUBLE), 2) AS metric_value FROM df",
       "required_roles": ["discount"]
+    },
+    {
+      "id": "kpi_total_freight",
+      "name": "Total Freight Cost",
+      "category": "operational",
+      "unit": "$",
+      "description": "Total freight and logistics delivery shipping cost incurred.",
+      "sql_template": "SELECT ROUND(CAST(SUM({freight_value}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["freight_value"]
+    },
+    {
+      "id": "kpi_freight_ratio_pct",
+      "name": "Freight to Revenue Ratio",
+      "category": "efficiency",
+      "unit": "%",
+      "description": "Ratio of logistics freight delivery expenses to total merchandise revenue.",
+      "sql_template": "SELECT ROUND(CAST(SUM({freight_value}) * 100.0 / NULLIF(SUM({monetary_sales}), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": ["freight_value", "monetary_sales"]
     }
   ],
   "dimensional_templates": [

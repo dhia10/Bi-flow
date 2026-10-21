@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import logging
 import re
 from pathlib import Path
@@ -8,8 +9,9 @@ from typing import Any, Dict, List, Optional
 import duckdb
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from src.pipelines.query_pipeline import ProductionQueryPipeline
@@ -101,6 +103,17 @@ class Agent6SynthesisResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+INDEX_HTML_PATH = Path(__file__).parent / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+def get_dashboard():
+    """Serves the executive BI-Flow interactive Web Dashboard."""
+    if not INDEX_HTML_PATH.is_file():
+        raise HTTPException(status_code=404, detail="Dashboard UI file not found")
+    return HTMLResponse(content=INDEX_HTML_PATH.read_text(encoding="utf-8"))
+
+
 @app.get("/health")
 def health():
     return {"status": "healthy", "service": "bi-flow-v2", "version": "2.0.0"}
@@ -359,6 +372,130 @@ def full_analyze(req: Agent5Request):
     path = Path(req.dataset_path) if req.dataset_path and Path(req.dataset_path).is_file() else pipeline.root_dir / pipeline.cfg["data"]["default_dataset"]
     df = pd.read_csv(path)
     return pipeline.run(df, dataset_name=req.dataset_name, query_intent=req.query_intent)
+
+
+def _load_olist(sample_limit: int = 25000) -> pd.DataFrame:
+    base_dir = pipeline.root_dir
+    orders_p = base_dir / "olist_orders_dataset.csv"
+    items_p = base_dir / "olist_order_items_dataset.csv"
+    products_p = base_dir / "olist_products_dataset.csv"
+    trans_p = base_dir / "product_category_name_translation.csv"
+    customers_p = base_dir / "olist_customers_dataset.csv"
+
+    orders = pd.read_csv(
+        orders_p,
+        usecols=["order_id", "customer_id", "order_status", "order_purchase_timestamp"],
+    )
+    orders = orders[orders["order_status"] == "delivered"].head(sample_limit)
+
+    items = pd.read_csv(
+        items_p,
+        usecols=["order_id", "order_item_id", "product_id", "price", "freight_value"],
+    )
+    products = pd.read_csv(products_p, usecols=["product_id", "product_category_name"])
+    customers = pd.read_csv(
+        customers_p,
+        usecols=["customer_id", "customer_state", "customer_city"],
+    )
+
+    df = items.merge(orders, on="order_id", how="inner")
+    df = df.merge(products, on="product_id", how="left")
+    df = df.merge(customers, on="customer_id", how="left")
+
+    if trans_p.is_file():
+        trans = pd.read_csv(trans_p)
+        df = df.merge(trans, on="product_category_name", how="left")
+        df["category"] = (
+            df["product_category_name_english"]
+            .fillna(df["product_category_name"])
+            .fillna("other")
+        )
+    else:
+        df["category"] = df["product_category_name"].fillna("other")
+
+    df = df.rename(
+        columns={
+            "price": "sales",
+            "order_item_id": "quantity",
+            "order_purchase_timestamp": "order_date",
+            "customer_state": "region",
+        }
+    )
+    return df
+
+
+def _make_iot_sample() -> pd.DataFrame:
+    rng = np.random.default_rng(42)
+    n = 1000
+    dates = pd.date_range("2024-01-01", periods=n, freq="h")
+    machines = rng.choice(["Turbine_Alpha", "Pump_Beta", "Compressor_Gamma"], size=n)
+    temp = rng.normal(75.0, 8.0, size=n)
+    vibe = rng.normal(2.5, 0.6, size=n)
+    pressure = rng.normal(12.0, 1.5, size=n)
+    # Inject deliberate outliers
+    temp[42] = 135.0
+    vibe[42] = 8.5
+    return pd.DataFrame({
+        "timestamp": dates,
+        "machine_id": machines,
+        "temperature_celsius": np.round(temp, 2),
+        "vibration_rms": np.round(vibe, 2),
+        "pressure_bar": np.round(pressure, 2),
+    })
+
+
+@app.post("/api/v1/run-demo/{demo_id}", response_model=XAIResponsePayload)
+def run_demo(demo_id: str):
+    """Executes a pre-configured demo dataset for instant jury demonstration."""
+    if demo_id == "superstore":
+        csv_path = pipeline.root_dir / "bi_pipeline" / "data" / "mock_clean_data.csv"
+        df = pd.read_csv(csv_path)
+        return pipeline.run(
+            df=df,
+            dataset_name="Superstore Retail USA",
+            query_intent="retail sales profit performance by category and region",
+        )
+    elif demo_id == "olist":
+        df = _load_olist(sample_limit=25000)
+        return pipeline.run(
+            df=df,
+            dataset_name="Olist Brazilian E-Commerce Mart",
+            query_intent="retail ecommerce revenue freight orders customer analysis",
+        )
+    elif demo_id == "iot":
+        df = _make_iot_sample()
+        return pipeline.run(
+            df=df,
+            dataset_name="Industrial IoT Sensors Telemetry",
+            query_intent="industrial iot sensor telemetry temperature pressure vibration anomalies",
+        )
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown demo_id '{demo_id}'. Expected 'superstore', 'olist', or 'iot'.")
+
+
+@app.post("/api/v1/upload-csv", response_model=XAIResponsePayload)
+async def upload_csv(file: UploadFile = File(...)):
+    """Upload custom CSV and run autonomous BI pipeline."""
+    contents = await file.read()
+    try:
+        df = pd.read_csv(io.BytesIO(contents))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse CSV file: {e}")
+
+    dataset_name = file.filename or "Uploaded Dataset"
+    return pipeline.run(
+        df=df,
+        dataset_name=dataset_name,
+        query_intent="business intelligence kpi revenue sales performance",
+    )
+
+
+@app.post("/api/v1/clear-cache")
+def clear_cache():
+    """Flushes the local semantic SQLite cache."""
+    cleared = pipeline.cache.clear()
+    return {"status": "success", "cleared_entries": cleared}
+
 
 
 if __name__ == "__main__":

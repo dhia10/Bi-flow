@@ -108,6 +108,9 @@ class XAIResponsePayload(BaseModel):
     anomalies: List[AnomalyReport] = Field(default_factory=list)
     executive_narrative: str
     grounded_citations: List[str] = Field(default_factory=list)
+    strategic_recommendations: List[StrategicRecommendation] = Field(default_factory=list)
+    trend_metrics: Dict[str, Any] = Field(default_factory=dict)
+    breakdown_charts_data: Dict[str, Any] = Field(default_factory=dict)
     eval_metrics: RAGASEvalMetrics
     step_latencies_ms: Dict[str, float] = Field(default_factory=dict)
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

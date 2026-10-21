@@ -134,10 +134,13 @@ def main():
     # [5] Grounded Synthesis
     print("\n[5] SYNTHESE COMEX ANCREE (Grounded Synthesis avec Citations)")
     print("-" * 84)
-    # Show first 300 chars of narrative
     preview = res.executive_narrative[:400].replace("\n", "\n    ")
     print(f"    {preview}...")
     print(f"\n  * Citations : {res.grounded_citations}")
+    print(f"\n  * Recommandations Strategiques Prioritaires ({len(res.strategic_recommendations)}) :")
+    for r in res.strategic_recommendations:
+        print(f"    - [{r.priority.value.upper()}] {r.action}")
+        print(f"      Justification : {r.justification}")
 
     # [6] JSON audit payload
     print("\n[6] PAYLOAD JSON FINAL D'AUDITABILITE (Pydantic V2) :")

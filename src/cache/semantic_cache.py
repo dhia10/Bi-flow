@@ -48,10 +48,10 @@ class SemanticCache:
     ) -> str:
         h = hashlib.sha256()
         # Canonicalize schema
-        schema_str = json.dumps(sorted(schema_dict.items()), sort_keys=True)
+        schema_str = json.dumps(sorted(schema_dict.items()), sort_keys=True, default=str)
         h.update(schema_str.encode("utf-8"))
         # Sample signature
-        samples_str = json.dumps(str(sample_rows), sort_keys=True)
+        samples_str = json.dumps(str(sample_rows), sort_keys=True, default=str)
         h.update(samples_str.encode("utf-8"))
         # Query string
         h.update(query.strip().lower().encode("utf-8"))
@@ -84,6 +84,19 @@ class SemanticCache:
 
         return False, None
 
+    def clear(self) -> int:
+        """Clears all cached query results."""
+        try:
+            with sqlite3.connect(self.db_path) as con:
+                cursor = con.execute("DELETE FROM semantic_cache")
+                count = cursor.rowcount
+                con.commit()
+                log.info("Semantic cache cleared (%d entries removed)", count)
+                return count
+        except Exception as e:
+            log.warning("Cache clear failed: %s", e)
+            return 0
+
     def set(
         self,
         schema_dict: Dict[str, str],
@@ -102,7 +115,7 @@ class SemanticCache:
                         payload_json = excluded.payload_json,
                         created_at = excluded.created_at
                     """,
-                    (cache_key, json.dumps(payload), time.time()),
+                    (cache_key, json.dumps(payload, default=str), time.time()),
                 )
                 con.commit()
                 log.debug("Semantic cache entry stored (key=%s)", cache_key[:10])
