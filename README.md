@@ -166,7 +166,7 @@ final_state = run_pipeline(agents, dataset_ref="data/olist.csv", domain="retail"
 ## 6. Structure de la branche
 
 ```
-Flow/
+Orchestrator/
 ├── orchestrator/
 │   └── orchestrator.py     # Graphe LangGraph, enveloppe, routage, exécution
 ├── core/
@@ -187,7 +187,7 @@ Flow/
 ## 7. Lancer la démo et les tests
 
 ```bash
-cd Flow
+cd Orchestrator
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (Linux/macOS : source .venv/bin/activate)
 pip install -r requirements.txt
