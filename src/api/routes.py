@@ -374,6 +374,42 @@ def full_analyze(req: Agent5Request):
     return pipeline.run(df, dataset_name=req.dataset_name, query_intent=req.query_intent)
 
 
+def robust_read_csv(raw_bytes: bytes) -> pd.DataFrame:
+    """Ultra-tolerant CSV reader testing encodings and auto-detecting delimiters."""
+    encodings = ["utf-8", "utf-8-sig", "latin1", "cp1252", "iso-8859-1"]
+    separators = [None, ",", ";", "\t", "|"]
+
+    last_error: Optional[Exception] = None
+    for enc in encodings:
+        try:
+            text = raw_bytes.decode(enc)
+        except Exception:
+            continue
+
+        for sep in separators:
+            try:
+                if sep is None:
+                    df = pd.read_csv(io.StringIO(text), sep=None, engine="python")
+                else:
+                    df = pd.read_csv(io.StringIO(text), sep=sep)
+
+                if len(df.columns) > 1 and len(df) > 0:
+                    return df
+                elif len(df) > 0 and len(df.columns) == 1 and sep == separators[-1]:
+                    return df
+            except Exception as e:
+                last_error = e
+                continue
+
+    try:
+        return pd.read_csv(io.BytesIO(raw_bytes), encoding_errors="replace", on_bad_lines="skip")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Erreur de lecture du CSV. Vérifiez le format du fichier. Détail: {e or last_error}"
+        )
+
+
 def _load_olist(sample_limit: int = 25000) -> pd.DataFrame:
     base_dir = pipeline.root_dir
     orders_p = base_dir / "olist_orders_dataset.csv"
@@ -427,7 +463,7 @@ def _load_olist(sample_limit: int = 25000) -> pd.DataFrame:
 def _make_iot_sample() -> pd.DataFrame:
     rng = np.random.default_rng(42)
     n = 1000
-    dates = pd.date_range("2024-01-01", periods=n, freq="h")
+    dates = [str(d) for d in pd.date_range("2024-01-01", periods=n, freq="h")]
     machines = rng.choice(["Turbine_Alpha", "Pump_Beta", "Compressor_Gamma"], size=n)
     temp = rng.normal(75.0, 8.0, size=n)
     vibe = rng.normal(2.5, 0.6, size=n)
@@ -453,7 +489,8 @@ def run_demo(demo_id: str):
         return pipeline.run(
             df=df,
             dataset_name="Superstore Retail USA",
-            query_intent="retail sales profit performance by category and region",
+            query_intent="retail ecommerce kpi sales revenue profit",
+            force_refresh=True,
         )
     elif demo_id == "olist":
         df = _load_olist(sample_limit=25000)
@@ -461,6 +498,7 @@ def run_demo(demo_id: str):
             df=df,
             dataset_name="Olist Brazilian E-Commerce Mart",
             query_intent="retail ecommerce revenue freight orders customer analysis",
+            force_refresh=True,
         )
     elif demo_id == "iot":
         df = _make_iot_sample()
@@ -468,6 +506,7 @@ def run_demo(demo_id: str):
             df=df,
             dataset_name="Industrial IoT Sensors Telemetry",
             query_intent="industrial iot sensor telemetry temperature pressure vibration anomalies",
+            force_refresh=True,
         )
     else:
         raise HTTPException(status_code=400, detail=f"Unknown demo_id '{demo_id}'. Expected 'superstore', 'olist', or 'iot'.")
@@ -475,19 +514,21 @@ def run_demo(demo_id: str):
 
 @app.post("/api/v1/upload-csv", response_model=XAIResponsePayload)
 async def upload_csv(file: UploadFile = File(...)):
-    """Upload custom CSV and run autonomous BI pipeline."""
+    """Upload custom CSV with ultra-tolerant parsing and run autonomous BI pipeline."""
     contents = await file.read()
-    try:
-        df = pd.read_csv(io.BytesIO(contents))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse CSV file: {e}")
+    if not contents:
+        raise HTTPException(status_code=400, detail="Fichier vide téléversé.")
 
+    df = robust_read_csv(contents)
     dataset_name = file.filename or "Uploaded Dataset"
+
     return pipeline.run(
         df=df,
         dataset_name=dataset_name,
-        query_intent="business intelligence kpi revenue sales performance",
+        query_intent="retail ecommerce kpi sales revenue profit performance",
+        force_refresh=True,
     )
+
 
 
 @app.post("/api/v1/clear-cache")

@@ -58,6 +58,7 @@ class DuckDBExecutionProof(BaseModel):
     latency_ms: float = Field(..., ge=0.0)
     source_chunk_id: str
     columns_used: List[str] = Field(default_factory=list)
+    relevance_score: Optional[float] = None
     execution_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -103,6 +104,8 @@ class XAIResponsePayload(BaseModel):
     retrieval_relevance_score: float
     retrieval_tier: str
     cache_hit: bool
+    total_rows: int = 0
+    columns_detected: List[str] = Field(default_factory=list)
     semantic_mappings: List[SemanticMappingResult] = Field(default_factory=list)
     duckdb_proofs: List[DuckDBExecutionProof] = Field(default_factory=list)
     anomalies: List[AnomalyReport] = Field(default_factory=list)

@@ -223,8 +223,9 @@ def test_dashboard_and_demo_endpoints():
     res_root = client.get("/")
     assert res_root.status_code == 200
     assert "text/html" in res_root.headers.get("content-type", "")
-    assert "BI-FLOW" in res_root.text
-    assert "Orchestration Multi-Agents" in res_root.text
+    assert "BI-Flow" in res_root.text
+    assert "Agent 5" in res_root.text
+    assert "Agent 6" in res_root.text
 
     # 2. Test POST /api/v1/clear-cache
     res_cache = client.post("/api/v1/clear-cache")
@@ -238,10 +239,22 @@ def test_dashboard_and_demo_endpoints():
     assert len(data["duckdb_proofs"]) >= 6
     assert data["eval_metrics"]["faithfulness"] == 1.0
     assert len(data["strategic_recommendations"]) >= 4
+    assert len(data["anomalies"]) >= 1
 
     # 4. Test POST /api/v1/run-demo/iot (Tier-2 routing)
     res_iot = client.post("/api/v1/run-demo/iot")
     assert res_iot.status_code == 200
     data_iot = res_iot.json()
     assert data_iot["dataset_name"] == "Industrial IoT Sensors Telemetry"
+
+    # 5. Test POST /api/v1/upload-csv with semicolon delimiter and latin1 encoding
+    csv_content = "order_id;sales;quantity;category;region\nORD01;150,50;2;Tech;North\nORD02;200,00;3;Furniture;South\n".replace(",", ".")
+    files = {"file": ("test_semicolon.csv", csv_content.encode("latin1"), "text/csv")}
+    res_upload = client.post("/api/v1/upload-csv", files=files)
+    assert res_upload.status_code == 200
+    data_upload = res_upload.json()
+    assert data_upload["total_rows"] == 2
+    assert len(data_upload["columns_detected"]) == 5
+    assert len(data_upload["duckdb_proofs"]) > 0
+
 

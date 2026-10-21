@@ -125,6 +125,7 @@ class ProductionQueryPipeline:
                 top_k=self.cfg["retrieval"]["top_k"],
             )
 
+        chunk_scores = {c.chunk_id: score for c, score in reranked_candidates}
         top_chunk = reranked_candidates[0][0] if reranked_candidates else None
         top_relevance = reranked_candidates[0][1] if reranked_candidates else 0.0
         detected_domain = top_chunk.domain if top_chunk else "unknown"
@@ -259,6 +260,7 @@ class ProductionQueryPipeline:
                                 latency_ms=round(lat, 2),
                                 source_chunk_id=chunk.chunk_id,
                                 columns_used=cols_used,
+                                relevance_score=round(chunk_scores.get(chunk.chunk_id, top_relevance), 4),
                             )
                         )
                         executed_templates.add(tpl_id)
@@ -500,6 +502,8 @@ class ProductionQueryPipeline:
             retrieval_relevance_score=round(top_relevance, 4),
             retrieval_tier=tier_label,
             cache_hit=False,
+            total_rows=len(df),
+            columns_detected=[str(c) for c in df.columns],
             semantic_mappings=semantic_mappings,
             duckdb_proofs=duckdb_proofs,
             anomalies=anomalies,
