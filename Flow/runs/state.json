@@ -1,0 +1,215 @@
+{
+  "run_id": "730bf8b0",
+  "dataset_ref": "data/raw/olist_orders.csv",
+  "domain": "retail",
+  "profile_report": {
+    "rows": 99441,
+    "has_issues": true
+  },
+  "clean_data": "data/clean/orders.parquet",
+  "quality_report": {
+    "has_residual_issues": false,
+    "passage": 2
+  },
+  "data_model": {
+    "fact": "fact_orders",
+    "dims": [
+      "dim_client",
+      "dim_produit",
+      "dim_date"
+    ]
+  },
+  "kpi_catalog": {
+    "CA": 1200000.0,
+    "panier_moyen": 137.5
+  },
+  "insights": [
+    "Le CA progresse de 8 % au T3"
+  ],
+  "dashboard": {
+    "visuels": 6
+  },
+  "xai_report": {
+    "verdict": "COMPLET",
+    "noeuds_executes": [
+      "profiler",
+      "quality",
+      "quality",
+      "etl",
+      "semantic",
+      "analyst",
+      "dashboard"
+    ],
+    "nb_decisions": 8,
+    "passages_quality": 2,
+    "erreurs": []
+  },
+  "decision_log": [
+    {
+      "agent": "DataProfiler",
+      "action": "traitement simulé",
+      "rationale": "agent-jouet",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "DataQuality",
+      "action": "nettoyage (passage 1)",
+      "rationale": "problèmes résiduels détectés",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {
+        "has_residual_issues": true
+      },
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "Orchestrator",
+      "action": "relance de 'quality' (passage 2)",
+      "rationale": "problèmes résiduels signalés par quality_report.has_residual_issues",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {
+        "relances_max": 2
+      },
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "DataQuality",
+      "action": "nettoyage (passage 2)",
+      "rationale": "données propres",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {
+        "has_residual_issues": false
+      },
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "ETL",
+      "action": "traitement simulé",
+      "rationale": "agent-jouet",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "BISemantic",
+      "action": "traitement simulé",
+      "rationale": "agent-jouet",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "BIAnalyst",
+      "action": "traitement simulé",
+      "rationale": "agent-jouet",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "DashboardGen",
+      "action": "traitement simulé",
+      "rationale": "agent-jouet",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "agent": "XAI",
+      "action": "audit du run",
+      "rationale": "relecture de trace et decision_log",
+      "confidence": 1.0,
+      "alternatives_considered": [],
+      "evidence": {},
+      "timestamp": "2026-10-14T14:35:13"
+    }
+  ],
+  "trace": [
+    {
+      "node": "profiler",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "quality",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "quality",
+      "status": "success",
+      "attempt": 2,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "etl",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "semantic",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "analyst",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "dashboard",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    },
+    {
+      "node": "xai",
+      "status": "success",
+      "attempt": 1,
+      "duration_s": 0.0,
+      "message": "",
+      "timestamp": "2026-10-14T14:35:13"
+    }
+  ],
+  "control": {
+    "runs": {
+      "profiler": 1,
+      "quality": 2,
+      "etl": 1,
+      "semantic": 1,
+      "analyst": 1,
+      "dashboard": 1,
+      "xai": 1
+    },
+    "errors": [],
+    "aborted": false
+  }
+}

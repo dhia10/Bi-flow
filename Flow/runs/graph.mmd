@@ -1,0 +1,32 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	profiler(profiler)
+	quality(quality)
+	etl(etl)
+	semantic(semantic)
+	analyst(analyst)
+	dashboard(dashboard)
+	xai(xai)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> profiler;
+	analyst -.-> dashboard;
+	analyst -.-> xai;
+	dashboard --> xai;
+	etl -.-> semantic;
+	etl -.-> xai;
+	profiler -.-> quality;
+	profiler -.-> xai;
+	quality -.-> etl;
+	quality -.-> xai;
+	semantic -.-> analyst;
+	semantic -.-> xai;
+	xai --> __end__;
+	quality -.-> quality;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
