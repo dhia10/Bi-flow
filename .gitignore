@@ -44,3 +44,17 @@ product_category_name_translation.csv
 *.log
 *.sqlite
 data/cache/
+
+# Intelligent ETL Agent
+**/.venv/
+**/.env
+**/__pycache__/
+**/.pytest_cache/
+**/data/output/
+
+# Intelligent ETL Agent
+**/.venv/
+**/.env
+**/__pycache__/
+**/.pytest_cache/
+**/data/output/
