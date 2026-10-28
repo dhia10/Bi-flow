@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BI Visual Studio & AI Copilot - Power BI & Apache Superset</title>
+  <meta name="description"
+    content="Plateforme BI intégrant un Agent IA conversationnel pour la génération de visuels Apache Superset et mesures DAX automatiques à partir de datasets réels.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <!-- Local ECharts library with CDN fallback -->
+  <script src="libs/echarts.min.js"></script>
+  <script>window.echarts || document.write('<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"><\/script>')</script>
+</head>
+
+<body>
+
+  <!-- Application Top Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="logo-badge">BI</div>
+      <div class="brand-title">
+        <span>BI Studio</span>
+        <span class="highlight">&amp; AI Copilot</span>
+      </div>
+      <div class="dataset-pill" id="dataset-status-pill">● Aucun dataset actif · Parcourez un fichier Excel/CSV</div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-header" style="border-color: rgba(56, 189, 248, 0.55); color: #38bdf8; font-weight: 600;" onclick="document.getElementById('bi-dataset-upload-input').click()"
+        title="Parcourir et charger un fichier CSV, XLS ou XLSX depuis votre ordinateur pour construire les KPIs et afficher la dashboard">
+        <span>📂</span>
+        <span>Parcourir Dataset (Excel / CSV)</span>
+      </button>
+      <input type="file" id="bi-dataset-upload-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="Dashboard.handleFileInput(this)">
+      <button class="btn-header" id="btn-gemini-key" onclick="promptGeminiKey()"
+        title="Configurer la clé API Gemini (fallback sémantique)">
+        <span>🔑</span>
+        <span id="gemini-key-label">Clé Gemini</span>
+      </button>
+      <button class="btn-header" onclick="openKpiModal()">
+        <span>📋</span>
+        <span>Catalogue KPIs (JSON)</span>
+      </button>
+      <button class="btn-header" onclick="openSupersetModal()">
+        <span>⚡</span>
+        <span>Guide Apache Superset</span>
+      </button>
+      <button class="btn-header primary" onclick="downloadKpiJson()">
+        <span>💾</span>
+        <span>Exporter kpis_catalog.json</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Split Screen Layout: Dashboard (Left) | AI Agent (Right) -->
+  <div class="main-wrapper">
+
+    <!-- LEFT: Dashboard Studio -->
+    <main class="dashboard-pane">
+      <div class="pane-intro">
+        <div class="intro-text">
+          <h2>Tableau de Bord Décisionnel Exécutif</h2>
+          <p>Visualisations interactives générées à la volée via Apache ECharts (Moteur natif d'Apache Superset)</p>
+        </div>
+        <div class="superset-badge">
+          <span>⚙</span> Moteur Superset ECharts Actif
+        </div>
+      </div>
+
+      <!-- Top KPI Summary Cards -->
+      <section class="kpi-summary-grid" id="kpi-summary-container">
+        <!-- Rendered by dashboard.js -->
+      </section>
+
+      <!-- Visuals Grid Section -->
+      <section class="visuals-container">
+        <div class="visuals-grid-header">
+          <span class="visuals-count" id="visuals-count-badge">3 Visuels Actifs</span>
+          <span style="font-size: 12px; color: var(--text-muted);">Glissez ou demandez à l'Agent pour ajouter de
+            nouvelles tranches</span>
+        </div>
+
+        <div class="visuals-grid" id="visuals-grid">
+          <!-- Dynamic Chart Cards populated by dashboard.js & agent.js -->
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT: AI Agent Studio -->
+    <aside class="agent-pane">
+      <div class="agent-header">
+        <div class="agent-title-box">
+          <div class="agent-avatar">🤖</div>
+          <div class="agent-status-text">
+            <h4>Agent BI & DAX Copilot</h4>
+            <p id="agent-status"><span class="pulse-dot"></span> Vérification d'Ollama…</p>
+          </div>
+        </div>
+        <div
+          style="font-size: 11px; background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 4px; color: var(--text-secondary);">
+          RAG • Ollama • Gemini
+        </div>
+      </div>
+
+      <!-- Quick Suggested Prompts -->
+      <div class="quick-prompts-section">
+        <div class="quick-prompts-label">Prompts d'analyse & manipulation Power BI :</div>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('donne moi les top 8 pays avec currency la plus fort dans un histogramme groupé')">💱
+          Top 8 Devises (Currencies)</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Affiche le Top 10 des entreprises par capitalisation boursière')">🏆 Top 10
+          Market Cap</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Montre-moi la répartition du chiffre d\'affaires par secteur d\'activité')">📊 CA
+          par Secteur</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Affiche les valeurs et le pourcentage à l\'extérieur du graphique en secteur')">🏷️
+          Étiquettes à l'extérieur (%)</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Change la couleur des barres en vert émeraude avec étiquettes de données')">🎨
+          Barres Vert Émeraude</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Mets le saut de valeur dans l\'axe Y avec un pas de 500B et max de 4000B')">📏
+          Axe Y : pas de 500B</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Crée un visuel card pour la capitalisation boursière totale')">💳 Visuel Card
+          Market Cap</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Applique un arrière-plan noir avec degré de flou 20px et coins arrondis à 24px')">✨
+          Flou 20px & Coins 24px</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('Ajoute une ombre bleu néon lumineuse avec coins arrondis')">💡 Ombre Néon
+          Bleue</button>
+        <button class="prompt-chip"
+          onclick="Agent.submitPrompt('donne moi un visuel pie qui contient la pourcentage des pays qui ont meilleur currency que usa. pays meilleur que usa en rouge, pays pire que usa en jaune, avec valeur et pourcentage')">🌍
+          Meilleur vs Pire que USA</button>
+      </div>
+
+      <!-- Agent Chat Stream -->
+      <div class="agent-chat-stream" id="chat-stream">
+        <!-- Initial Welcome Message -->
+        <div class="message-bubble agent">
+          <div class="msg-content">
+            <p><strong>Bonjour ! Je suis votre Agent BI & DAX Copilot.</strong></p>
+            <p>J'ai indexé vos données (<em>Clients, Événements, Économie</em>) et je supporte désormais le
+              <strong>contrôle total des visuels façon Power BI</strong>, par prompt ou manuellement :</p>
+            <ul
+              style="padding-left: 18px; margin: 4px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.6;">
+              <li><strong>Graphiques secteurs</strong> : afficher les étiquettes et pourcentages à l'extérieur.</li>
+              <li><strong>Histogrammes</strong> : changer la couleur des barres, pas précis sur l'axe Y (saut de
+                graduation), limites min/max.</li>
+              <li><strong>Visuels Cards</strong> : créer des cartes de mesures Power BI pour n'importe quel KPI.</li>
+              <li><strong>Effets & Conteneurs</strong> : degré de flou (glassmorphism), coins arrondis (0 à 35px),
+                ombres portées ou néon, fond personnalisé.</li>
+              <li><strong>Bouton 🎨 Formater</strong> : volet interactif manuel disponible sur chaque visuel !</li>
+            </ul>
+            <p style="color: var(--text-muted); font-size: 12px;">Écrivez votre consigne ou cliquez sur un des boutons
+              ci-dessus !</p>
+            <p style="color: var(--text-muted); font-size: 11px; margin-top: 6px;">💡 <em>Astuce</em> : pour les
+              demandes complexes (comparaisons "meilleur/pire que USA", filtres sémantiques…), l'agent bascule
+              automatiquement sur <strong>Gemini</strong> si la clé est configurée (bouton 🔑 en haut).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="agent-input-container">
+        <div class="input-wrapper">
+          <input type="text" id="agent-input" class="agent-input-field"
+            placeholder="Ex: mets les étiquettes à l'extérieur avec %, barres en violet, pas de 500B..."
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.Agent&&window.Agent.submitInput();}" />
+        </div>
+        <button id="btn-send" class="btn-send" onclick="window.Agent&&window.Agent.submitInput()"
+          title="Envoyer le prompt">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Format Drawer (Power BI Format Visual Pane) -->
+  <aside class="format-drawer" id="format-drawer">
+    <div class="drawer-header">
+      <h3>
+        <span>🎨</span>
+        <span>Format du Visuel</span>
+      </h3>
+      <button class="btn-modal-close" onclick="Dashboard.closeFormatDrawer()">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div
+        style="font-size: 12px; color: var(--text-secondary); background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px 12px; border-radius: 6px;">
+        Cible : <b id="drawer-target-title" style="color: #fff;">Visuel</b>
+      </div>
+
+      <!-- Section 1: Éléments Graphiques -->
+      <div>
+        <div class="format-section-title">
+          <span>📊</span>
+          <span>Paramètres du Graphique</span>
+        </div>
+        <div id="drawer-chart-options">
+          <!-- Populated by Dashboard.openFormatDrawer -->
+        </div>
+      </div>
+
+      <!-- Section 2: Effets & Conteneur (Power BI General > Effects) -->
+      <div>
+        <div class="format-section-title">
+          <span>✨</span>
+          <span>Effets & Arrière-plan (Power BI)</span>
+        </div>
+
+        <div class="format-group">
+          <label class="format-label">Arrière-plan</label>
+          <select class="format-select" id="fmt-bg-select" onchange="Dashboard.applyDrawerChanges()">
+            <option value="dark_slate">Gris Ardoise Fumé (Défaut)</option>
+            <option value="deep_black">Noir Profond (OLED)</option>
+            <option value="glass_transparent">Verre Ultra-Transparent</option>
+          </select>
+        </div>
+
+        <div class="format-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="format-label" style="margin-bottom: 0;">Degré de Flou (Glassmorphism)</label>
+            <span id="fmt-blur-value" style="font-size: 11px; color: var(--accent-cyan); font-weight: 600;">14px</span>
+          </div>
+          <input type="range" class="format-range" id="fmt-blur-range" min="0" max="30" value="14"
+            oninput="Dashboard.applyDrawerChanges()">
+        </div>
+
+        <div class="format-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="format-label" style="margin-bottom: 0;">Coins Arrondis (Border Radius)</label>
+            <span id="fmt-radius-value"
+              style="font-size: 11px; color: var(--accent-cyan); font-weight: 600;">16px</span>
+          </div>
+          <input type="range" class="format-range" id="fmt-radius-range" min="0" max="36" value="16"
+            oninput="Dashboard.applyDrawerChanges()">
+        </div>
+
+        <div class="format-group">
+          <label class="format-label">Ombre Portée</label>
+          <select class="format-select" id="fmt-shadow-select" onchange="Dashboard.applyDrawerChanges()">
+            <option value="soft">Ombre Subtile Power BI</option>
+            <option value="neon_blue">Halo Néon Bleu / Cyan</option>
+            <option value="neon_purple">Halo Néon Violet</option>
+            <option value="none">Sans Ombre (Plat)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+
+  <!-- Generic Modal (DAX, SQL, Catalog) -->
+  <div class="modal-overlay" id="generic-modal" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Détails de la Métrique</h3>
+        <button class="btn-modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Data and Application Scripts -->
+  <script src="data_store.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="agent.js"></script>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // Adaptateur Agent — fait le pont entre index.html et BIAgent
+    // ═══════════════════════════════════════════════════════
+    window.Agent = {
+      _initialized: false,
+
+      async init(opts) {
+        this._bindUI();
+        if (!window.BIAgent) {
+          console.warn("BIAgent en cours de chargement...");
+          return;
+        }
+        try {
+          // Charge la clé Gemini depuis localStorage si présente
+          try {
+            const k = localStorage.getItem('bi_agent_gemini_key');
+            if (k && window.BIAgent.setGeminiKey) {
+              window.BIAgent.setGeminiKey(k.trim());
+            }
+          } catch (e) { /* localStorage indisponible */ }
+          this._updateGeminiButton();
+
+          const info = await window.BIAgent.init(opts);
+          console.log("BIAgent initialisé avec succès :", info);
+          this._initialized = true;
+          this._updateGeminiButton();
+          this._loadChatHistory();
+        } catch (e) {
+          console.warn("BIAgent.init warning :", e);
+        }
+      },
+
+      _bindUI() {
+        const input = document.getElementById('agent-input');
+        const btnSend = document.getElementById('btn-send');
+        if (input && !input.__bound) {
+          input.__bound = true;
+          input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              this.submitInput();
+            }
+          });
+        }
+        if (btnSend && !btnSend.__bound) {
+          btnSend.__bound = true;
+          btnSend.addEventListener('click', () => this.submitInput());
+        }
+      },
+
+      _updateGeminiButton() {
+        const lbl = document.getElementById('gemini-key-label');
+        const btn = document.getElementById('btn-gemini-key');
+        if (!lbl || !btn) return;
+        const enabled = !!(window.BIAgent && window.BIAgent.CFG && window.BIAgent.CFG.geminiApiKey);
+        lbl.textContent = enabled ? 'Clé Gemini ✓' : 'Clé Gemini';
+        btn.style.borderColor = enabled ? 'rgba(16, 185, 129, 0.55)' : '';
+        btn.style.color = enabled ? '#10b981' : '';
+      },
+
+      submitInput() {
+        const input = document.getElementById('agent-input');
+        if (input && input.value && input.value.trim()) {
+          this._send(input.value);
+        }
+      },
+
+      async submitPrompt(text) {
+        const input = document.getElementById('agent-input');
+        if (input) input.value = text;
+        await this._send(text);
+      },
+
+      async _send(text) {
+        text = (text || '').trim();
+        if (!text) return;
+        const input = document.getElementById('agent-input');
+        if (input) input.value = '';
+
+        this._appendMessage('user', this._md(text));
+        const thinking = this._appendMessage('agent', '<span class="thinking-dots">⏳ Analyse & Génération du visuel en cours…</span>');
+
+        try {
+          if (!window.BIAgent) {
+            throw new Error("L'agent BIAgent n'est pas encore initialisé. Veuillez patienter une seconde.");
+          }
+          const res = await window.BIAgent.handle(text);
+          thinking.remove();
+          const replyText = (res && res.reply) ? res.reply : (typeof res === 'string' ? res : JSON.stringify(res));
+          this._appendMessage('agent', this._md(replyText));
+        } catch (e) {
+          thinking.remove();
+          this._appendMessage('agent', '⚠️ Erreur : ' + (e && e.message ? e.message : String(e)));
+        }
+      },
+
+      _loadChatHistory() {
+        try {
+          const raw = localStorage.getItem('bi_agent_chat_stream');
+          if (!raw) return;
+          const list = JSON.parse(raw);
+          if (Array.isArray(list) && list.length) {
+            list.forEach(item => {
+              this._appendMessage(item.role, item.html, false);
+            });
+          }
+        } catch (_) {}
+      },
+
+      _appendMessage(role, htmlContent, save = true) {
+        const stream = document.getElementById('chat-stream');
+        if (!stream) return { remove: () => { } };
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble ' + role;
+        bubble.innerHTML = '<div class="msg-content">' + htmlContent + '</div>';
+        stream.appendChild(bubble);
+        try { bubble.scrollIntoView({ behavior: 'smooth', block: 'end' }); } catch (e) { }
+        if (save && !htmlContent.includes('thinking-dots')) {
+          try {
+            const raw = localStorage.getItem('bi_agent_chat_stream');
+            const list = raw ? JSON.parse(raw) : [];
+            list.push({ role, html: htmlContent, t: Date.now() });
+            if (list.length > 60) list.shift();
+            localStorage.setItem('bi_agent_chat_stream', JSON.stringify(list));
+          } catch (_) {}
+        }
+        return bubble;
+      },
+
+      _md(text) {
+        return String(text)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:11px">$1</code>')
+          .replace(/✅|🎨|🗑️|ℹ️|⚠️|●|•|🔑|🌍|🏷️|💡|📊|⚡|🚀|✓/g, m => `<span>${m}</span>`)
+          .replace(/\n/g, '<br/>');
+      }
+    };
+
+    // ── Gemini : saisie de la clé API ──
+    window.promptGeminiKey = function () {
+      if (!window.BIAgent || !window.BIAgent.setGeminiKey) {
+        alert("BIAgent n'est pas encore prêt. Réessayez dans une seconde.");
+        return;
+      }
+      let current = '';
+      try { current = localStorage.getItem('bi_agent_gemini_key') || ''; } catch (e) { }
+      const masked = current ? current.slice(0, 8) + '…' + current.slice(-4) : '';
+      const msg = current
+        ? "Une clé Gemini est déjà configurée :\n\n" + masked + "\n\nCollez une nouvelle clé pour la remplacer, ou videz le champ puis OK pour la supprimer :"
+        : "Collez votre clé API Gemini (elle sera stockée localement dans le navigateur, jamais envoyée ailleurs qu'à Google) :";
+      const key = prompt(msg, current);
+      if (key === null) return; // Annulation
+      const trimmed = key.trim();
+      const res = window.BIAgent.setGeminiKey(trimmed);
+      if (window.Agent && window.Agent._updateGeminiButton) window.Agent._updateGeminiButton();
+      if (trimmed) {
+        alert('✅ Clé Gemini activée !\n\nLe fallback sémantique est désormais disponible pour les prompts complexes (comparaisons, filtres).');
+      } else {
+        alert('❌ Clé Gemini supprimée. L\'agent utilisera uniquement ruleParse + Ollama.');
+      }
+    };
+
+    // ── Boot app ──
+    // Attend que #visuals-grid soit connecté, lance Dashboard.init(),
+    // puis laisse 80ms à Dashboard pour enregistrer ses seed avant Agent.init().
+    function bootApp() {
+      const waitGrid = (cb, tries) => {
+        tries = tries || 0;
+        const g = document.getElementById('visuals-grid');
+        if (g && g.isConnected) return cb();
+        if (tries > 60) { console.warn('visuals-grid introuvable après 6s, boot forcé'); return cb(); }
+        setTimeout(() => waitGrid(cb, tries + 1), 100);
+      };
+
+      waitGrid(() => {
+        try {
+          if (window.Dashboard && window.Dashboard.init) window.Dashboard.init();
+        } catch (e) {
+          console.error('Erreur Dashboard.init :', e);
+        }
+
+        setTimeout(() => {
+          try {
+            if (window.Agent && window.Agent.init) window.Agent.init();
+          } catch (e) {
+            console.error('Erreur Agent.init :', e);
+          }
+          try { checkOllama(); } catch (e) { console.error('Erreur checkOllama :', e); }
+        }, 80);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
+
+    // ── Indicateur d'état Ollama + Gemini ──
+    async function checkOllama() {
+      const el = document.getElementById('agent-status');
+      if (!el) return;
+      const geminiOn = !!(window.BIAgent && window.BIAgent.CFG && window.BIAgent.CFG.geminiApiKey);
+      const geminiSuffix = geminiOn
+        ? ' <span style="color:#8b5cf6">· Gemini ✓</span>'
+        : ' <span style="color:var(--text-muted);font-size:10px">· Gemini ✗</span>';
+      try {
+        let r = null;
+        try {
+          r = await fetch('/api/tags', { signal: AbortSignal.timeout(2500) });
+        } catch (_) {
+          r = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(2500) });
+        }
+        if (!r || !r.ok) throw new Error('HTTP ' + (r ? r.status : 'offline'));
+        const data = await r.json();
+        const names = (data.models || []).map(m => m.name);
+        if (names.length > 0) {
+          const modelName = window.BIAgent && window.BIAgent.CFG ? window.BIAgent.CFG.model : 'llama3.2:3b';
+          const hasConfigModel = names.some(n => n.startsWith(modelName.split(':')[0]));
+          el.innerHTML = `<span class="pulse-dot"></span> Ollama connecté · ${names.length} modèle(s) · Actif : <b>${modelName}</b>`
+            + (hasConfigModel ? '' : ` <span style="color:#f59e0b">⚠ '${modelName}' non trouvé</span>`)
+            + geminiSuffix;
+        } else {
+          el.innerHTML = '<span style="color:#f59e0b">⚠ Aucun modèle Ollama installé</span>' + geminiSuffix;
+        }
+      } catch (e) {
+        el.innerHTML = '<span style="color:#10b981">● Mode règles déterministe actif</span> <span style="color:var(--text-muted);font-size:10px;">(Ollama hors ligne)</span>' + geminiSuffix;
+      }
+    }
+
+    function closeModal() {
+      const m = document.getElementById('generic-modal');
+      if (m) m.classList.remove('active');
+    }
+    function closeModalOnBg(e) {
+      if (e.target.id === 'generic-modal') closeModal();
+    }
+
+    function openKpiModal() {
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body-content');
+      if (!modalTitle || !modalBody) return;
+      modalTitle.textContent = "Catalogue Sémantique des KPIs & APIs (kpis_catalog.json)";
+      const jsonStr = JSON.stringify(window.KPIS_CATALOG, null, 2);
+      modalBody.innerHTML = `
+        <p style="margin-bottom: 10px; color: var(--text-secondary);">
+          Ce fichier JSON contient l'ensemble des définitions de mesures, de dimensions, de requêtes SQL (Superset) et de formules DAX (Power BI) calculées à partir de vos fichiers Excel.
+        </p>
+        <div class="json-code-box">${escapeHtml(jsonStr)}</div>
+        <div style="display: flex; gap: 10px; margin-top: 14px;">
+          <button class="btn-header primary" onclick="downloadKpiJson()">Télécharger le fichier JSON</button>
+          <button class="btn-header" onclick="copyKpiJson()">Copier le JSON</button>
+        </div>
+      `;
+      document.getElementById('generic-modal').classList.add('active');
+    }
+
+    function copyKpiJson() {
+      navigator.clipboard.writeText(JSON.stringify(window.KPIS_CATALOG, null, 2))
+        .then(() => alert('Catalogue JSON copié !'));
+    }
+
+    function openSupersetModal() {
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body-content');
+      if (!modalTitle || !modalBody) return;
+      modalTitle.textContent = "Intégration Gratuite : Apache Superset & ECharts";
+      modalBody.innerHTML = `
+        <div style="line-height: 1.6; color: var(--text-secondary);">
+          <h4 style="color: #fff; margin-bottom: 6px;">1. Apache Superset — alternative gratuite à Power BI</h4>
+          <p>Open-source, auto-hébergeable sans frais de licence, intègre le SDK <code>@superset-ui/embedded-sdk</code> avec Guest Token JWT.</p>
+          <h4 style="color: #fff; margin-top: 14px; margin-bottom: 6px;">2. Le moteur : Apache ECharts</h4>
+          <p>Toutes les visualisations Superset utilisent <strong>Apache ECharts</strong> — exactement le moteur de ce tableau de bord.</p>
+          <h4 style="color: #fff; margin-top: 14px; margin-bottom: 6px;">3. Intégration production</h4>
+          <pre style="background: #090d16; padding: 12px; border-radius: 6px; font-family: var(--font-code); font-size: 11px; color: #38bdf8; overflow-x: auto;">
+import { embedDashboard } from "@superset-ui/embedded-sdk";
+
+embedDashboard({
+  id: "VOTRE_DASHBOARD_UUID",
+  supersetDomain: "https://votre-superset.domaine.com",
+  mountPoint: document.getElementById("visuals-grid"),
+  fetchGuestToken: () => fetch("/api/get-superset-guest-token").then(r => r.json()),
+  dashboardUiConfig: { hideTitle: true, hideChartControls: false }
+});
+          </pre>
+        </div>
+      `;
+      document.getElementById('generic-modal').classList.add('active');
+    }
+
+    function downloadKpiJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.KPIS_CATALOG, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "kpis_catalog.json");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+
+</html>

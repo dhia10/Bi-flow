@@ -44,3 +44,6 @@ product_category_name_translation.csv
 *.log
 *.sqlite
 data/cache/
+artifacts/
+runs/
+
