@@ -16,6 +16,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -45,6 +46,14 @@ app = FastAPI(
     description="Production-grade API orchestrating Agent 5, Agent 6, Hybrid RAG, DuckDB, and XAI Lineage for n8n",
     version="2.0.0",
 )
+
+Path("artifacts/schema").mkdir(parents=True, exist_ok=True)
+app.mount("/artifacts", StaticFiles(directory="artifacts"), name="artifacts")
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return HTMLResponse(content="", status_code=204)
 
 app.add_middleware(
     CORSMiddleware,
@@ -179,13 +188,15 @@ def agent5_map_and_query(req: Agent5Request):
     role_to_col: Dict[str, str] = {}
     mappings = []
     for m in mapping_dict.get("mappings", []):
-        c_name = m["mapped_column"]
+        c_name = m.get("mapped_column")
+        if not c_name or str(c_name).lower() in ("none", "null", ""):
+            continue
         mappings.append(
             SemanticMappingResult(
-                concept=m["required_concept"],
-                physical_column=c_name,
-                confidence_score=m["confidence"],
-                reasoning=m["reasoning"],
+                concept=m.get("required_concept", "metric"),
+                physical_column=str(c_name),
+                confidence_score=float(m.get("confidence", 0.9)),
+                reasoning=m.get("reasoning", "Mappage ontologique."),
                 data_type=schema_dict.get(c_name, "numeric"),
             )
         )

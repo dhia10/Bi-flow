@@ -151,13 +151,15 @@ class ProductionQueryPipeline:
         semantic_mappings: List[SemanticMappingResult] = []
         role_to_col: Dict[str, str] = {}
         for m in mapping_dict.get("mappings", []):
-            mapped_c = m["mapped_column"]
+            mapped_c = m.get("mapped_column")
+            if not mapped_c or str(mapped_c).lower() in ("none", "null", ""):
+                continue
             semantic_mappings.append(
                 SemanticMappingResult(
-                    concept=m["required_concept"],
-                    physical_column=mapped_c,
-                    confidence_score=m["confidence"],
-                    reasoning=m["reasoning"],
+                    concept=m.get("required_concept", "metric"),
+                    physical_column=str(mapped_c),
+                    confidence_score=float(m.get("confidence", 0.9)),
+                    reasoning=m.get("reasoning", "Mappage sémantique déterministe."),
                     data_type=schema_dict.get(mapped_c, "numeric"),
                 )
             )

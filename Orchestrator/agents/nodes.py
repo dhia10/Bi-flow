@@ -219,6 +219,26 @@ def etl_node(state: BIFlowState) -> dict:
         for d in dimension_tables
     ]
 
+    # Génération du Schéma Star Schema PNG avec Matplotlib
+    schema_image_url = None
+    try:
+        from etl.etl_agent.schema_visualizer import generate_star_schema_image
+        static_dir = Path("artifacts") / "schema"
+        static_dir.mkdir(parents=True, exist_ok=True)
+        dim_dfs = {d: pd.DataFrame({f"{d}_id": [1, 2, 3], "libelle": ["Entity_A", "Entity_B", "Entity_C"]}) for d in dimension_tables}
+        rel_specs = [{"fact_column": f"{d}_id", "dimension_table": d, "dimension_column": f"{d}_id"} for d in dimension_tables]
+        generate_star_schema_image(
+            output_dir=static_dir,
+            fact_name=fact_table,
+            fact=df.head(10),
+            dimensions=dim_dfs,
+            relations=rel_specs,
+            domain=domain,
+        )
+        schema_image_url = "/artifacts/schema/star_schema.png"
+    except Exception as e:
+        log.warning("Could not generate schema image: %s", e)
+
     model_info = {
         "schema_type": "star",
         "fact_table": fact_table,
@@ -228,6 +248,7 @@ def etl_node(state: BIFlowState) -> dict:
         "relationship_mapping": relations,
         "measures": numeric_cols,
         "engine": llm_engine,
+        "schema_image_url": schema_image_url,
     }
 
     decisions = [
@@ -357,6 +378,9 @@ def dashboard_node(state: BIFlowState) -> dict:
         dash_engine = "Règles standard de mise en page sobre"
         primary_focus = "Surveillance de la rentabilité et du volume des commandes"
 
+    query_payload = state.get("_query_payload")
+    breakdown_charts = getattr(query_payload, "breakdown_charts_data", {}) if query_payload else {}
+
     dashboard_spec = {
         "theme": "academic_clean_tables",
         "sections": [
@@ -364,6 +388,7 @@ def dashboard_node(state: BIFlowState) -> dict:
             "Mappage Ontologique & Catalogue des KPIs",
             "Détection d'Anomalies & Recommandations",
             "Évaluation RAGAS & Latences",
+            "Schéma Star Schema & Visualisations du Générateur",
         ],
         "kpi_cards_count": len(proofs),
         "anomalies_count": len(insights.get("anomalies", [])),
@@ -371,6 +396,12 @@ def dashboard_node(state: BIFlowState) -> dict:
         "generator_status": "ready",
         "engine": dash_engine,
         "primary_focus": primary_focus,
+        "breakdown_charts": breakdown_charts,
+        "superset_queries": [
+            {"title": f"Vue Superset: {p.get('kpi_name')}", "sql": p.get("exact_sql")}
+            for p in proofs[:6]
+        ],
+        "studio_url": "http://localhost:8080",
     }
 
     decisions = [

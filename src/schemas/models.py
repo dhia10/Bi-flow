@@ -41,7 +41,7 @@ class SemanticMappingResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     concept: str
-    physical_column: str
+    physical_column: Optional[str] = "unmapped"
     confidence_score: float = Field(..., ge=0.0, le=1.0)
     reasoning: str
     data_type: str = "unknown"
