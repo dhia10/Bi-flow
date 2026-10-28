@@ -17,7 +17,9 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+import json
+import urllib.request
 
 import numpy as np
 import pandas as pd
@@ -28,6 +30,34 @@ except ImportError:
     from Orchestrator.core.state import BIFlowState, DecisionRecord
 
 log = logging.getLogger("bi_flow.agents")
+
+
+def _query_ollama(prompt: str, system_prompt: str = "", model: str = "llama3.2:3b") -> Optional[dict]:
+    """Query local Ollama instance (e.g. LLaMA 3.2 3B) if available, otherwise return None."""
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
+    target_model = os.getenv("OLLAMA_MODEL", model)
+    try:
+        payload = {
+            "model": target_model,
+            "messages": [
+                {"role": "system", "content": system_prompt + "\nReply with a single valid JSON object only."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+            "format": "json",
+        }
+        req = urllib.request.Request(
+            f"{base_url}/api/chat",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            content = data.get("message", {}).get("content", "{}")
+            return json.loads(content[content.index("{"): content.rindex("}") + 1])
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +199,21 @@ def etl_node(state: BIFlowState) -> dict:
 
     fact_table = "fact_transactions"
     dimension_tables = ["dim_entities", "dim_geography", "dim_calendar"] if dim_cols else ["dim_default"]
+
+    # Enrichissement sémantique avec LLaMA 3.2 (3B) local si Ollama est actif
+    ollama_res = _query_ollama(
+        prompt=f"Domaine: {domain}. Colonnes: {list(df.columns)[:15]}. Mesures: {numeric_cols[:5]}. Propose un nom de table de faits et des tables de dimension pour ce modèle en étoile.",
+        system_prompt="Tu es un data architect expert. Réponds en JSON avec 'fact_table' et 'dimension_tables' (liste de noms).",
+        model="llama3.2:3b",
+    )
+    if ollama_res and isinstance(ollama_res, dict):
+        fact_table = ollama_res.get("fact_table") or fact_table
+        if ollama_res.get("dimension_tables") and isinstance(ollama_res["dimension_tables"], list):
+            dimension_tables = [str(d) for d in ollama_res["dimension_tables"][:5]]
+        llm_engine = f"LLaMA 3.2 3B (Ollama Local)"
+    else:
+        llm_engine = "Règles déterministes d'induction dimensionnelle"
+
     relations = [
         {"from": fact_table, "to": d, "type": "many_to_one"}
         for d in dimension_tables
@@ -182,15 +227,16 @@ def etl_node(state: BIFlowState) -> dict:
         "dimension_tables": dimension_tables,
         "relationship_mapping": relations,
         "measures": numeric_cols,
+        "engine": llm_engine,
     }
 
     decisions = [
         DecisionRecord(
             agent="ETL",
-            action=f"Construction du schéma en étoile autour de '{fact_table}'",
+            action=f"Construction du schéma en étoile autour de '{fact_table}' ({llm_engine})",
             rationale=f"Modélisation optimisée pour l'analyse OLAP DuckDB ({len(dimension_tables)} tables dimensionnelles).",
-            confidence=0.95,
-            evidence={"schema": "star", "fact": fact_table, "dims": dimension_tables},
+            confidence=0.98 if "LLaMA" in llm_engine else 0.95,
+            evidence={"schema": "star", "fact": fact_table, "dims": dimension_tables, "engine": llm_engine},
         )
     ]
 
@@ -297,6 +343,20 @@ def dashboard_node(state: BIFlowState) -> dict:
     insights = state.get("insights") or {}
     proofs = kpi_cat.get("proofs") or []
 
+    # Optimisation de la mise en page avec LLaMA 3.2 (3B) local si Ollama est actif
+    kpi_names = [p.get("kpi_name", "") for p in proofs[:6]]
+    ollama_dash = _query_ollama(
+        prompt=f"Liste des KPIs: {kpi_names}. Anomalies: {len(insights.get('anomalies', []))}. Propose une recommandation de priorité visuelle pour le COMEX.",
+        system_prompt="Tu es un architecte UI/BI. Réponds en JSON avec 'primary_focus' (chaine) et 'layout_type' (chaine: 'grid' ou 'executive_cards').",
+        model="llama3.2:3b",
+    )
+    if ollama_dash and isinstance(ollama_dash, dict):
+        dash_engine = "LLaMA 3.2 3B (Ollama Local)"
+        primary_focus = ollama_dash.get("primary_focus", "Revue des métriques de marge et de volume")
+    else:
+        dash_engine = "Règles standard de mise en page sobre"
+        primary_focus = "Surveillance de la rentabilité et du volume des commandes"
+
     dashboard_spec = {
         "theme": "academic_clean_tables",
         "sections": [
@@ -309,14 +369,17 @@ def dashboard_node(state: BIFlowState) -> dict:
         "anomalies_count": len(insights.get("anomalies", [])),
         "endpoint": "http://127.0.0.1:8000/",
         "generator_status": "ready",
+        "engine": dash_engine,
+        "primary_focus": primary_focus,
     }
 
     decisions = [
         DecisionRecord(
             agent="DashboardGenerator",
-            action=f"Génération des spécifications pour {len(proofs)} cartes KPIs et tableaux analytiques",
-            rationale="Mise en page épurée professionnelle, sans graphiques canvas superflus, conforme aux exigences COMEX.",
-            confidence=1.0,
+            action=f"Génération des spécifications pour {len(proofs)} cartes KPIs et tableaux analytiques ({dash_engine})",
+            rationale=f"Mise en page épurée professionnelle conforme COMEX. Focus: {primary_focus}.",
+            confidence=0.98 if "LLaMA" in dash_engine else 1.0,
+            evidence={"engine": dash_engine, "focus": primary_focus},
         )
     ]
 
