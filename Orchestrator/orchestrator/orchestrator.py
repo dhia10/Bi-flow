@@ -34,30 +34,51 @@ PLAN DU FICHIER
     3. Routage         : fonctions qui choisissent l'arête à suivre
     4. Construction    : build_graph() — les nœuds puis les arêtes
     5. Exécution       : run_pipeline()
-
-LANCER LA DÉMO (depuis le dossier bi_flow/)
-    python demo.py
-    python -m pytest -v
+    6. Export LangGraph: graph (instance compilée pour LangGraph Studio)
 """
 from __future__ import annotations
 
 import copy
+from datetime import datetime
+import json
 import logging
+import os
+from pathlib import Path
+import sys
 import time
 from typing import Callable
 
+_ROOT = Path(__file__).resolve().parent.parent
+_REPO = _ROOT.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+
 from langgraph.graph import END, START, StateGraph
 
-from core.state import (
-    INPUT_KEYS,
-    ORCHESTRATOR_KEYS,
-    STATE_KEYS,
-    BIFlowState,
-    ControlSignals,
-    DecisionRecord,
-    TraceEvent,
-    initial_state,
-)
+try:
+    from core.state import (
+        INPUT_KEYS,
+        ORCHESTRATOR_KEYS,
+        STATE_KEYS,
+        BIFlowState,
+        ControlSignals,
+        DecisionRecord,
+        TraceEvent,
+        initial_state,
+    )
+except ImportError:
+    from Orchestrator.core.state import (
+        INPUT_KEYS,
+        ORCHESTRATOR_KEYS,
+        STATE_KEYS,
+        BIFlowState,
+        ControlSignals,
+        DecisionRecord,
+        TraceEvent,
+        initial_state,
+    )
 
 log = logging.getLogger("bi_flow.orchestrator")
 
@@ -93,6 +114,7 @@ MAX_QUALITY_RETRIES = 2
 #   (c) attraper ses erreurs     -> control.aborted (le pipeline ne plante pas)
 #   (d) filtrer sa sortie        -> un agent ne peut pas écrire un champ réservé
 #   (e) journaliser les décisions de l'orchestrateur -> decision_log (lu par XAI)
+#   (f) détecter et persister les payloads JSON inter-agents
 
 def _wrap(name: str, agent: Agent) -> Callable[[BIFlowState], dict]:
 
@@ -117,11 +139,17 @@ def _wrap(name: str, agent: Agent) -> Callable[[BIFlowState], dict]:
 
         # (b) + (c) Exécuter l'agent, chronométré, sans jamais faire planter le graphe.
         t0 = time.perf_counter()
+        raw_agent_payload = {}
         try:
             update = agent(state) or {}
             if not isinstance(update, dict):
                 raise TypeError(f"l'agent doit renvoyer un dict, reçu {type(update).__name__}")
             update = dict(update)
+
+            # Extraire le payload JSON émis par l'agent avant nettoyage
+            for k, v in update.items():
+                if k not in ("decision_log", "trace", "control", "agent_payloads", "json_transitions"):
+                    raw_agent_payload[k] = v
 
             # (d) Retirer les champs interdits ou inconnus de BIFlowState.
             for key in list(update):
@@ -165,6 +193,36 @@ def _wrap(name: str, agent: Agent) -> Callable[[BIFlowState], dict]:
                 confidence=0.5,
                 evidence={"passages_quality": attempt},
             ))
+
+        # (f) Détection et persistance JSON inter-agents
+        try:
+            serialized_payload = json.loads(json.dumps(raw_agent_payload, default=str))
+        except Exception:
+            serialized_payload = {k: str(v) for k, v in raw_agent_payload.items()}
+
+        current_payloads = dict(state.get("agent_payloads") or {})
+        current_payloads[name] = serialized_payload
+        update["agent_payloads"] = current_payloads
+
+        transition_record = {
+            "node": name,
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "attempt": attempt,
+            "status": status,
+            "duration_s": duration,
+            "keys_emitted": list(serialized_payload.keys()),
+            "message": message,
+        }
+        update["json_transitions"] = [transition_record]
+
+        # Sauvegarde disque des flux JSON pour LangGraph Studio & inspection n8n
+        runs_dir = Path("runs")
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(runs_dir / "agent_messages.json", "w", encoding="utf-8") as f:
+                json.dump(current_payloads, f, indent=2, default=str)
+        except Exception as e:
+            log.warning("Could not persist agent_messages.json: %s", e)
 
         # Ce que le nœud renvoie à LangGraph (qui le fusionne dans l'état).
         update["decision_log"] = notes + list(agent_log)   # ajouté au journal
@@ -258,6 +316,26 @@ def _recursion_limit() -> int:
 def run_pipeline(agents: dict[str, Agent], dataset_ref: str,
                  domain: str = "generic") -> BIFlowState:
     """Point d'entrée : construit le graphe et exécute le pipeline complet."""
-    graph = build_graph(agents)
-    return graph.invoke(initial_state(dataset_ref, domain),
-                        {"recursion_limit": _recursion_limit()})
+    g = build_graph(agents)
+    res = g.invoke(initial_state(dataset_ref, domain),
+                   {"recursion_limit": _recursion_limit()})
+    runs_dir = Path("runs")
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(runs_dir / "state.json", "w", encoding="utf-8") as f:
+            json.dump(res, f, indent=2, default=str)
+    except Exception as e:
+        log.warning("Could not persist state.json: %s", e)
+    return res
+
+
+# =========================================================================== #
+# 6. EXPORT LANGGRAPH STUDIO                                                  #
+# =========================================================================== #
+try:
+    from agents.nodes import get_production_agents
+except ImportError:
+    from Orchestrator.agents.nodes import get_production_agents
+
+# Graph compilé prêt à être chargé par `langgraph dev` ou LangGraph Studio
+graph = build_graph(get_production_agents())

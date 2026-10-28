@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional
 
@@ -47,20 +48,39 @@ class ProductionLLMClient:
             .replace("{retrieved_metrics}", json.dumps(retrieved_metrics, indent=2, default=str))
         )
 
-        # 1. Real API call if API key present
-        if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
-            for attempt in range(1, self.max_retries + 1):
-                try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
-                    model = genai.GenerativeModel(self.primary_model)
-                    resp = model.generate_content(prompt)
-                    clean_text = resp.text.strip().removeprefix("```json").removesuffix("```").strip()
-                    parsed = json.loads(clean_text)
-                    return parsed
-                except Exception as e:
-                    log.warning("Gemini API attempt %d failed: %s", attempt, e)
-                    time.sleep(0.5 * (2 ** (attempt - 1)))
+        # 1. Real API call with Gemini 3.8 / lighter flash-lite cascade
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            key_f = Path(__file__).resolve().parents[2] / "agent_clean" / "key.txt"
+            if key_f.is_file():
+                api_key = key_f.read_text(encoding="utf-8").strip()
+                if api_key:
+                    os.environ["GEMINI_API_KEY"] = api_key
+
+        if api_key:
+            models_to_try = [
+                os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.5-flash-lite"),
+                "gemini-2.5-flash-lite",
+            ]
+            try:
+                from google import genai
+                from google.genai import types
+                client = genai.Client(api_key=api_key)
+                for m_name in models_to_try:
+                    try:
+                        resp = client.models.generate_content(
+                            model=m_name,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(response_mime_type="application/json"),
+                        )
+                        clean_text = resp.text.strip().removeprefix("```json").removesuffix("```").strip()
+                        return json.loads(clean_text[clean_text.index("{"): clean_text.rindex("}") + 1])
+                    except Exception as e:
+                        log.info("Gemini model '%s' unavailable (%s), trying next lighter model.", m_name, str(e)[:70])
+                        continue
+            except Exception as e:
+                log.warning("google.genai client init failed: %s", e)
 
         elif os.getenv("OPENAI_API_KEY"):
             for attempt in range(1, self.max_retries + 1):
@@ -135,16 +155,38 @@ class ProductionLLMClient:
             .replace("{pareto_risks_json}", json.dumps(pareto_risks, indent=2, default=str))
         )
 
-        if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            key_f = Path(__file__).resolve().parents[2] / "agent_clean" / "key.txt"
+            if key_f.is_file():
+                api_key = key_f.read_text(encoding="utf-8").strip()
+                if api_key:
+                    os.environ["GEMINI_API_KEY"] = api_key
+
+        if api_key:
+            models_to_try = [
+                os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.5-flash-lite"),
+                "gemini-2.5-flash-lite",
+            ]
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
-                model = genai.GenerativeModel(self.primary_model)
-                resp = model.generate_content(prompt)
-                clean_text = resp.text.strip().removeprefix("```json").removesuffix("```").strip()
-                return json.loads(clean_text)
+                from google import genai
+                from google.genai import types
+                client = genai.Client(api_key=api_key)
+                for m_name in models_to_try:
+                    try:
+                        resp = client.models.generate_content(
+                            model=m_name,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(response_mime_type="application/json"),
+                        )
+                        clean_text = resp.text.strip().removeprefix("```json").removesuffix("```").strip()
+                        return json.loads(clean_text[clean_text.index("{"): clean_text.rindex("}") + 1])
+                    except Exception as e:
+                        log.info("Gemini model '%s' unavailable for strategic analysis (%s), trying next.", m_name, str(e)[:70])
+                        continue
             except Exception as e:
-                log.warning("Gemini strategic analysis fallback: %s", e)
+                log.warning("google.genai strategic analysis client init failed: %s", e)
 
         elif os.getenv("OPENAI_API_KEY"):
             try:

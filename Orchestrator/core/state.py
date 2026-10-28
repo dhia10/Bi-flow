@@ -76,10 +76,14 @@ class BIFlowState(TypedDict, total=False):
     # --- Contrôle (orchestrateur seulement) ---
     control: ControlSignals
 
+    # --- Détection & Télémétrie JSON inter-agents ---
+    agent_payloads: dict[str, Any]
+    json_transitions: Annotated[list[dict[str, Any]], operator.add]
+
 
 # Champs qu'un agent n'a pas le droit d'écrire
 INPUT_KEYS = frozenset({"run_id", "dataset_ref", "domain"})
-ORCHESTRATOR_KEYS = frozenset({"control", "trace"})
+ORCHESTRATOR_KEYS = frozenset({"control", "trace", "agent_payloads", "json_transitions"})
 STATE_KEYS = frozenset(BIFlowState.__annotations__)
 
 
@@ -91,4 +95,6 @@ def initial_state(dataset_ref: str, domain: str = "generic") -> BIFlowState:
         decision_log=[],
         trace=[],
         control=ControlSignals(),
+        agent_payloads={},
+        json_transitions=[],
     )

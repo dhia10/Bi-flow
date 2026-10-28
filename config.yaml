@@ -3,8 +3,10 @@ system:
   log_level: "INFO"
 
 models:
-  primary_llm: "gemini-2.5-flash"
+  primary_llm: "gemini-3.8-flash"
+  lighter_llm: "gemini-3.5-flash-lite"
   fallback_llm: "gpt-4o-mini"
+  local_llm_url: "http://localhost:11434"
   embedding_model: "tfidf-l2-dense"
   embedding_version: "v1.2.0"
 

@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "bi_flow": "./Orchestrator/orchestrator/orchestrator.py:graph"
+  },
+  "env": ".env"
+}
