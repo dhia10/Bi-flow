@@ -197,36 +197,88 @@ def etl_node(state: BIFlowState) -> dict:
         if c not in numeric_cols and c not in id_cols
     ]
 
-    fact_table = "fact_transactions"
-    dimension_tables = ["dim_entities", "dim_geography", "dim_calendar"] if dim_cols else ["dim_default"]
+    # 1. Induction dimensionnelle dynamique basée sur les vraies colonnes du dataset
+    cols_lower = {c: c.lower() for c in df.columns}
+    dim_groups: Dict[str, List[str]] = {}
 
-    # Enrichissement sémantique avec LLaMA 3.2 (3B) local si Ollama est actif
+    # Produits / Articles / Items
+    prod_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("product", "item", "stock", "description", "category", "sku", "article", "desc"))]
+    if prod_cols:
+        dim_groups["dim_products"] = prod_cols
+
+    # Clients / Utilisateurs / Acheteurs
+    cust_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("customer", "client", "user", "buyer", "subscriber", "account")) and c not in prod_cols]
+    if cust_cols:
+        dim_groups["dim_customers"] = cust_cols
+
+    # Géographie / Localisation
+    geo_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("country", "city", "state", "region", "postal", "zip", "address", "zone", "pays", "ville")) and c not in prod_cols and c not in cust_cols]
+    if geo_cols:
+        dim_groups["dim_geography"] = geo_cols
+
+    # Calendrier / Temps
+    date_cols = [c for c, cl in cols_lower.items() if (any(k in cl for k in ("date", "time", "year", "month", "day", "timestamp", "annee", "jour")) or pd.api.types.is_datetime64_any_dtype(df[c])) and c not in prod_cols]
+    if date_cols:
+        dim_groups["dim_calendar"] = date_cols
+
+    # Commandes / Expédition / Mode
+    order_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("ship", "order", "invoice", "channel", "mode", "livraison")) and c not in prod_cols and c not in cust_cols and c not in geo_cols and c not in date_cols]
+    if order_cols:
+        dim_groups["dim_orders"] = order_cols
+
+    # Attributs résiduels
+    captured = set(sum(dim_groups.values(), []))
+    remaining_dims = [c for c in dim_cols if c not in captured]
+    if remaining_dims:
+        dim_groups["dim_attributes"] = remaining_dims[:4]
+
+    if not dim_groups:
+        dim_groups["dim_entities"] = dim_cols[:4] if dim_cols else ["entity_type"]
+
+    dimension_tables = list(dim_groups.keys())
+    fact_table = f"fact_{domain.lower()}" if domain and domain not in ("unknown", "generic") else "fact_transactions"
+
+    # Enrichissement avec LLaMA 3.2 (3B) local si Ollama est actif
     ollama_res = _query_ollama(
-        prompt=f"Domaine: {domain}. Colonnes: {list(df.columns)[:15]}. Mesures: {numeric_cols[:5]}. Propose un nom de table de faits et des tables de dimension pour ce modèle en étoile.",
-        system_prompt="Tu es un data architect expert. Réponds en JSON avec 'fact_table' et 'dimension_tables' (liste de noms).",
+        prompt=f"Domaine: {domain}. Colonnes: {list(df.columns)[:15]}. Mesures: {numeric_cols[:5]}. Dimensions détectées: {dimension_tables}. Propose un nom précis pour fact_table (ex: fact_sales, fact_orders).",
+        system_prompt="Tu es un data architect expert. Réponds en JSON avec 'fact_table'.",
         model="llama3.2:3b",
     )
-    if ollama_res and isinstance(ollama_res, dict):
-        fact_table = ollama_res.get("fact_table") or fact_table
-        if ollama_res.get("dimension_tables") and isinstance(ollama_res["dimension_tables"], list):
-            dimension_tables = [str(d) for d in ollama_res["dimension_tables"][:5]]
-        llm_engine = f"LLaMA 3.2 3B (Ollama Local)"
+    if ollama_res and isinstance(ollama_res, dict) and ollama_res.get("fact_table"):
+        fact_table = str(ollama_res["fact_table"])
+        llm_engine = "LLaMA 3.2 3B (Ollama Local) + Induction Dynamique"
     else:
-        llm_engine = "Règles déterministes d'induction dimensionnelle"
+        llm_engine = "Règles Déterministes d'Induction Dimensionnelle"
 
     relations = [
         {"from": fact_table, "to": d, "type": "many_to_one"}
         for d in dimension_tables
     ]
 
-    # Génération du Schéma Star Schema PNG avec Matplotlib
+    # Génération du Schéma Star Schema PNG avec Matplotlib (vraies colonnes)
     schema_image_url = None
     try:
         from etl.etl_agent.schema_visualizer import generate_star_schema_image
         static_dir = Path("artifacts") / "schema"
         static_dir.mkdir(parents=True, exist_ok=True)
-        dim_dfs = {d: pd.DataFrame({f"{d}_id": [1, 2, 3], "libelle": ["Entity_A", "Entity_B", "Entity_C"]}) for d in dimension_tables}
-        rel_specs = [{"fact_column": f"{d}_id", "dimension_table": d, "dimension_column": f"{d}_id"} for d in dimension_tables]
+
+        dim_dfs = {}
+        rel_specs = []
+        for dim_name, d_cols in dim_groups.items():
+            valid_cols = [c for c in d_cols if c in df.columns]
+            if valid_cols:
+                dim_df = df[valid_cols].dropna(how="all").drop_duplicates().head(5)
+                pk_col = valid_cols[0]
+            else:
+                pk_col = f"{dim_name}_id"
+                dim_df = pd.DataFrame({pk_col: [1, 2, 3], "libelle": ["A", "B", "C"]})
+            dim_dfs[dim_name] = dim_df
+            rel_specs.append({
+                "fact_column": pk_col if pk_col in df.columns else (id_cols[0] if id_cols else list(df.columns)[0]),
+                "dimension_table": dim_name,
+                "dimension_column": pk_col
+            })
+
         generate_star_schema_image(
             output_dir=static_dir,
             fact_name=fact_table,

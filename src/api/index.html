@@ -890,6 +890,10 @@
       if (schemaImg) {
         schemaImg.src = '/artifacts/schema/star_schema.png?t=' + Date.now();
       }
+      const dlBtn = document.getElementById('btnDownloadSchema');
+      if (dlBtn) {
+        dlBtn.href = '/artifacts/schema/star_schema.png?t=' + Date.now();
+      }
       document.getElementById('factTableName').textContent = dataModel.fact_table || 'fact_transactions';
       document.getElementById('dimTablesList').textContent = (dataModel.dimension_tables || ['dim_entities', 'dim_geography']).join(', ');
       document.getElementById('etlEngineName').textContent = dataModel.engine || 'LLaMA 3.2 (3B) / Déterministe';
@@ -1052,11 +1056,11 @@
       // 10. Traçabilité XAI & Pertinence (Agent 7)
       const xai = data.xai_report || {};
       const rel = xai.relevance || {};
-      const relScore = rel.score !== undefined ? rel.score : 0.75;
+      const xaiScore = rel.score !== undefined ? rel.score : 0.75;
       const relBadge = document.getElementById('xaiRelevanceBadge');
-      if (relBadge) relBadge.textContent = `Relevance: ${relScore.toFixed(2)}`;
+      if (relBadge) relBadge.textContent = `Relevance: ${xaiScore.toFixed(2)}`;
       const relPct = document.getElementById('xaiRelevancePct');
-      if (relPct) relPct.textContent = `${(relScore * 100).toFixed(1)}% Pertinence`;
+      if (relPct) relPct.textContent = `${(xaiScore * 100).toFixed(1)}% Pertinence`;
     }
 
     function renderVisualBars(charts) {
