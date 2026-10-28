@@ -138,7 +138,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
 def main():
     ap = argparse.ArgumentParser(description="Serveur BI Studio")
-    ap.add_argument("--port", type=int, default=8080, help="Port (defaut: 8080)")
+    ap.add_argument("--port", type=int, default=8085, help="Port (defaut: 8085)")
     ap.add_argument("--no-browser", action="store_true", help="Ne pas ouvrir le navigateur")
     args = ap.parse_args()
 
@@ -152,7 +152,7 @@ def main():
     url = None
     port = args.port
     server = None
-    for p in [port, 5500, 8000, 3000, 8081]:
+    for p in [port, 8086, 8087, 5500, 3000]:
         try:
             server = HTTPServer(("0.0.0.0", p), NoCacheHandler)
             port = p

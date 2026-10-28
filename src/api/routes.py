@@ -49,6 +49,8 @@ app = FastAPI(
 
 Path("artifacts/schema").mkdir(parents=True, exist_ok=True)
 app.mount("/artifacts", StaticFiles(directory="artifacts"), name="artifacts")
+if Path("generator").exists():
+    app.mount("/studio", StaticFiles(directory="generator", html=True), name="studio")
 
 
 @app.get("/favicon.ico")

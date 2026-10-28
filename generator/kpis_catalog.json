@@ -1,1181 +1,1002 @@
 {
   "metadata": {
     "version": "2.0.0",
-    "active_dataset": "pwc_events.xlsx",
-    "table_name": "ALL_PWC_EVENTS",
-    "n_rows": 3839,
+    "active_dataset": "retail",
+    "table_name": "FACT_ORDERS",
+    "n_rows": 66,
     "columns": [
-      "Source",
-      "Title",
-      "Event Content / Summary",
-      "URL",
-      "Published Date",
-      "Publisher",
-      "Category",
-      "Relevance"
+      "order_id",
+      "order_date",
+      "customer_id",
+      "customer_name",
+      "segment",
+      "region",
+      "state",
+      "city",
+      "category",
+      "sub_category",
+      "product_id",
+      "product_name",
+      "sales",
+      "quantity",
+      "discount",
+      "profit"
     ],
     "datasets": [
-      "pwc_events.xlsx"
+      "retail"
     ],
-    "last_updated": "2026-10-28T16:27:39.478687",
-    "generated_by": "Dynamic BI Engine (User Dataset Upload)",
+    "last_updated": "2026-10-28T23:29:14.718945",
+    "generated_by": "Bi-Flow LangGraph (Règles standard de mise en page sobre)",
     "dashboard_background": "#0a0e17"
   },
   "kpis": [
     {
-      "id": "KPI_ALL_PWC_EVENTS_COUNT_SOURCE",
-      "name": "Distribution Source",
-      "domain": "Pwc Events",
-      "category": "Source",
-      "description": "Nombre d'entrees par Source.",
-      "source_table": "Pwc Events",
-      "table_name": "ALL_PWC_EVENTS",
-      "aggregation_type": "COUNT",
-      "metric_column": "*",
-      "dimension_column": "Source",
-      "chart_type": "pie",
-      "superset_chart_type": "pie",
-      "sql_superset": "SELECT \"Source\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Source\" ORDER BY \"count\" DESC LIMIT 8;",
-      "raw_value": 3839,
-      "current_value_formatted": "3839",
-      "suggested_prompts": [
-        "Distribution Source",
-        "Combien de Source",
-        "Repartition par Source"
-      ],
-      "active": true,
-      "source_file": "pwc_events.xlsx",
-      "top_n": 8,
-      "dax_measure": "Count Source = COUNT('Pwc Events'[Source])",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/count/source"
-      },
-      "_data": [
-        {
-          "Source": "Google News",
-          "count": 3830
-        },
-        {
-          "Source": "Wikipedia",
-          "count": 6
-        },
-        {
-          "Source": "PwC Official Website",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "id": "KPI_ALL_PWC_EVENTS_COUNT_CATEGORY",
-      "name": "Distribution Category",
-      "domain": "Pwc Events",
-      "category": "Category",
-      "description": "Nombre d'entrees par Category.",
-      "source_table": "Pwc Events",
-      "table_name": "ALL_PWC_EVENTS",
-      "aggregation_type": "COUNT",
-      "metric_column": "*",
-      "dimension_column": "Category",
+      "id": "KPI_FACT_ORDERS_0_TOTALREVENUE",
+      "name": "Total Revenue",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Total Revenue ($)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "sales",
+      "dimension_column": "customer_name",
       "chart_type": "bar",
       "superset_chart_type": "echarts_bar",
-      "sql_superset": "SELECT \"Category\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Category\" ORDER BY \"count\" DESC LIMIT 10;",
-      "raw_value": 3839,
-      "current_value_formatted": "3839",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") AS DOUBLE), 2) AS metric_value FROM df",
+      "raw_value": 27850.85,
+      "current_value_formatted": "27,850.85 $",
       "suggested_prompts": [
-        "Distribution Category",
-        "Combien de Category",
-        "Repartition par Category"
+        "Total Revenue",
+        "Évolution de Total Revenue"
       ],
       "active": true,
-      "source_file": "pwc_events.xlsx",
+      "source_file": "retail",
       "top_n": 10,
-      "dax_measure": "Count Category = COUNT('Pwc Events'[Category])",
+      "dax_measure": "Total Revenue = 27850.85 -- [$]",
       "api_endpoint": {
         "method": "GET",
-        "path": "/api/v1/kpi/count/category"
+        "path": "/api/v1/kpi/0"
       },
       "_data": [
         {
-          "Category": "General News",
-          "count": 2247
+          "entity": "Claire Gute",
+          "metric_val": 4012.75
         },
         {
-          "Category": "Partnership",
-          "count": 284
+          "entity": "Kelly Williams",
+          "metric_val": 3238.474571249999
         },
         {
-          "Category": "Regulatory - Scandal",
-          "count": 275
+          "entity": "Tracy Blumstein",
+          "metric_val": 3057.23
         },
         {
-          "Category": "Research - Report",
-          "count": 267
+          "entity": "Ken Brennan",
+          "metric_val": 2999.95
         },
         {
-          "Category": "Financial Results",
-          "count": 211
+          "entity": "Andrew Allen",
+          "metric_val": 2800.98
         },
         {
-          "Category": "Acquisition - Merger",
-          "count": 209
+          "entity": "Sean O'Donnell",
+          "metric_val": 1419.8700000000001
         },
         {
-          "Category": "Leadership",
-          "count": 176
+          "entity": "Delfina Latchford",
+          "metric_val": 1405.9
         },
         {
-          "Category": "Recognition - Award",
-          "count": 80
+          "entity": "Gene Hale",
+          "metric_val": 1210.86
         },
         {
-          "Category": "Restructuring - Layoffs",
-          "count": 74
+          "entity": "Lena Cacioppo",
+          "metric_val": 1107.8999999999999
         },
         {
-          "Category": "IPO - Listing",
-          "count": 16
+          "entity": "Brosina Hoffman",
+          "metric_val": 1096.6
         }
       ]
     },
     {
-      "id": "KPI_ALL_PWC_EVENTS_COUNT_RELEVANCE",
-      "name": "Distribution Relevance",
-      "domain": "Pwc Events",
-      "category": "Relevance",
-      "description": "Nombre d'entrees par Relevance.",
-      "source_table": "Pwc Events",
-      "table_name": "ALL_PWC_EVENTS",
-      "aggregation_type": "COUNT",
-      "metric_column": "*",
-      "dimension_column": "Relevance",
-      "chart_type": "pie",
-      "superset_chart_type": "pie",
-      "sql_superset": "SELECT \"Relevance\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Relevance\" ORDER BY \"count\" DESC LIMIT 8;",
-      "raw_value": 3839,
-      "current_value_formatted": "3839",
+      "id": "KPI_FACT_ORDERS_1_AVERAGEORDERVALUEAOV",
+      "name": "Average Order Value (AOV)",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Average Order Value (AOV) ($)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "sales",
+      "dimension_column": "customer_name",
+      "chart_type": "line",
+      "superset_chart_type": "echarts_line",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") / NULLIF(COUNT(DISTINCT \"order_id\"), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "raw_value": 421.98,
+      "current_value_formatted": "421.98 $",
       "suggested_prompts": [
-        "Distribution Relevance",
-        "Combien de Relevance",
-        "Repartition par Relevance"
+        "Average Order Value (AOV)",
+        "Évolution de Average Order Value (AOV)"
       ],
       "active": true,
-      "source_file": "pwc_events.xlsx",
-      "top_n": 8,
-      "dax_measure": "Count Relevance = COUNT('Pwc Events'[Relevance])",
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Average Order Value (AOV) = 421.98 -- [$]",
       "api_endpoint": {
         "method": "GET",
-        "path": "/api/v1/kpi/count/relevance"
+        "path": "/api/v1/kpi/1"
       },
       "_data": [
         {
-          "Relevance": "PwC Mentioned",
-          "count": 3830
+          "dt": "2023-01-15 00:00:00",
+          "metric_val": 261.96
         },
         {
-          "Relevance": "Wikipedia article — query: PricewaterhouseCoopers",
-          "count": 6
+          "dt": "2023-01-16 00:00:00",
+          "metric_val": 731.94
         },
         {
-          "Relevance": "Official PwC Press Release",
-          "count": 3
+          "dt": "2023-01-28 00:00:00",
+          "metric_val": 14.62
+        },
+        {
+          "dt": "2023-02-05 00:00:00",
+          "metric_val": 957.58
+        },
+        {
+          "dt": "2023-02-08 00:00:00",
+          "metric_val": 22.37
+        },
+        {
+          "dt": "2023-02-19 00:00:00",
+          "metric_val": 48.86
+        },
+        {
+          "dt": "2023-03-02 00:00:00",
+          "metric_val": 7.28
+        },
+        {
+          "dt": "2023-03-14 00:00:00",
+          "metric_val": 907.15
+        },
+        {
+          "dt": "2023-03-22 00:00:00",
+          "metric_val": 18.5
+        },
+        {
+          "dt": "2023-04-01 00:00:00",
+          "metric_val": 1706.18
+        },
+        {
+          "dt": "2023-04-12 00:00:00",
+          "metric_val": 911.42
+        },
+        {
+          "dt": "2023-04-25 00:00:00",
+          "metric_val": 15.55
+        },
+        {
+          "dt": "2023-05-02 00:00:00",
+          "metric_val": 81.42
+        },
+        {
+          "dt": "2023-05-18 00:00:00",
+          "metric_val": 4.08
+        },
+        {
+          "dt": "2023-05-24 00:00:00",
+          "metric_val": 61.96
+        },
+        {
+          "dt": "2023-06-05 00:00:00",
+          "metric_val": 55.5
+        },
+        {
+          "dt": "2023-06-16 00:00:00",
+          "metric_val": 8.56
+        },
+        {
+          "dt": "2023-06-28 00:00:00",
+          "metric_val": 213.48
+        },
+        {
+          "dt": "2023-07-04 00:00:00",
+          "metric_val": 2999.95
+        },
+        {
+          "dt": "2023-07-15 00:00:00",
+          "metric_val": 71.37
+        },
+        {
+          "dt": "2023-07-29 00:00:00",
+          "metric_val": 4.0448425
+        },
+        {
+          "dt": "2023-08-05 00:00:00",
+          "metric_val": 12.96
+        },
+        {
+          "dt": "2023-08-18 00:00:00",
+          "metric_val": 1044.63
+        },
+        {
+          "dt": "2023-08-27 00:00:00",
+          "metric_val": 4.38
+        },
+        {
+          "dt": "2023-09-02 00:00:00",
+          "metric_val": 230.38
+        },
+        {
+          "dt": "2023-09-14 00:00:00",
+          "metric_val": 10.86
+        },
+        {
+          "dt": "2023-09-21 00:00:00",
+          "metric_val": 9.98
+        },
+        {
+          "dt": "2023-10-06 00:00:00",
+          "metric_val": 1097.54
+        },
+        {
+          "dt": "2023-10-18 00:00:00",
+          "metric_val": 147.16
+        },
+        {
+          "dt": "2023-10-29 00:00:00",
+          "metric_val": 831.94
+        },
+        {
+          "dt": "2023-11-04 00:00:00",
+          "metric_val": 1399.98
+        },
+        {
+          "dt": "2023-11-15 00:00:00",
+          "metric_val": 5.92
+        },
+        {
+          "dt": "2023-11-25 00:00:00",
+          "metric_val": 85.98
+        },
+        {
+          "dt": "2023-12-08 00:00:00",
+          "metric_val": 45.98
+        },
+        {
+          "dt": "2023-12-16 00:00:00",
+          "metric_val": 53.18
         }
       ]
-    }
-  ],
-  "auto_visuals": [
-    {
-      "id": "kpi-kpi-all-pwc-events-count-source",
-      "kpi_id": "KPI_ALL_PWC_EVENTS_COUNT_SOURCE",
-      "title": "Distribution Source",
-      "subtitle": "Dataset: pwc_events.xlsx | SQL Superset",
-      "chartType": "pie",
-      "domain": "Pwc Events",
-      "labelField": "Source",
-      "valueField": "count",
-      "metricLabel": "*",
-      "sql": "SELECT \"Source\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Source\" ORDER BY \"count\" DESC LIMIT 8;",
-      "dax": "Count Source = COUNT('Pwc Events'[Source])",
-      "superset": {
-        "viz_type": "pie",
-        "metric": "*"
-      },
-      "active": true,
-      "source_file": "pwc_events.xlsx",
-      "top_n": 8,
-      "cardValue": 3839,
-      "cardValueFormatted": "3839",
-      "cardBenchmark": "Nombre d'entrees par Source."
     },
     {
-      "id": "kpi-kpi-all-pwc-events-count-category",
-      "kpi_id": "KPI_ALL_PWC_EVENTS_COUNT_CATEGORY",
-      "title": "Distribution Category",
-      "subtitle": "Dataset: pwc_events.xlsx | SQL Superset",
-      "chartType": "bar",
-      "domain": "Pwc Events",
-      "labelField": "Category",
-      "valueField": "count",
-      "metricLabel": "*",
-      "sql": "SELECT \"Category\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Category\" ORDER BY \"count\" DESC LIMIT 10;",
-      "dax": "Count Category = COUNT('Pwc Events'[Category])",
-      "superset": {
-        "viz_type": "echarts_timeseries_bar",
-        "metric": "*"
-      },
+      "id": "KPI_FACT_ORDERS_2_TOTALUNITSSOLD",
+      "name": "Total Units Sold",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Total Units Sold (units)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "quantity",
+      "dimension_column": "customer_name",
+      "chart_type": "bar",
+      "superset_chart_type": "echarts_bar",
+      "sql_superset": "SELECT CAST(SUM(\"quantity\") AS BIGINT) AS metric_value FROM df",
+      "raw_value": 210,
+      "current_value_formatted": "210.00 units",
+      "suggested_prompts": [
+        "Total Units Sold",
+        "Évolution de Total Units Sold"
+      ],
       "active": true,
-      "source_file": "pwc_events.xlsx",
+      "source_file": "retail",
       "top_n": 10,
-      "cardValue": 3839,
-      "cardValueFormatted": "3839",
-      "cardBenchmark": "Nombre d'entrees par Category."
+      "dax_measure": "Total Units Sold = 210 -- [units]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/2"
+      },
+      "_data": [
+        {
+          "entity": "Claire Gute",
+          "metric_val": 4012.75
+        },
+        {
+          "entity": "Kelly Williams",
+          "metric_val": 3238.474571249999
+        },
+        {
+          "entity": "Tracy Blumstein",
+          "metric_val": 3057.23
+        },
+        {
+          "entity": "Ken Brennan",
+          "metric_val": 2999.95
+        },
+        {
+          "entity": "Andrew Allen",
+          "metric_val": 2800.98
+        },
+        {
+          "entity": "Sean O'Donnell",
+          "metric_val": 1419.8700000000001
+        },
+        {
+          "entity": "Delfina Latchford",
+          "metric_val": 1405.9
+        },
+        {
+          "entity": "Gene Hale",
+          "metric_val": 1210.86
+        },
+        {
+          "entity": "Lena Cacioppo",
+          "metric_val": 1107.8999999999999
+        },
+        {
+          "entity": "Brosina Hoffman",
+          "metric_val": 1096.6
+        }
+      ]
     },
     {
-      "id": "kpi-kpi-all-pwc-events-count-relevance",
-      "kpi_id": "KPI_ALL_PWC_EVENTS_COUNT_RELEVANCE",
-      "title": "Distribution Relevance",
-      "subtitle": "Dataset: pwc_events.xlsx | SQL Superset",
-      "chartType": "pie",
-      "domain": "Pwc Events",
-      "labelField": "Relevance",
-      "valueField": "count",
-      "metricLabel": "*",
-      "sql": "SELECT \"Relevance\", COUNT(*) AS \"count\" FROM \"ALL_PWC_EVENTS\" GROUP BY \"Relevance\" ORDER BY \"count\" DESC LIMIT 8;",
-      "dax": "Count Relevance = COUNT('Pwc Events'[Relevance])",
-      "superset": {
-        "viz_type": "pie",
-        "metric": "*"
-      },
+      "id": "KPI_FACT_ORDERS_3_TOTALORDERS",
+      "name": "Total Orders",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Total Orders (orders)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "order_id",
+      "dimension_column": "customer_name",
+      "chart_type": "line",
+      "superset_chart_type": "echarts_line",
+      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"order_id\") AS BIGINT) AS metric_value FROM df",
+      "raw_value": 66,
+      "current_value_formatted": "66.00 orders",
+      "suggested_prompts": [
+        "Total Orders",
+        "Évolution de Total Orders"
+      ],
       "active": true,
-      "source_file": "pwc_events.xlsx",
-      "top_n": 8,
-      "cardValue": 3839,
-      "cardValueFormatted": "3839",
-      "cardBenchmark": "Nombre d'entrees par Relevance."
-    }
-  ],
-  "prompt_visuals": [
-    {
-      "sid": "v_qe5fx6c",
-      "spec": {
-        "sid": "v_qe5fx6c",
-        "kind": "dataset",
-        "measureIds": [
-          "events_categories.count"
-        ],
-        "chartType": null,
-        "chartExplicit": false,
-        "topN": 5,
-        "sort": null,
-        "title": null,
-        "format": {
-          "barColor": "#10b981",
-          "shadow": "soft",
-          "background": "deep_black",
-          "palette": [
-            "#ef4444",
-            "#111827",
-            "#eab308"
-          ]
-        },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "donne moi top 5 categorie d'evenements",
-        "history": [
-          "donne moi top 5 categorie d'evenements"
-        ],
-        "createdAt": 1793137580146
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Total Orders = 66 -- [orders]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/3"
       },
-      "cfg": {
-        "title": "Top 5 — Nombre par Catégorie",
-        "subtitle": "Dataset: events_categories | Nombre",
-        "chartType": "bar",
-        "domain": "EVENTS CATEGOR",
-        "data": [
-          {
-            "category": "General News",
-            "count": 2247
-          },
-          {
-            "category": "Partnership",
-            "count": 284
-          },
-          {
-            "category": "Regulatory - Scandal",
-            "count": 275
-          },
-          {
-            "category": "Research - Report",
-            "count": 267
-          },
-          {
-            "category": "Financial Results",
-            "count": 211
-          }
-        ],
-        "labelField": "category",
-        "valueField": "count",
-        "metricLabel": "Nombre",
-        "valueFormat": "count",
-        "series": [
-          {
-            "name": "Nombre",
-            "field": "count"
-          }
-        ],
-        "dax": "-- DAX avec Top 5\nCount = COUNTROWS('events_categories')\nTop 5 Count = CALCULATE([Count], TOPN(5, ALL('events_categories'[category]), [Count], DESC))",
-        "comparison": null,
-        "barColor": "#10b981",
-        "lineColor": "#10b981",
-        "scatterColor": "#10b981",
-        "palette": [
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "colors": [
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444",
-          "#111827"
-        ],
-        "sql": "-- Apache Superset · Top 5 — Nombre par Catégorie · graphique: bar\nSELECT \"category\" AS \"category\",\n       COUNT(*) AS \"count\"\nFROM events_categories\nGROUP BY \"category\"\nORDER BY \"count\" DESC\nLIMIT 5;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 5,
-          "x_axis": "category",
-          "metrics": [
-            "count"
-          ],
-          "label_colors": {
-            "count": "#10b981"
-          }
+      "_data": [
+        {
+          "dt": "2023-01-15 00:00:00",
+          "metric_val": 261.96
         },
-        "_agentSid": "v_qe5fx6c"
-      },
-      "style": {
-        "boxShadow": "0 6px 18px rgba(0, 0, 0, 0.45)",
-        "backgroundColor": "rgba(10, 10, 15, 0.94)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "16px",
-        "border": "1px solid rgba(255, 255, 255, 0.08)"
-      }
+        {
+          "dt": "2023-01-16 00:00:00",
+          "metric_val": 731.94
+        },
+        {
+          "dt": "2023-01-28 00:00:00",
+          "metric_val": 14.62
+        },
+        {
+          "dt": "2023-02-05 00:00:00",
+          "metric_val": 957.58
+        },
+        {
+          "dt": "2023-02-08 00:00:00",
+          "metric_val": 22.37
+        },
+        {
+          "dt": "2023-02-19 00:00:00",
+          "metric_val": 48.86
+        },
+        {
+          "dt": "2023-03-02 00:00:00",
+          "metric_val": 7.28
+        },
+        {
+          "dt": "2023-03-14 00:00:00",
+          "metric_val": 907.15
+        },
+        {
+          "dt": "2023-03-22 00:00:00",
+          "metric_val": 18.5
+        },
+        {
+          "dt": "2023-04-01 00:00:00",
+          "metric_val": 1706.18
+        },
+        {
+          "dt": "2023-04-12 00:00:00",
+          "metric_val": 911.42
+        },
+        {
+          "dt": "2023-04-25 00:00:00",
+          "metric_val": 15.55
+        },
+        {
+          "dt": "2023-05-02 00:00:00",
+          "metric_val": 81.42
+        },
+        {
+          "dt": "2023-05-18 00:00:00",
+          "metric_val": 4.08
+        },
+        {
+          "dt": "2023-05-24 00:00:00",
+          "metric_val": 61.96
+        },
+        {
+          "dt": "2023-06-05 00:00:00",
+          "metric_val": 55.5
+        },
+        {
+          "dt": "2023-06-16 00:00:00",
+          "metric_val": 8.56
+        },
+        {
+          "dt": "2023-06-28 00:00:00",
+          "metric_val": 213.48
+        },
+        {
+          "dt": "2023-07-04 00:00:00",
+          "metric_val": 2999.95
+        },
+        {
+          "dt": "2023-07-15 00:00:00",
+          "metric_val": 71.37
+        },
+        {
+          "dt": "2023-07-29 00:00:00",
+          "metric_val": 4.0448425
+        },
+        {
+          "dt": "2023-08-05 00:00:00",
+          "metric_val": 12.96
+        },
+        {
+          "dt": "2023-08-18 00:00:00",
+          "metric_val": 1044.63
+        },
+        {
+          "dt": "2023-08-27 00:00:00",
+          "metric_val": 4.38
+        },
+        {
+          "dt": "2023-09-02 00:00:00",
+          "metric_val": 230.38
+        },
+        {
+          "dt": "2023-09-14 00:00:00",
+          "metric_val": 10.86
+        },
+        {
+          "dt": "2023-09-21 00:00:00",
+          "metric_val": 9.98
+        },
+        {
+          "dt": "2023-10-06 00:00:00",
+          "metric_val": 1097.54
+        },
+        {
+          "dt": "2023-10-18 00:00:00",
+          "metric_val": 147.16
+        },
+        {
+          "dt": "2023-10-29 00:00:00",
+          "metric_val": 831.94
+        },
+        {
+          "dt": "2023-11-04 00:00:00",
+          "metric_val": 1399.98
+        },
+        {
+          "dt": "2023-11-15 00:00:00",
+          "metric_val": 5.92
+        },
+        {
+          "dt": "2023-11-25 00:00:00",
+          "metric_val": 85.98
+        },
+        {
+          "dt": "2023-12-08 00:00:00",
+          "metric_val": 45.98
+        },
+        {
+          "dt": "2023-12-16 00:00:00",
+          "metric_val": 53.18
+        }
+      ]
     },
     {
-      "sid": "v_gbi94q1",
-      "spec": {
-        "sid": "v_gbi94q1",
-        "kind": "dataset",
-        "measureIds": [
-          "sectors.count"
-        ],
-        "chartType": "bar",
-        "chartExplicit": true,
-        "topN": 7,
-        "sort": null,
-        "title": null,
-        "format": {
-          "horizontal": true,
-          "barColor": "#10b981",
-          "shadow": "neon_purple",
-          "background": "deep_black",
-          "palette": [
-            "#ef4444",
-            "#111827",
-            "#eab308"
-          ]
-        },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "donne moi dans un visuel en bar horizontale le nombre d'entreprises par secteur je veux la couleur des barres en blanc",
-        "history": [
-          "donne moi dans un visuel en bar horizontale le nombre d'entreprises par secteur je veux la couleur des barres en blanc",
-          "je veux seulement top 5",
-          "dans le visuel Top 5 — Nombre par Secteur je veux chnager top 5 par top 7"
-        ],
-        "createdAt": 1793137675489
+      "id": "KPI_FACT_ORDERS_4_UNIQUEACTIVECUSTOMER",
+      "name": "Unique Active Customers",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Unique Active Customers (customers)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "customer_id",
+      "dimension_column": "customer_name",
+      "chart_type": "bar",
+      "superset_chart_type": "echarts_bar",
+      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"customer_id\") AS BIGINT) AS metric_value FROM df",
+      "raw_value": 26,
+      "current_value_formatted": "26.00 customers",
+      "suggested_prompts": [
+        "Unique Active Customers",
+        "Évolution de Unique Active Customers"
+      ],
+      "active": true,
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Unique Active Customers = 26 -- [customers]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/4"
       },
-      "cfg": {
-        "title": "Top 7 — Nombre par Secteur",
-        "subtitle": "Dataset: sectors | Nombre",
-        "chartType": "bar",
-        "domain": "SECTORS",
-        "data": [
-          {
-            "sector": "Other",
-            "count": 156,
-            "revenue": 2923627421094.5103,
-            "market_cap": 34131487509998.375,
-            "ebitda": 591472873446.1498
-          },
-          {
-            "sector": "Energy",
-            "count": 115,
-            "revenue": 1880953345333.97,
-            "market_cap": 36134507524064.164,
-            "ebitda": 441226347325.83
-          },
-          {
-            "sector": "Industrials",
-            "count": 108,
-            "revenue": 2249589487938.9893,
-            "market_cap": 16518589615674.264,
-            "ebitda": 433965948151.47986
-          },
-          {
-            "sector": "Technology",
-            "count": 108,
-            "revenue": 2055669782314.85,
-            "market_cap": 25114353461249.137,
-            "ebitda": 365468921803.58997
-          },
-          {
-            "sector": "Food & Beverage",
-            "count": 108,
-            "revenue": 2715629050422.2295,
-            "market_cap": 24165837420948.164,
-            "ebitda": 474546216169.7901
-          },
-          {
-            "sector": "Healthcare",
-            "count": 105,
-            "revenue": 2141539498168.24,
-            "market_cap": 28479620465870.695,
-            "ebitda": 464456786880.92993
-          },
-          {
-            "sector": "Financial Services",
-            "count": 103,
-            "revenue": 2840865344114,
-            "market_cap": 24148453239452.695,
-            "ebitda": 422047147547.4101
-          }
-        ],
-        "labelField": "sector",
-        "valueField": "count",
-        "metricLabel": "Nombre",
-        "valueFormat": "count",
-        "series": [
-          {
-            "name": "Nombre",
-            "field": "count"
-          }
-        ],
-        "dax": "-- DAX avec Top 7\nCount = COUNTROWS('sectors')\nTop 7 Count = CALCULATE([Count], TOPN(7, ALL('sectors'[sector]), [Count], DESC))",
-        "comparison": null,
-        "barColor": "#10b981",
-        "lineColor": "#10b981",
-        "scatterColor": "#10b981",
-        "horizontal": true,
-        "palette": [
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "colors": [
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444"
-        ],
-        "sql": "-- Apache Superset · Top 7 — Nombre par Secteur · graphique: bar\nSELECT \"sector\" AS \"sector\",\n       COUNT(*) AS \"count\"\nFROM sectors\nGROUP BY \"sector\"\nORDER BY \"count\" DESC\nLIMIT 7;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 7,
-          "x_axis": "sector",
-          "metrics": [
-            "count"
-          ],
-          "orientation": "horizontal",
-          "label_colors": {
-            "count": "#10b981"
-          }
+      "_data": [
+        {
+          "entity": "Claire Gute",
+          "metric_val": 4012.75
         },
-        "_agentSid": "v_gbi94q1"
-      },
-      "style": {
-        "boxShadow": "0 0 25px rgba(139, 92, 246, 0.55)",
-        "backgroundColor": "rgba(10, 10, 15, 0.94)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "16px",
-        "border": "1px solid rgba(255, 255, 255, 0.08)"
-      }
+        {
+          "entity": "Kelly Williams",
+          "metric_val": 3238.474571249999
+        },
+        {
+          "entity": "Tracy Blumstein",
+          "metric_val": 3057.23
+        },
+        {
+          "entity": "Ken Brennan",
+          "metric_val": 2999.95
+        },
+        {
+          "entity": "Andrew Allen",
+          "metric_val": 2800.98
+        },
+        {
+          "entity": "Sean O'Donnell",
+          "metric_val": 1419.8700000000001
+        },
+        {
+          "entity": "Delfina Latchford",
+          "metric_val": 1405.9
+        },
+        {
+          "entity": "Gene Hale",
+          "metric_val": 1210.86
+        },
+        {
+          "entity": "Lena Cacioppo",
+          "metric_val": 1107.8999999999999
+        },
+        {
+          "entity": "Brosina Hoffman",
+          "metric_val": 1096.6
+        }
+      ]
     },
     {
-      "sid": "v_wn2g52k",
-      "spec": {
-        "sid": "v_wn2g52k",
-        "kind": "dataset",
-        "measureIds": [
-          "macro_countries.gdp_growth"
-        ],
-        "chartType": "bar",
-        "chartExplicit": true,
-        "topN": 6,
-        "sort": null,
-        "title": null,
-        "format": {
-          "barColor": "#10b981",
-          "background": "deep_black",
-          "palette": [
-            "#ef4444",
-            "#111827",
-            "#eab308"
-          ]
-        },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "donne moi dans un graphique bar de top 6 pays par gdp growth",
-        "history": [
-          "donne moi dans un graphique bar de top 6 pays par gdp growth",
-          "je veux la couleur de ce visuel en blanc"
-        ],
-        "extraFilters": [],
-        "createdAt": 1793143496648
+      "id": "KPI_FACT_ORDERS_5_TOTALNETPROFIT",
+      "name": "Total Net Profit",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Total Net Profit ($)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "profit",
+      "dimension_column": "customer_name",
+      "chart_type": "line",
+      "superset_chart_type": "echarts_line",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"profit\") AS DOUBLE), 2) AS metric_value FROM df",
+      "raw_value": 5091.04,
+      "current_value_formatted": "5,091.04 $",
+      "suggested_prompts": [
+        "Total Net Profit",
+        "Évolution de Total Net Profit"
+      ],
+      "active": true,
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Total Net Profit = 5091.04 -- [$]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/5"
       },
-      "cfg": {
-        "title": "Top 6 — Croissance du PIB (GDP Growth %) par Pays",
-        "subtitle": "Dataset: macro_countries | Croissance du PIB (GDP Growth %)",
-        "chartType": "bar",
-        "domain": "MACRO COUNTRIE",
-        "data": [
-          {
-            "country": "Guyana",
-            "currency": "GYD",
-            "rating": "NR",
-            "gdp": 27100000000,
-            "gdp_growth": 19.34,
-            "inflation": 3.33,
-            "unemployment": 11.96,
-            "fdi_inflow": 8630000000,
-            "rate_usd": 0.0048
-          },
-          {
-            "country": "Libya",
-            "currency": "LYD",
-            "rating": "NR",
-            "gdp": 48100000000,
-            "gdp_growth": 13.37,
-            "inflation": 1.84,
-            "unemployment": 18.76,
-            "fdi_inflow": 790000000,
-            "rate_usd": 0.2064
-          },
-          {
-            "country": "Ireland",
-            "currency": "EUR",
-            "rating": "NR",
-            "gdp": 721700000000,
-            "gdp_growth": 12.34,
-            "inflation": 2.21,
-            "unemployment": 4.63,
-            "fdi_inflow": 4820000000,
-            "rate_usd": 1.0872
-          },
-          {
-            "country": "Kyrgyzstan",
-            "currency": "KGS",
-            "rating": "NR",
-            "gdp": 22620000000,
-            "gdp_growth": 11.1,
-            "inflation": 8.21,
-            "unemployment": 3.53,
-            "fdi_inflow": 260000000,
-            "rate_usd": 0.0116
-          },
-          {
-            "country": "Ethiopia",
-            "currency": "ETB",
-            "rating": "NR",
-            "gdp": 126360000000,
-            "gdp_growth": 9.77,
-            "inflation": 13.23,
-            "unemployment": 3.32,
-            "fdi_inflow": 4020000000,
-            "rate_usd": 0.0084
-          },
-          {
-            "country": "Rwanda",
-            "currency": "RWF",
-            "rating": "NR",
-            "gdp": 16370000000,
-            "gdp_growth": 9.38,
-            "inflation": 5.91,
-            "unemployment": 11.36,
-            "fdi_inflow": 570000000,
-            "rate_usd": 0.00073
-          }
-        ],
-        "labelField": "country",
-        "valueField": "gdp_growth",
-        "metricLabel": "Croissance du PIB (GDP Growth %)",
-        "valueFormat": "percent",
-        "series": [
-          {
-            "name": "Croissance du PIB (GDP Growth %)",
-            "field": "gdp_growth"
-          }
-        ],
-        "dax": "-- DAX avec Top 6\nGdp Growth = AVERAGE('macro_countries'[gdp_growth])\nTop 6 Gdp Growth = CALCULATE([Gdp Growth], TOPN(6, ALL('macro_countries'[country]), [Gdp Growth], DESC))",
-        "comparison": null,
-        "barColor": "#10b981",
-        "lineColor": "#10b981",
-        "scatterColor": "#10b981",
-        "palette": [
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "colors": [
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "sql": "-- Apache Superset · Top 6 — Croissance du PIB (GDP Growth %) par Pays · graphique: bar\nSELECT \"country\" AS \"country\",\n       ROUND(AVG(\"gdp_growth\"), 2) AS \"gdp_growth\"\nFROM macro_countries\nGROUP BY \"country\"\nORDER BY \"gdp_growth\" DESC\nLIMIT 6;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 6,
-          "x_axis": "country",
-          "metrics": [
-            "gdp_growth"
-          ],
-          "label_colors": {
-            "gdp_growth": "#10b981"
-          }
+      "_data": [
+        {
+          "dt": "2023-01-15 00:00:00",
+          "metric_val": 261.96
         },
-        "_agentSid": "v_wn2g52k"
-      },
-      "style": {
-        "backgroundColor": "rgba(10, 10, 15, 0.94)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "16px",
-        "boxShadow": "0 6px 18px rgba(0, 0, 0, 0.45)",
-        "border": "1px solid rgba(255, 255, 255, 0.08)"
-      }
+        {
+          "dt": "2023-01-16 00:00:00",
+          "metric_val": 731.94
+        },
+        {
+          "dt": "2023-01-28 00:00:00",
+          "metric_val": 14.62
+        },
+        {
+          "dt": "2023-02-05 00:00:00",
+          "metric_val": 957.58
+        },
+        {
+          "dt": "2023-02-08 00:00:00",
+          "metric_val": 22.37
+        },
+        {
+          "dt": "2023-02-19 00:00:00",
+          "metric_val": 48.86
+        },
+        {
+          "dt": "2023-03-02 00:00:00",
+          "metric_val": 7.28
+        },
+        {
+          "dt": "2023-03-14 00:00:00",
+          "metric_val": 907.15
+        },
+        {
+          "dt": "2023-03-22 00:00:00",
+          "metric_val": 18.5
+        },
+        {
+          "dt": "2023-04-01 00:00:00",
+          "metric_val": 1706.18
+        },
+        {
+          "dt": "2023-04-12 00:00:00",
+          "metric_val": 911.42
+        },
+        {
+          "dt": "2023-04-25 00:00:00",
+          "metric_val": 15.55
+        },
+        {
+          "dt": "2023-05-02 00:00:00",
+          "metric_val": 81.42
+        },
+        {
+          "dt": "2023-05-18 00:00:00",
+          "metric_val": 4.08
+        },
+        {
+          "dt": "2023-05-24 00:00:00",
+          "metric_val": 61.96
+        },
+        {
+          "dt": "2023-06-05 00:00:00",
+          "metric_val": 55.5
+        },
+        {
+          "dt": "2023-06-16 00:00:00",
+          "metric_val": 8.56
+        },
+        {
+          "dt": "2023-06-28 00:00:00",
+          "metric_val": 213.48
+        },
+        {
+          "dt": "2023-07-04 00:00:00",
+          "metric_val": 2999.95
+        },
+        {
+          "dt": "2023-07-15 00:00:00",
+          "metric_val": 71.37
+        },
+        {
+          "dt": "2023-07-29 00:00:00",
+          "metric_val": 4.0448425
+        },
+        {
+          "dt": "2023-08-05 00:00:00",
+          "metric_val": 12.96
+        },
+        {
+          "dt": "2023-08-18 00:00:00",
+          "metric_val": 1044.63
+        },
+        {
+          "dt": "2023-08-27 00:00:00",
+          "metric_val": 4.38
+        },
+        {
+          "dt": "2023-09-02 00:00:00",
+          "metric_val": 230.38
+        },
+        {
+          "dt": "2023-09-14 00:00:00",
+          "metric_val": 10.86
+        },
+        {
+          "dt": "2023-09-21 00:00:00",
+          "metric_val": 9.98
+        },
+        {
+          "dt": "2023-10-06 00:00:00",
+          "metric_val": 1097.54
+        },
+        {
+          "dt": "2023-10-18 00:00:00",
+          "metric_val": 147.16
+        },
+        {
+          "dt": "2023-10-29 00:00:00",
+          "metric_val": 831.94
+        },
+        {
+          "dt": "2023-11-04 00:00:00",
+          "metric_val": 1399.98
+        },
+        {
+          "dt": "2023-11-15 00:00:00",
+          "metric_val": 5.92
+        },
+        {
+          "dt": "2023-11-25 00:00:00",
+          "metric_val": 85.98
+        },
+        {
+          "dt": "2023-12-08 00:00:00",
+          "metric_val": 45.98
+        },
+        {
+          "dt": "2023-12-16 00:00:00",
+          "metric_val": 53.18
+        }
+      ]
     },
     {
-      "sid": "v_n7ttxbc",
-      "spec": {
-        "sid": "v_n7ttxbc",
-        "kind": "dataset",
-        "measureIds": [
-          "events_categories.count"
-        ],
-        "chartType": null,
-        "chartExplicit": false,
-        "topN": null,
-        "sort": null,
-        "title": null,
-        "format": {
-          "barColor": "#10b981",
-          "palette": [
-            "#ef4444",
-            "#111827",
-            "#eab308"
-          ],
-          "background": "deep_black"
-        },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "je veux le theme de tout le visuel en 3 couleurs rouge et jaune et noir",
-        "history": [
-          "je veux le theme de tout le visuel en 3 couleurs rouge et jaune et noir",
-          "pour le visuel Nombre par Catégorie change moi le titre Nombre par Catégorie par Nombre d'evenements par Catégorie"
-        ],
-        "extraFilters": [],
-        "createdAt": 1793143542622
+      "id": "KPI_FACT_ORDERS_6_PROFITMARGIN",
+      "name": "Profit Margin",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Profit Margin (%)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "profit",
+      "dimension_column": "customer_name",
+      "chart_type": "bar",
+      "superset_chart_type": "echarts_bar",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"profit\") * 100.0 / NULLIF(SUM(\"sales\"), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "raw_value": 18.28,
+      "current_value_formatted": "18.28 %",
+      "suggested_prompts": [
+        "Profit Margin",
+        "Évolution de Profit Margin"
+      ],
+      "active": true,
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Profit Margin = 18.28 -- [%]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/6"
       },
-      "cfg": {
-        "title": "Nombre par Catégorie",
-        "subtitle": "Dataset: events_categories | Nombre",
-        "chartType": "bar",
-        "domain": "EVENTS CATEGOR",
-        "data": [
-          {
-            "category": "General News",
-            "count": 2247
-          },
-          {
-            "category": "Partnership",
-            "count": 284
-          },
-          {
-            "category": "Regulatory - Scandal",
-            "count": 275
-          },
-          {
-            "category": "Research - Report",
-            "count": 267
-          },
-          {
-            "category": "Financial Results",
-            "count": 211
-          },
-          {
-            "category": "Acquisition - Merger",
-            "count": 209
-          },
-          {
-            "category": "Leadership",
-            "count": 176
-          },
-          {
-            "category": "Recognition - Award",
-            "count": 80
-          },
-          {
-            "category": "Restructuring - Layoffs",
-            "count": 74
-          },
-          {
-            "category": "IPO - Listing",
-            "count": 16
-          }
-        ],
-        "labelField": "category",
-        "valueField": "count",
-        "metricLabel": "Nombre",
-        "valueFormat": "count",
-        "series": [
-          {
-            "name": "Nombre",
-            "field": "count"
-          }
-        ],
-        "dax": "-- DAX Power BI\nCount = COUNTROWS('events_categories')",
-        "comparison": null,
-        "barColor": "#10b981",
-        "lineColor": "#10b981",
-        "scatterColor": "#10b981",
-        "palette": [
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "colors": [
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444",
-          "#111827",
-          "#eab308",
-          "#ef4444"
-        ],
-        "sql": "-- Apache Superset · Nombre par Catégorie · graphique: bar\nSELECT \"category\" AS \"category\",\n       COUNT(*) AS \"count\"\nFROM events_categories\nGROUP BY \"category\"\nORDER BY \"count\" DESC;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 1000,
-          "x_axis": "category",
-          "metrics": [
-            "count"
-          ],
-          "label_colors": {
-            "count": "#10b981"
-          }
+      "_data": [
+        {
+          "entity": "Claire Gute",
+          "metric_val": 4012.75
         },
-        "_agentSid": "v_n7ttxbc"
-      },
-      "style": {
-        "backgroundColor": "rgba(10, 10, 15, 0.94)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "16px",
-        "boxShadow": "0 0 25px rgba(139, 92, 246, 0.55)",
-        "border": "1px solid rgba(255, 255, 255, 0.08)"
-      }
+        {
+          "entity": "Kelly Williams",
+          "metric_val": 3238.474571249999
+        },
+        {
+          "entity": "Tracy Blumstein",
+          "metric_val": 3057.23
+        },
+        {
+          "entity": "Ken Brennan",
+          "metric_val": 2999.95
+        },
+        {
+          "entity": "Andrew Allen",
+          "metric_val": 2800.98
+        },
+        {
+          "entity": "Sean O'Donnell",
+          "metric_val": 1419.8700000000001
+        },
+        {
+          "entity": "Delfina Latchford",
+          "metric_val": 1405.9
+        },
+        {
+          "entity": "Gene Hale",
+          "metric_val": 1210.86
+        },
+        {
+          "entity": "Lena Cacioppo",
+          "metric_val": 1107.8999999999999
+        },
+        {
+          "entity": "Brosina Hoffman",
+          "metric_val": 1096.6
+        }
+      ]
     },
     {
-      "sid": "v_normt68",
-      "spec": {
-        "sid": "v_normt68",
-        "kind": "dataset",
-        "measureIds": [
-          "macro_countries.rate_usd"
-        ],
-        "chartType": "pie",
-        "chartExplicit": true,
-        "topN": null,
-        "sort": "desc",
-        "title": null,
-        "format": {
-          "labelPosition": "outside",
-          "labelFormat": "both",
-          "barColor": "#10b981",
-          "categoryColors": {
-            "Meilleur que France": "#111827",
-            "Pire que France": "#10b981",
-            "France": "#111827",
-            "Meilleur que Egypt": "#10b981",
-            "Pire que Egypt": "#eab308",
-            "Meilleur que USA": "#10b981",
-            "Pire que USA": "#eab308"
-          },
-          "shadow": "neon_purple",
-          "background": "deep_black",
-          "palette": [
-            "#ef4444",
-            "#111827",
-            "#eab308"
-          ]
-        },
-        "filterValues": [],
-        "legendFragment": "pays meuilleurs que france et pays pire que france",
-        "comparison": {
-          "type": "rate_vs_baseline",
-          "baseline": "France",
-          "baselineRate": 1.0872,
-          "rateField": "rate_usd",
-          "betterLabel": "Meilleur que France",
-          "worseLabel": "Pire que France",
-          "colorBetter": "#111827",
-          "colorWorse": "#10b981",
-          "explicitBetter": false,
-          "explicitWorse": false,
-          "side": "both",
-          "threshold": 1.0872,
-          "fallback": null,
-          "partialCue": false
-        },
-        "prompt": "genere moi un pie qui donne la pourcentage de la somme des pays qui ont meuilleurs currency que france je veux dans la legende pays meuilleurs que france et pays pire que france",
-        "history": [
-          "genere moi un pie qui donne la pourcentage de la somme des pays qui ont meuilleurs currency que france je veux dans la legende pays meuilleurs que france et pays pire que france",
-          "chnage pire que france en vert",
-          "l'arrie plan de tout les visuel en rouge",
-          "je veux l'arrie plan de ce visuel 1 Local = X Usd par Credit Rating S&P en cette couleur #9e8a3c",
-          "Répartition : Meilleur que France vs Pire que France je remplacer pour ce visuel Tnisie au lieu de france",
-          "dans le visuel Répartition : Meilleur que France vs Pire que France change moi le pays tunisie au lieu de france",
-          "change moi la couleur Pire que France en vert au lieu de jaune",
-          "meuilleur que France en noir",
-          "dans le visuel Répartition : Meilleur que France vs Pire que France change pire que France en rouge",
-          "dans ce visuel Répartition : Meilleur que France vs Pire que France je veux chnager la france par egypt",
-          "dans le visuel Répartition : Meilleur que Egypt vs Pire que Egypt je veux chnager l'egypt par oman",
-          "dans le visuel Répartition : Meilleur que Egypt vs Pire que Egypt je veux changer Egypt par oman",
-          "dans le visuel Répartition : Meilleur que Egypt vs Pire que Egypt je veux modifier la couleur de Meilleur que Egypt en vert",
-          "dans ce visuel Répartition : Meilleur que Egypt vs Pire que Egypt je veux chnager le pays de Egypt par USA",
-          "maintenant au lieu de USA France",
-          "je veux en noir au lieu de vert"
-        ],
-        "createdAt": 1793109719833
+      "id": "KPI_FACT_ORDERS_7_AVERAGEDISCOUNTRATE",
+      "name": "Average Discount Rate",
+      "domain": "retail",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Average Discount Rate (%)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
+      "aggregation_type": "CALC",
+      "metric_column": "discount",
+      "dimension_column": "customer_name",
+      "chart_type": "line",
+      "superset_chart_type": "echarts_line",
+      "sql_superset": "SELECT ROUND(CAST(AVG(\"discount\") * 100.0 AS DOUBLE), 2) AS metric_value FROM df",
+      "raw_value": 15.91,
+      "current_value_formatted": "15.91 %",
+      "suggested_prompts": [
+        "Average Discount Rate",
+        "Évolution de Average Discount Rate"
+      ],
+      "active": true,
+      "source_file": "retail",
+      "top_n": 10,
+      "dax_measure": "Average Discount Rate = 15.91 -- [%]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/7"
       },
-      "cfg": {
-        "title": "Répartition : Meilleur que France vs Pire que France",
-        "subtitle": "Dataset: macro_countries | Taux vs USD (Devise)",
-        "chartType": "pie",
-        "domain": "MACRO COUNTRIE",
-        "data": [
-          {
-            "country": "Meilleur que France",
-            "rate_usd": 1.9493714285714283,
-            "count": 7
-          },
-          {
-            "country": "Pire que France",
-            "rate_usd": 0.2885699915789472,
-            "count": 190
-          }
-        ],
-        "labelField": "country",
-        "valueField": "count",
-        "metricLabel": "Nombre de pays",
-        "valueFormat": "count",
-        "series": [
-          {
-            "name": "Nombre de pays",
-            "field": "count"
-          }
-        ],
-        "dax": "-- DAX Power BI\nRate Usd = AVERAGE('macro_countries'[rate_usd])",
-        "comparison": {
-          "type": "rate_vs_baseline",
-          "baseline": "France",
-          "baselineRate": 1.0872,
-          "rateField": "rate_usd",
-          "betterLabel": "Meilleur que France",
-          "worseLabel": "Pire que France",
-          "colorBetter": "#111827",
-          "colorWorse": "#10b981",
-          "explicitBetter": false,
-          "explicitWorse": false,
-          "side": "both",
-          "threshold": 1.0872,
-          "fallback": null,
-          "partialCue": false
+      "_data": [
+        {
+          "dt": "2023-01-15 00:00:00",
+          "metric_val": 261.96
         },
-        "barColor": "#10b981",
-        "lineColor": "#10b981",
-        "scatterColor": "#10b981",
-        "labelPosition": "outside",
-        "labelFormat": "both",
-        "categoryColors": {
-          "Meilleur que France": "#111827",
-          "Pire que France": "#10b981",
-          "France": "#111827",
-          "Meilleur que Egypt": "#10b981",
-          "Pire que Egypt": "#eab308",
-          "Meilleur que USA": "#10b981",
-          "Pire que USA": "#eab308"
+        {
+          "dt": "2023-01-16 00:00:00",
+          "metric_val": 731.94
         },
-        "palette": [
-          "#ef4444",
-          "#111827",
-          "#eab308"
-        ],
-        "colors": [
-          "#111827",
-          "#10b981"
-        ],
-        "sql": "-- Apache Superset · Répartition : Meilleur que France vs Pire que France · comparaison (baseline France)\nSELECT CASE\n         WHEN \"rate_usd\" > 1.0872 THEN 'Meilleur que France'\n         ELSE 'Pire que France'\n       END AS \"comparison\",\n       COUNT(*) AS \"count\",\n       ROUND(AVG(\"rate_usd\"), 2) AS \"rate_usd\"\nFROM macro_countries\nWHERE \"rate_usd\" IS NOT NULL\n  AND \"country\" <> 'France'\nGROUP BY 1\nORDER BY 1;",
-        "superset": {
-          "viz_type": "pie",
-          "row_limit": 1000,
-          "groupby": [
-            "country"
-          ],
-          "metric": "rate_usd",
-          "label_colors": {
-            "Meilleur que France": "#111827",
-            "Pire que France": "#10b981"
-          }
+        {
+          "dt": "2023-01-28 00:00:00",
+          "metric_val": 14.62
         },
-        "_agentSid": "v_normt68"
-      },
-      "style": {
-        "boxShadow": "0 0 25px rgba(139, 92, 246, 0.55)",
-        "backgroundColor": "rgba(10, 10, 15, 0.94)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "16px",
-        "border": "1px solid rgba(255, 255, 255, 0.08)"
-      }
-    },
-    {
-      "sid": "v_zwhseoa",
-      "spec": {
-        "sid": "v_zwhseoa",
-        "kind": "dataset",
-        "measureIds": [
-          "macro_countries.fdi_inflow"
-        ],
-        "chartType": "bar",
-        "chartExplicit": true,
-        "topN": 5,
-        "sort": null,
-        "title": null,
-        "format": {
-          "horizontal": true
+        {
+          "dt": "2023-02-05 00:00:00",
+          "metric_val": 957.58
         },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "donne moi top 5 pays par fdi inflow dans un graphique bar horizontal",
-        "history": [
-          "donne moi top 5 pays par fdi inflow dans un graphique bar horizontal"
-        ],
-        "extraFilters": [],
-        "createdAt": 1793201138431
-      },
-      "cfg": {
-        "title": "Top 5 — FDI Inflow (Investissements Étrangers) par Pays",
-        "subtitle": "Dataset: macro_countries | FDI Inflow (Investissements Étrangers)",
-        "chartType": "bar",
-        "domain": "MACRO COUNTRIE",
-        "data": [
-          {
-            "country": "United States",
-            "currency": "USD",
-            "rating": "AA+",
-            "gdp": 30769700000000,
-            "gdp_growth": 2.16,
-            "inflation": 2.95,
-            "unemployment": 4.2,
-            "fdi_inflow": 400520000000,
-            "rate_usd": 1
-          },
-          {
-            "country": "Singapore",
-            "currency": "SGD",
-            "rating": "AAA",
-            "gdp": 603870000000,
-            "gdp_growth": 5.03,
-            "inflation": 0.9,
-            "unemployment": 2.82,
-            "fdi_inflow": 159090000000,
-            "rate_usd": 0.7444
-          },
-          {
-            "country": "Hong Kong",
-            "currency": "HKD",
-            "rating": "AA+",
-            "gdp": 427310000000,
-            "gdp_growth": 3.49,
-            "inflation": 1.44,
-            "unemployment": 2.8,
-            "fdi_inflow": 125820000000,
-            "rate_usd": 0.1279
-          },
-          {
-            "country": "Germany",
-            "currency": "EUR",
-            "rating": "AAA",
-            "gdp": 5050920000000,
-            "gdp_growth": 0.24,
-            "inflation": 2.17,
-            "unemployment": 3.71,
-            "fdi_inflow": 95190000000,
-            "rate_usd": 1.0872
-          },
-          {
-            "country": "China",
-            "currency": "CNY",
-            "rating": "A+",
-            "gdp": 19498040000000,
-            "gdp_growth": 4.96,
-            "inflation": 0.06,
-            "unemployment": 4.62,
-            "fdi_inflow": 79980000000,
-            "rate_usd": 0.1389
-          }
-        ],
-        "labelField": "country",
-        "valueField": "fdi_inflow",
-        "metricLabel": "FDI Inflow (Investissements Étrangers)",
-        "valueFormat": "money",
-        "series": [
-          {
-            "name": "FDI Inflow (Investissements Étrangers)",
-            "field": "fdi_inflow"
-          }
-        ],
-        "dax": "-- DAX avec Top 5\nFdi Inflow = SUM('macro_countries'[fdi_inflow])\nTop 5 Fdi Inflow = CALCULATE([Fdi Inflow], TOPN(5, ALL('macro_countries'[country]), [Fdi Inflow], DESC))",
-        "comparison": null,
-        "horizontal": true,
-        "sql": "-- Apache Superset · Top 5 — FDI Inflow (Investissements Étrangers) par Pays · graphique: bar\nSELECT \"country\" AS \"country\",\n       SUM(\"fdi_inflow\") AS \"fdi_inflow\"\nFROM macro_countries\nGROUP BY \"country\"\nORDER BY \"fdi_inflow\" DESC\nLIMIT 5;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 5,
-          "x_axis": "country",
-          "metrics": [
-            "fdi_inflow"
-          ],
-          "orientation": "horizontal"
+        {
+          "dt": "2023-02-08 00:00:00",
+          "metric_val": 22.37
         },
-        "_agentSid": "v_zwhseoa"
-      },
-      "style": {}
-    },
-    {
-      "sid": "v_89x6njt",
-      "spec": {
-        "sid": "v_89x6njt",
-        "kind": "dataset",
-        "measureIds": [
-          "market_positions.count",
-          "market_positions.market_cap"
-        ],
-        "chartType": "bar",
-        "chartExplicit": true,
-        "topN": null,
-        "sort": null,
-        "title": null,
-        "format": {
-          "barColor": "#ef4444"
+        {
+          "dt": "2023-02-19 00:00:00",
+          "metric_val": 48.86
         },
-        "filterValues": [],
-        "legendFragment": null,
-        "comparison": null,
-        "prompt": "donne moi un graphique bar nombre de company par market position",
-        "history": [
-          "donne moi un graphique bar nombre de company par market position",
-          "je veux les barres en rouge"
-        ],
-        "extraFilters": [],
-        "createdAt": 1793201245336
-      },
-      "cfg": {
-        "title": "Nombre & Market Cap par Position",
-        "subtitle": "Dataset: market_positions | Nombre, Market Cap",
-        "chartType": "bar",
-        "domain": "MARKET POSITIO",
-        "data": [
-          {
-            "position": "Mid Cap (>$1B)",
-            "count": 702,
-            "market_cap": 3837039376674.32,
-            "revenue": 1617967762343.58
-          },
-          {
-            "position": "Mid-Large Cap (>$10B)",
-            "count": 600,
-            "market_cap": 32116377912570.5,
-            "revenue": 13341024034788.34
-          },
-          {
-            "position": "Large Cap (>$100B)",
-            "count": 417,
-            "market_cap": 218644179412285.12,
-            "revenue": 21823392787938.312
-          },
-          {
-            "position": "Small Cap (<$1B)",
-            "count": 197,
-            "market_cap": 107845297727.38,
-            "revenue": 74147663235.84
-          },
-          {
-            "position": "Mega Cap (>$1T)",
-            "count": 101,
-            "market_cap": 205428709430224.34,
-            "revenue": 1480449720837.6602
-          }
-        ],
-        "labelField": "position",
-        "valueField": "count",
-        "metricLabel": "Nombre",
-        "valueFormat": "count",
-        "series": [
-          {
-            "name": "Nombre",
-            "field": "count"
-          },
-          {
-            "name": "Market Cap",
-            "field": "market_cap"
-          }
-        ],
-        "dax": "-- DAX Power BI\nCount = COUNTROWS('market_positions')\n\nMarket Cap = SUM('market_positions'[market_cap])",
-        "comparison": null,
-        "barColor": "#ef4444",
-        "lineColor": "#ef4444",
-        "scatterColor": "#ef4444",
-        "sql": "-- Apache Superset · Nombre & Market Cap par Position · graphique: bar\nSELECT \"position\" AS \"position\",\n       COUNT(*) AS \"count\",\n       SUM(\"market_cap\") AS \"market_cap\"\nFROM market_positions\nGROUP BY \"position\"\nORDER BY \"count\" DESC;",
-        "superset": {
-          "viz_type": "echarts_timeseries_bar",
-          "row_limit": 1000,
-          "x_axis": "position",
-          "metrics": [
-            "count",
-            "market_cap"
-          ],
-          "label_colors": {
-            "count": "#ef4444",
-            "market_cap": "#ef4444"
-          }
+        {
+          "dt": "2023-03-02 00:00:00",
+          "metric_val": 7.28
         },
-        "_agentSid": "v_89x6njt"
-      },
-      "style": {}
+        {
+          "dt": "2023-03-14 00:00:00",
+          "metric_val": 907.15
+        },
+        {
+          "dt": "2023-03-22 00:00:00",
+          "metric_val": 18.5
+        },
+        {
+          "dt": "2023-04-01 00:00:00",
+          "metric_val": 1706.18
+        },
+        {
+          "dt": "2023-04-12 00:00:00",
+          "metric_val": 911.42
+        },
+        {
+          "dt": "2023-04-25 00:00:00",
+          "metric_val": 15.55
+        },
+        {
+          "dt": "2023-05-02 00:00:00",
+          "metric_val": 81.42
+        },
+        {
+          "dt": "2023-05-18 00:00:00",
+          "metric_val": 4.08
+        },
+        {
+          "dt": "2023-05-24 00:00:00",
+          "metric_val": 61.96
+        },
+        {
+          "dt": "2023-06-05 00:00:00",
+          "metric_val": 55.5
+        },
+        {
+          "dt": "2023-06-16 00:00:00",
+          "metric_val": 8.56
+        },
+        {
+          "dt": "2023-06-28 00:00:00",
+          "metric_val": 213.48
+        },
+        {
+          "dt": "2023-07-04 00:00:00",
+          "metric_val": 2999.95
+        },
+        {
+          "dt": "2023-07-15 00:00:00",
+          "metric_val": 71.37
+        },
+        {
+          "dt": "2023-07-29 00:00:00",
+          "metric_val": 4.0448425
+        },
+        {
+          "dt": "2023-08-05 00:00:00",
+          "metric_val": 12.96
+        },
+        {
+          "dt": "2023-08-18 00:00:00",
+          "metric_val": 1044.63
+        },
+        {
+          "dt": "2023-08-27 00:00:00",
+          "metric_val": 4.38
+        },
+        {
+          "dt": "2023-09-02 00:00:00",
+          "metric_val": 230.38
+        },
+        {
+          "dt": "2023-09-14 00:00:00",
+          "metric_val": 10.86
+        },
+        {
+          "dt": "2023-09-21 00:00:00",
+          "metric_val": 9.98
+        },
+        {
+          "dt": "2023-10-06 00:00:00",
+          "metric_val": 1097.54
+        },
+        {
+          "dt": "2023-10-18 00:00:00",
+          "metric_val": 147.16
+        },
+        {
+          "dt": "2023-10-29 00:00:00",
+          "metric_val": 831.94
+        },
+        {
+          "dt": "2023-11-04 00:00:00",
+          "metric_val": 1399.98
+        },
+        {
+          "dt": "2023-11-15 00:00:00",
+          "metric_val": 5.92
+        },
+        {
+          "dt": "2023-11-25 00:00:00",
+          "metric_val": 85.98
+        },
+        {
+          "dt": "2023-12-08 00:00:00",
+          "metric_val": 45.98
+        },
+        {
+          "dt": "2023-12-16 00:00:00",
+          "metric_val": 53.18
+        }
+      ]
     }
   ]
 }

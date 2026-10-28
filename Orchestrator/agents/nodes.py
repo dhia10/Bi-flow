@@ -19,6 +19,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import json
+import re
 import urllib.request
 
 import numpy as np
@@ -543,6 +544,68 @@ def dashboard_node(state: BIFlowState) -> dict:
     if not breakdown_charts or not breakdown_charts.get("categories"):
         breakdown_charts = dynamic_charts
 
+    # Synchronisation immédiate avec generator/kpis_catalog.json pour BI Visual Studio
+    try:
+        catalog_file = Path("generator/kpis_catalog.json")
+        if catalog_file.parent.exists():
+            active_dataset_name = state.get("domain", "Dataset")
+            table_name = state.get("data_model", {}).get("fact_table", "FACT_DATA").upper()
+            kpis_list = []
+            for i, p in enumerate(proofs):
+                kpi_name = p.get("kpi_name", f"KPI_{i}")
+                val = p.get("value") if p.get("value") is not None else p.get("calculated_value", 0)
+                unit = p.get("unit", "")
+                sql_q = p.get("exact_sql", f"SELECT {val} as metric")
+                c_type = "bar" if i % 2 == 0 else "line"
+                s_type = "echarts_bar" if i % 2 == 0 else "echarts_line"
+                data_series = dynamic_charts.get("bar_data", []) if i % 2 == 0 else dynamic_charts.get("time_data", [])
+                clean_id = re.sub(r'[^A-Za-z0-9_]', '', kpi_name)[:20].upper()
+                col_used = (p.get("columns_used") or ["*"])[0]
+                kpis_list.append({
+                    "id": f"KPI_{table_name}_{i}_{clean_id}",
+                    "name": kpi_name,
+                    "domain": active_dataset_name,
+                    "category": p.get("category", "Général"),
+                    "description": f"Métrique calculée DuckDB : {kpi_name} ({unit})",
+                    "source_table": table_name,
+                    "table_name": table_name,
+                    "aggregation_type": "CALC",
+                    "metric_column": col_used,
+                    "dimension_column": dynamic_charts.get("dimension_name", "Dimension"),
+                    "chart_type": c_type,
+                    "superset_chart_type": s_type,
+                    "sql_superset": sql_q,
+                    "raw_value": val,
+                    "current_value_formatted": f"{val:,.2f} {unit}".strip() if isinstance(val, (int, float)) else f"{val} {unit}".strip(),
+                    "suggested_prompts": [kpi_name, f"Évolution de {kpi_name}"],
+                    "active": True,
+                    "source_file": active_dataset_name,
+                    "top_n": 10,
+                    "dax_measure": f"{kpi_name} = {val} -- [{unit}]",
+                    "api_endpoint": {"method": "GET", "path": f"/api/v1/kpi/{i}"},
+                    "_data": data_series if data_series else []
+                })
+
+            catalog_payload = {
+                "metadata": {
+                    "version": "2.0.0",
+                    "active_dataset": active_dataset_name,
+                    "table_name": table_name,
+                    "n_rows": len(df),
+                    "columns": list(df.columns),
+                    "datasets": [active_dataset_name],
+                    "last_updated": pd.Timestamp.now().isoformat(),
+                    "generated_by": f"Bi-Flow LangGraph ({dash_engine})",
+                    "dashboard_background": "#0a0e17"
+                },
+                "kpis": kpis_list
+            }
+            with open(catalog_file, "w", encoding="utf-8") as f:
+                json.dump(catalog_payload, f, indent=2, ensure_ascii=False)
+            log.info("Synchronisation BI Studio réussie : %d KPIs écrits dans generator/kpis_catalog.json", len(kpis_list))
+    except Exception as e:
+        log.warning("Impossible de synchroniser generator/kpis_catalog.json : %s", e)
+
     dashboard_spec = {
         "theme": "academic_clean_tables",
         "sections": [
@@ -563,7 +626,7 @@ def dashboard_node(state: BIFlowState) -> dict:
             {"title": f"Vue Superset: {p.get('kpi_name')}", "sql": p.get("exact_sql")}
             for p in proofs[:6]
         ],
-        "studio_url": "http://localhost:8080",
+        "studio_url": "/studio",
     }
 
     decisions = [

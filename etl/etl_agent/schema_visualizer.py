@@ -8,92 +8,168 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, PathPatch
 from matplotlib.path import Path as MPath
 
-BLUE='#2464a4'; GREEN='#27846a'; TEXT='#233044';MUTED='#6a778b';PAPER='#f5f8fc'; LINE='#91a5bb'
+FACT_BG = '#0f172a'
+FACT_BORDER = '#334155'
+DIM_COLORS = ['#0284c7', '#0f766e', '#4f46e5', '#7c3aed', '#d97706', '#0891b2']
+TEXT = '#0f172a'
+MUTED = '#64748b'
+PAPER = '#f8fafc'
+LINE = '#64748b'
 
 def _dtype(dtype):
-    dt=str(dtype)
-    if dt.startswith('int') or dt=='Int64':return 'INTEGER'
-    if dt.startswith('float'):return 'DECIMAL'
-    if 'datetime' in dt:return 'DATETIME'
-    if dt=='bool':return 'BOOLEAN'
-    return 'TEXT'
+    dt = str(dtype).lower()
+    if 'int' in dt: return 'BIGINT'
+    if 'float' in dt or 'double' in dt: return 'DOUBLE'
+    if 'datetime' in dt or 'date' in dt: return 'TIMESTAMP'
+    if 'bool' in dt: return 'BOOLEAN'
+    return 'VARCHAR'
 
-def generate_star_schema_image(output_dir,fact_name,fact,dimensions,relations,domain='unknown'):
-    """Generate every label from actual output frames and validated relation metadata."""
-    folder=Path(output_dir);folder.mkdir(parents=True,exist_ok=True)
-    left_names=list(dimensions)[::2];right_names=list(dimensions)[1::2]
-    side_count=max(1,len(left_names),len(right_names))
-    row_unit=0.38
-    max_rows=max([len(df.columns) for df in dimensions.values()]+[len(fact.columns),6])
-    card_h=lambda df: min(4.2,0.60+min(len(df.columns),11)*row_unit+.30)
-    max_side_h=max([card_h(df) for df in dimensions.values()]+[2.0])
-    space=max_side_h+.75
-    total_height=max(10.0,side_count*space+3.2,card_h(fact)+5.0)
-    total_width=19
-    fig,ax=plt.subplots(figsize=(total_width,total_height),dpi=165)
-    fig.patch.set_facecolor(PAPER);ax.set_facecolor(PAPER)
-    ax.set_xlim(0,19);ax.set_ylim(0,total_height);ax.axis('off')
-    ax.text(.7,total_height-.55,'BI-FLOW  /  INTELLIGENT ETL',fontsize=11,color=BLUE,fontweight='bold')
-    ax.text(.7,total_height-1.05,'Generated Star Schema' if dimensions else 'Analytical Fact Table (No Validated Dimensions)',fontsize=24 if dimensions else 17,fontweight='bold',color=TEXT)
-    ax.text(18.3,total_height-.70,f'DOMAIN   {domain.upper().replace("_"," ")}',fontsize=10,color=MUTED,ha='right')
-    ax.text(.7,.32,'Generated from validated ETL output  •  PK = Primary Key  •  FK = Foreign Key  •  ● = Measure',fontsize=10,color=MUTED)
-    fact_fk={x['fact_column'] for x in relations}
-    dim_pk={x['dimension_table']:x['dimension_column'] for x in relations}
-    fact_pk=next((c for c in fact if fact[c].notna().all() and fact[c].is_unique and
-       (c.lower().endswith(('_id','_ref','_no','_key')) or c.lower() in ('sale_id','contract_id','tracking_no')) and c not in fact_fk),None)
-    cards={}
-    def draw_card(name,df,x,cy,w,is_fact):
-        h=card_h(df);y=cy-h/2
-        shadow=FancyBboxPatch((x+.08,y-.08),w,h,boxstyle='round,pad=0.02,rounding_size=0.15',facecolor='#e2e8f2',linewidth=0,zorder=1)
+def generate_star_schema_image(output_dir, fact_name, fact, dimensions, relations, domain='unknown'):
+    folder = Path(output_dir)
+    folder.mkdir(parents=True, exist_ok=True)
+
+    left_names = list(dimensions)[::2]
+    right_names = list(dimensions)[1::2]
+    side_count = max(1, len(left_names), len(right_names))
+
+    row_unit = 0.40
+    card_h = lambda df: min(5.4, 0.70 + min(len(df.columns), 12) * row_unit + 0.35)
+    max_side_h = max([card_h(df) for df in dimensions.values()] + [2.2])
+    space = max_side_h + 0.90
+    total_height = max(11.0, side_count * space + 3.5, card_h(fact) + 5.5)
+    total_width = 20.0
+
+    fig, ax = plt.subplots(figsize=(total_width, total_height), dpi=180)
+    fig.patch.set_facecolor(PAPER)
+    ax.set_facecolor(PAPER)
+    ax.set_xlim(0, total_width)
+    ax.set_ylim(0, total_height)
+    ax.axis('off')
+
+    ax.text(0.8, total_height - 0.55, 'BI-FLOW  *  INTELLIGENT ETL ARCHITECTURE', fontsize=11, color='#4f46e5', fontweight='bold')
+    ax.text(0.8, total_height - 1.10, 'Enterprise Star Schema Architecture' if dimensions else 'Analytical Fact Model', fontsize=23, fontweight='black', color='#0f172a')
+    ax.text(total_width - 0.8, total_height - 0.70, f'DOMAIN: {domain.upper().replace("_", " ")}', fontsize=10, fontweight='bold', color='#475569', ha='right')
+    ax.text(0.8, 0.35, 'Notation:  1 = Dimension Primary Key (PK)   *   oo = Fact Foreign Key (FK)   *   * = Numeric Measure', fontsize=9.5, color='#64748b', fontweight='medium')
+
+    fact_fk = {x['fact_column'] for x in relations}
+    dim_pk = {x['dimension_table']: x['dimension_column'] for x in relations}
+    fact_pk = next((c for c in fact if fact[c].notna().all() and fact[c].is_unique and
+                    (c.lower().endswith(('_id', '_ref', '_no', '_key')) or c.lower() in ('sale_id', 'reading_id', 'order_id')) and c not in fact_fk), None)
+
+    cards = {}
+    col_coords = {}
+
+    def draw_card(name, df, x, cy, w, is_fact, color_idx=0):
+        h = card_h(df)
+        y = cy - h / 2
+
+        shadow = FancyBboxPatch((x + 0.09, y - 0.09), w, h, boxstyle='round,pad=0.03,rounding_size=0.18', facecolor='#cbd5e1', linewidth=0, zorder=1, alpha=0.6)
         ax.add_patch(shadow)
-        card=FancyBboxPatch((x,y),w,h,boxstyle='round,pad=0.02,rounding_size=0.15',facecolor='white',edgecolor='#d7dfeb',linewidth=1,zorder=2)
+        card = FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03,rounding_size=0.18', facecolor='#ffffff', edgecolor='#cbd5e1', linewidth=1.2, zorder=2)
         ax.add_patch(card)
-        color=BLUE if is_fact else GREEN
-        head=FancyBboxPatch((x,y+h-.55),w,.55,boxstyle='round,pad=0.02,rounding_size=0.15',facecolor=color,linewidth=0,zorder=3)
+
+        header_color = FACT_BG if is_fact else DIM_COLORS[color_idx % len(DIM_COLORS)]
+        head = FancyBboxPatch((x, y + h - 0.62), w, 0.62, boxstyle='round,pad=0.03,rounding_size=0.18', facecolor=header_color, linewidth=0, zorder=3)
         ax.add_patch(head)
-        # white patch square-off bottom header corners
-        ax.add_patch(plt.Rectangle((x,y+h-.55),w,.20,facecolor=color,zorder=3,linewidth=0))
-        ax.text(x+.2,y+h-.34,name,fontsize=12 if not is_fact else 13,color='white',fontweight='bold',zorder=4)
-        ax.text(x+w-.2,y+h-.34,'FACT' if is_fact else 'DIMENSION',fontsize=9,color='white',ha='right',zorder=4)
-        pk=dim_pk.get(name)
-        for index,(col,dtype) in enumerate(df.dtypes.items()):
-            if index>=11:
-                ax.text(x+.2,y+.18,f'+ {len(df.columns)-11} more columns',fontsize=9,color=MUTED,zorder=4);break
-            yy=y+h-.84-index*row_unit
-            tag='PK' if (col==pk or (is_fact and col==fact_pk)) else ('FK' if col in fact_fk and is_fact else ('●' if is_fact and __import__('pandas').api.types.is_numeric_dtype(dtype) else ''))
-            ax.text(x+.17,yy,tag,fontsize=9,color=color,fontweight='bold',zorder=4)
-            maxletters=30 if w>4.2 else 23
-            ax.text(x+.7,yy,str(col)[:maxletters],fontsize=9.4,color=TEXT,zorder=4)
-            ax.text(x+w-.18,yy,_dtype(dtype),fontsize=8.2,color=MUTED,ha='right',zorder=4)
-        cards[name]={'x':x,'y':y,'h':h,'w':w,'mid':cy}
-    center_y=(total_height-1.3)/2
-    draw_card(fact_name,fact,7.25,center_y,4.55,True)
-    top=total_height-3.0;bottom=max(2.7,max_side_h/2+1.1)
+        ax.add_patch(plt.Rectangle((x, y + h - 0.62), w, 0.25, facecolor=header_color, zorder=3, linewidth=0))
+
+        ax.text(x + 0.25, y + h - 0.36, name, fontsize=12.5 if is_fact else 12, color='#ffffff', fontweight='black', zorder=4)
+        type_badge = 'FACT TABLE' if is_fact else 'DIMENSION'
+        ax.text(x + w - 0.25, y + h - 0.36, type_badge, fontsize=8.5, color='#94a3b8' if is_fact else '#e0f2fe', fontweight='bold', ha='right', zorder=4)
+
+        pk = dim_pk.get(name)
+        for index, (col, dtype) in enumerate(df.dtypes.items()):
+            if index >= 12:
+                ax.text(x + 0.25, y + 0.20, f'+ {len(df.columns)-12} other attributes...', fontsize=8.5, color=MUTED, zorder=4)
+                break
+            yy = y + h - 0.95 - index * row_unit
+            col_coords[(name, col)] = yy
+
+            if index % 2 == 1:
+                ax.add_patch(plt.Rectangle((x + 0.05, yy - row_unit/2.3), w - 0.10, row_unit, facecolor='#f8fafc', zorder=2.5, linewidth=0))
+
+            is_col_pk = (col == pk or (is_fact and col == fact_pk))
+            is_col_fk = (col in fact_fk and is_fact)
+            is_measure = (is_fact and __import__('pandas').api.types.is_numeric_dtype(dtype) and not is_col_pk and not is_col_fk)
+
+            if is_col_pk:
+                ax.text(x + 0.18, yy, 'PK', fontsize=8.5, color='#b45309', fontweight='black', zorder=4,
+                        bbox=dict(boxstyle='round,pad=0.15', facecolor='#fef3c7', edgecolor='#f59e0b', linewidth=0.7))
+            elif is_col_fk:
+                ax.text(x + 0.18, yy, 'FK', fontsize=8.5, color='#1d4ed8', fontweight='black', zorder=4,
+                        bbox=dict(boxstyle='round,pad=0.15', facecolor='#dbeafe', edgecolor='#3b82f6', linewidth=0.7))
+            elif is_measure:
+                ax.text(x + 0.18, yy, '●', fontsize=9.5, color='#059669', fontweight='bold', zorder=4)
+
+            maxletters = 28 if w > 4.5 else 22
+            ax.text(x + 0.72, yy, str(col)[:maxletters], fontsize=9.2, color='#1e293b', fontweight='medium', zorder=4)
+            ax.text(x + w - 0.22, yy, _dtype(dtype), fontsize=8.0, color='#64748b', fontfamily='monospace', ha='right', zorder=4)
+
+        cards[name] = {'x': x, 'y': y, 'h': h, 'w': w, 'mid': cy}
+
+    center_y = (total_height - 1.4) / 2
+    draw_card(fact_name, fact, 7.55, center_y, 4.90, True, 0)
+
+    top = total_height - 3.2
+    bottom = max(2.8, max_side_h / 2 + 1.2)
     def positions(length):
-        if length==1:return [center_y]
-        return [top-(top-bottom)*i/(length-1) for i in range(length)]
-    for name,y in zip(left_names,positions(len(left_names))):draw_card(name,dimensions[name],.55,y,5.4,False)
-    for name,y in zip(right_names,positions(len(right_names))):draw_card(name,dimensions[name],13.1,y,5.35,False)
+        if length == 1: return [center_y]
+        return [top - (top - bottom) * i / (length - 1) for i in range(length)]
+
+    for idx, (name, y) in enumerate(zip(left_names, positions(len(left_names)))):
+        draw_card(name, dimensions[name], 0.65, y, 5.60, False, idx)
+    for idx, (name, y) in enumerate(zip(right_names, positions(len(right_names)))):
+        draw_card(name, dimensions[name], 13.75, y, 5.60, False, idx + len(left_names))
+
     for rel in relations:
-        dest=cards.get(rel['dimension_table'])
-        if not dest:continue
-        left=dest['x']<7
-        a=cards[fact_name]
-        x1=a['x'] if left else a['x']+a['w']
-        x2=dest['x']+dest['w'] if left else dest['x']
-        y1=a['mid'];y2=dest['mid']
-        mid=x1-.55 if left else x1+.55
-        vertices=[(x1,y1),(mid,y1),(mid,y2),(x2,y2)]
-        path=MPath(vertices,[MPath.MOVETO,MPath.LINETO,MPath.LINETO,MPath.LINETO])
-        ax.add_patch(PathPatch(path,facecolor='none',edgecolor=LINE,linewidth=2,zorder=.5))
-        ax.scatter([x1,x2],[y1,y2],s=40,c=[BLUE,GREEN],zorder=5)
-        ax.text((x1+x2)/2,(y1+y2)/2+.16,rel['fact_column'][:24],fontsize=7.8,color=MUTED,ha='center')
-    png=folder/'star_schema.png';svg=folder/'star_schema.svg'
-    fig.savefig(png,bbox_inches='tight',pad_inches=.20,facecolor=fig.get_facecolor())
-    fig.savefig(svg,bbox_inches='tight',pad_inches=.20,facecolor=fig.get_facecolor())
+        dim_name = rel['dimension_table']
+        fact_col = rel['fact_column']
+        dim_col = rel['dimension_column']
+        dest = cards.get(dim_name)
+        if not dest:
+            continue
+
+        left = dest['x'] < 7.0
+        a = cards[fact_name]
+
+        y1 = col_coords.get((fact_name, fact_col), a['mid'])
+        y2 = col_coords.get((dim_name, dim_col), dest['mid'])
+
+        x1 = a['x'] if left else a['x'] + a['w']
+        x2 = dest['x'] + dest['w'] if left else dest['x']
+
+        mid_x = (x1 + x2) / 2
+        vertices = [(x1, y1), (mid_x, y1), (mid_x, y2), (x2, y2)]
+        codes = [MPath.MOVETO, MPath.LINETO, MPath.LINETO, MPath.LINETO]
+        path = MPath(vertices, codes)
+
+        ax.add_patch(PathPatch(path, facecolor='none', edgecolor='#64748b', linewidth=2.0, zorder=1.5, alpha=0.85))
+
+        ax.text(x2 + (0.20 if left else -0.20), y2, '1', fontsize=9.0, fontweight='black', color='#0f766e',
+                ha='left' if left else 'right', va='center',
+                bbox=dict(boxstyle='round,pad=0.18', facecolor='#ccfbf1', edgecolor='#14b8a6', linewidth=0.8, zorder=6))
+
+        ax.text(x1 + (-0.20 if left else 0.20), y1, 'N', fontsize=10.0, fontweight='black', color='#4338ca',
+                ha='right' if left else 'left', va='center',
+                bbox=dict(boxstyle='round,pad=0.18', facecolor='#e0e7ff', edgecolor='#6366f1', linewidth=0.8, zorder=6))
+
+        ax.text(mid_x, (y1 + y2) / 2, f" {fact_col} ", fontsize=8.0, fontweight='bold', color='#1e293b',
+                ha='center', va='center',
+                bbox=dict(boxstyle='round,pad=0.22', facecolor='#ffffff', edgecolor='#cbd5e1', linewidth=1.0, zorder=7))
+
+    png = folder / 'star_schema.png'
+    svg = folder / 'star_schema.svg'
+    fig.savefig(png, bbox_inches='tight', pad_inches=0.25, facecolor=fig.get_facecolor())
+    fig.savefig(svg, bbox_inches='tight', pad_inches=0.25, facecolor=fig.get_facecolor())
     plt.close(fig)
-    return {'png':str(png),'svg':str(svg),'schema_type':'star_schema' if dimensions else 'fact_only','fact':fact_name,
-            'dimension_count':len(dimensions),'relationship_count':len(relations)}
+    return {
+        'png': str(png),
+        'svg': str(svg),
+        'schema_type': 'star_schema' if dimensions else 'fact_only',
+        'fact': fact_name,
+        'dimension_count': len(dimensions),
+        'relationship_count': len(relations)
+    }
 
 
 def generate_schema_image(output_dir, fact_name, fact, dimensions, relations, domain='unknown', schema_type='star_schema'):
