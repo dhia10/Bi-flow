@@ -555,8 +555,52 @@ async def upload_csv(file: UploadFile = File(...)):
 
 
 
+def merge_multiple_csvs(named_dfs: List[tuple[str, pd.DataFrame]]) -> tuple[pd.DataFrame, str]:
+    """
+    Intelligently merges multiple CSV files from the same dataset.
+    Supports:
+    1. Relational multi-table datasets (foreign key join, e.g. orders + items + customers)
+    2. Segmented / sharded datasets (same columns, vertical concatenation)
+    3. Hybrid datasets (outer merge)
+    """
+    if not named_dfs:
+        raise ValueError("Aucun fichier valide fourni.")
+    if len(named_dfs) == 1:
+        return named_dfs[0][1], f"Fichier unique: {named_dfs[0][0]}"
+
+    # Check if all dataframes have the exact same columns or >80% overlapping columns
+    first_cols = set(named_dfs[0][1].columns)
+    all_same = all(set(df.columns) == first_cols for _, df in named_dfs)
+    if all_same:
+        combined = pd.concat([df for _, df in named_dfs], ignore_index=True)
+        return combined, f"Concaténation verticale de {len(named_dfs)} fichiers ({len(combined)} lignes au total)"
+
+    # Relational Join: Sort by row count descending so fact table is primary
+    sorted_dfs = sorted(named_dfs, key=lambda x: len(x[1]), reverse=True)
+    base_name, base_df = sorted_dfs[0]
+    merged = base_df.copy()
+    merge_log = [f"Base factuelle: {base_name} ({len(base_df)} lignes)"]
+
+    for name, df in sorted_dfs[1:]:
+        # Find common ID or key columns (case-insensitive)
+        common_cols = [c for c in df.columns if c in merged.columns]
+        id_candidates = [c for c in common_cols if any(k in c.lower() for k in ("id", "no", "key", "code", "num"))]
+        join_key = id_candidates[0] if id_candidates else (common_cols[0] if common_cols else None)
+
+        if join_key:
+            clean_dim = df.drop_duplicates(subset=[join_key])
+            merged = pd.merge(merged, clean_dim, on=join_key, how="left", suffixes=("", f"_{name.split('.')[0]}"))
+            merge_log.append(f"Jointure LEFT sur '{join_key}' avec {name}")
+        else:
+            merged = pd.concat([merged.reset_index(drop=True), df.reset_index(drop=True)], axis=1)
+            merge_log.append(f"Jonction horizontale avec {name}")
+
+    return merged, " -> ".join(merge_log)
+
+
 @app.post("/api/v1/run-langgraph")
 async def run_langgraph_endpoint(
+    files: Optional[List[UploadFile]] = File(None),
     file: Optional[UploadFile] = File(None),
     demo_id: Optional[str] = None,
     domain: str = "retail",
@@ -567,13 +611,27 @@ async def run_langgraph_endpoint(
     temp_dir = Path("artifacts") / "uploads"
     temp_dir.mkdir(parents=True, exist_ok=True)
 
-    if file and file.filename:
-        contents = await file.read()
-        if not contents:
-            raise HTTPException(status_code=400, detail="Fichier vide téléversé.")
-        df = robust_read_csv(contents)
-        dataset_path = temp_dir / f"uploaded_{uuid.uuid4().hex[:6]}.csv"
-        df.to_csv(dataset_path, index=False)
+    uploaded_files: List[UploadFile] = []
+    if files:
+        uploaded_files.extend([f for f in files if f and f.filename])
+    if file and file.filename and file not in uploaded_files:
+        uploaded_files.append(file)
+
+    merge_summary = None
+    if uploaded_files:
+        parsed_dfs = []
+        for uf in uploaded_files:
+            contents = await uf.read()
+            if contents:
+                df_item = robust_read_csv(contents)
+                parsed_dfs.append((uf.filename, df_item))
+
+        if not parsed_dfs:
+            raise HTTPException(status_code=400, detail="Aucun fichier CSV valide téléversé.")
+
+        merged_df, merge_summary = merge_multiple_csvs(parsed_dfs)
+        dataset_path = temp_dir / f"dataset_{uuid.uuid4().hex[:6]}.csv"
+        merged_df.to_csv(dataset_path, index=False)
         target_ref = str(dataset_path.resolve())
     elif demo_id == "superstore":
         target_ref = str((pipeline.root_dir / "bi_pipeline" / "data" / "mock_clean_data.csv").resolve())
@@ -599,6 +657,7 @@ async def run_langgraph_endpoint(
         "run_id": result.get("run_id"),
         "domain": result.get("domain"),
         "dataset_ref": result.get("dataset_ref"),
+        "merge_summary": merge_summary,
         "trace": [
             {
                 "node": t.node,

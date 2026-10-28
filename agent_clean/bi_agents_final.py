@@ -272,14 +272,21 @@ def detect_anomalous_rows(df: pd.DataFrame) -> list:
         return []
     try:
         X = df[num].fillna(df[num].median())
+        sample_size = min(n, 20000)
+        X_train = X.sample(sample_size, random_state=42)
         model = IsolationForest(n_estimators=100, random_state=42)
-        model.fit(X.sample(min(n, 20000), random_state=42))
-        scores = model.score_samples(X)
+        model.fit(X_train)
+
+        # Fast evaluation on sample if dataset is huge (>50k rows)
+        eval_sample_size = min(n, 50000)
+        X_eval = X.sample(eval_sample_size, random_state=42) if n > eval_sample_size else X
+        scores = model.score_samples(X_eval)
         q1, q3 = np.percentile(scores, [25, 75])
-        k = int((scores < q1 - 3 * (q3 - q1)).sum())
+        k_eval = int((scores < q1 - 3 * (q3 - q1)).sum())
+        k = int(k_eval * (n / len(X_eval)))
         if k == 0:
             return []
-        pct = k / n * 100
+        pct = (k / n) * 100
         return [{
             "column": None,
             "type": "anomalous_rows",
@@ -418,30 +425,41 @@ def _op_fill_missing(df, column, strategy, value=None, **_):
     return df
 
 
-def _op_cast_type(df, column, to, **_):
-    if to == "datetime":
+def _op_cast_type(df, column=None, to=None, **_):
+    if not column or column not in df.columns:
+        return df
+    to_str = str(to).lower() if to else "str"
+    if to_str in ("datetime", "date"):
         df[column] = pd.to_datetime(df[column], errors="coerce")
-    elif to in ("int", "float"):
+    elif to_str in ("int", "integer"):
         df[column] = pd.to_numeric(df[column], errors="coerce")
-        if to == "int":
-            df[column] = df[column].astype("Int64")
-    elif to == "category":
+        df[column] = df[column].astype("Int64")
+    elif to_str in ("float", "numeric", "price", "number"):
+        df[column] = pd.to_numeric(df[column], errors="coerce")
+    elif to_str in ("category", "categorical"):
         df[column] = df[column].astype("category")
-    elif to == "str":
+    elif to_str in ("str", "string", "text"):
         df[column] = df[column].astype(str)
     else:
-        raise ValueError(f"unknown type {to}")
+        df[column] = df[column].astype(str)
     return df
 
 
-def _op_standardize_text(df, column, **_):
+def _op_standardize_text(df, column=None, **_):
+    if not column or column not in df.columns:
+        return df
     df[column] = df[column].where(df[column].isna(), df[column].astype(str).str.strip().str.lower())
     return df
 
 
-def _op_clip_outliers(df, column, lower_q=0.01, upper_q=0.99, **_):
-    lo, hi = df[column].quantile([lower_q, upper_q])
-    df[column] = df[column].clip(lo, hi)
+def _op_clip_outliers(df, column=None, lower_q=0.01, upper_q=0.99, **_):
+    if not column or column not in df.columns:
+        return df
+    try:
+        lo, hi = df[column].quantile([lower_q, upper_q])
+        df[column] = df[column].clip(lo, hi)
+    except Exception:
+        pass
     return df
 
 
@@ -459,16 +477,22 @@ OPS = {
 class DataCleanerAgent:
     NAME = "data_cleaner"
     SYSTEM = (
-        "You are a data cleaning expert. Given a dataset's domain, column roles, profile and "
-        "detected issues, produce a cleaning plan. Return JSON: "
-        '{"steps": [{"op": <name>, "params": {...}, "reason": "<why, one sentence>"}]}. '
-        "Allowed ops and params: drop_duplicates{}; drop_columns{columns}; "
-        "drop_missing_rows{column}; fill_missing{column, strategy: mean|median|mode|constant, value?}; "
-        "cast_type{column, to: datetime|int|float|category|str}; standardize_text{column}; "
-        "clip_outliers{column, lower_q?, upper_q?}. "
-        "Only use existing columns. Cast types before filling or clipping. "
-        "Do not clean what is not broken. Issues of type anomalous_rows are informational only: "
-        "never drop or change rows because of them."
+        "You are an expert data cleaning agent. Given a dataset's domain, column roles, and detected issues, "
+        "produce a strict cleaning plan. Return JSON in this exact structure:\n"
+        '{"steps": [\n'
+        '  {"op": "cast_type", "params": {"column": "InvoiceDate", "to": "datetime"}, "reason": "Convert date strings to datetime"},\n'
+        '  {"op": "standardize_text", "params": {"column": "Description"}, "reason": "Normalize casing and strip spaces"},\n'
+        '  {"op": "clip_outliers", "params": {"column": "Quantity", "lower_q": 0.01, "upper_q": 0.99}, "reason": "Clip volume outliers"}\n'
+        ']}\n'
+        "Allowed ops and their REQUIRED params:\n"
+        "- drop_duplicates: params={}\n"
+        "- drop_columns: params={\"columns\": [\"col1\", ...]}\n"
+        "- drop_missing_rows: params={\"column\": \"col_name\"}\n"
+        "- fill_missing: params={\"column\": \"col_name\", \"strategy\": \"median\"|\"mean\"|\"mode\"|\"constant\", \"value\": optional}\n"
+        "- cast_type: params={\"column\": \"col_name\", \"to\": \"datetime\"|\"int\"|\"float\"|\"category\"|\"str\"}\n"
+        "- standardize_text: params={\"column\": \"col_name\"}\n"
+        "- clip_outliers: params={\"column\": \"col_name\", \"lower_q\": 0.01, \"upper_q\": 0.99}\n"
+        "IMPORTANT: 'params' must NEVER be empty except for drop_duplicates! Always specify the exact column name from the dataset."
     )
 
     def plan(self, payload: dict) -> list:
@@ -487,7 +511,37 @@ class DataCleanerAgent:
             decisions = []
 
             for step in self.plan(msg.payload):
-                op, params = step["op"], step.get("params", {})
+                op = step.get("op", "")
+                params = dict(step.get("params") or {})
+
+                # Check root-level parameters
+                for k in ("column", "to", "strategy", "value", "columns", "lower_q", "upper_q"):
+                    if k in step and k not in params:
+                        params[k] = step[k]
+
+                # Intelligent recovery if column is missing from params
+                reason_str = str(step.get("reason", "")).lower()
+                if op in ("cast_type", "standardize_text", "clip_outliers", "fill_missing", "drop_missing_rows"):
+                    if not params.get("column"):
+                        for c in df.columns:
+                            c_clean = str(c).lower().replace("_", "").replace(" ", "")
+                            r_clean = reason_str.replace("_", "").replace(" ", "")
+                            if c.lower() in reason_str or c_clean in r_clean:
+                                params["column"] = c
+                                break
+
+                    if op == "cast_type" and not params.get("to"):
+                        if "date" in reason_str or "time" in reason_str:
+                            params["to"] = "datetime"
+                        elif "str" in reason_str or "text" in reason_str:
+                            params["to"] = "str"
+                        elif "int" in reason_str:
+                            params["to"] = "int"
+                        elif "float" in reason_str or "price" in reason_str or "numeric" in reason_str:
+                            params["to"] = "float"
+                        else:
+                            params["to"] = "str"
+
                 rec = {"op": op, "params": params, "reason": step.get("reason", "")}
                 if op not in OPS:
                     decisions.append({**rec, "status": "skipped: unknown op"})
@@ -495,7 +549,11 @@ class DataCleanerAgent:
                 try:
                     col = params.get("column")
                     if col is not None and col not in df.columns:
-                        raise KeyError(f"column '{col}' not found")
+                        decisions.append({**rec, "status": f"skipped: column '{col}' not found"})
+                        continue
+                    if op in ("cast_type", "standardize_text", "clip_outliers") and not col:
+                        decisions.append({**rec, "status": "skipped: no target column specified"})
+                        continue
                     rows0, nulls0 = len(df), int(df.isna().sum().sum())
                     df = OPS[op](df.copy(), **params)
                     decisions.append({
