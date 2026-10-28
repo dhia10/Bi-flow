@@ -197,17 +197,33 @@ def etl_node(state: BIFlowState) -> dict:
         if c not in numeric_cols and c not in id_cols
     ]
 
-    # 1. Induction dimensionnelle dynamique basée sur les vraies colonnes du dataset
+    # 1. Induction dimensionnelle dynamique et universelle pour TOUT dataset
     cols_lower = {c: c.lower() for c in df.columns}
     dim_groups: Dict[str, List[str]] = {}
 
+    # A. Détection intelligente des clés d'entité et suffixes
+    # Compteurs / Smart Meters / Énergie
+    meter_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("meter", "compteur", "kwh", "reading_id", "smart_meter")) and "date" not in cl and not pd.api.types.is_numeric_dtype(df[c])]
+    if meter_cols:
+        dim_groups["dim_meters"] = meter_cols
+
+    # Tarifs / Grille tarifaire / Tariffs
+    tariff_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("tariff", "tarif", "rate", "tier", "price_per"))]
+    if tariff_cols:
+        dim_groups["dim_tariffs"] = tariff_cols
+
+    # Sites / Bâtiments / Stations
+    site_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("site", "station", "building", "facility", "batiment")) and c not in meter_cols]
+    if site_cols:
+        dim_groups["dim_sites"] = site_cols
+
     # Produits / Articles / Items
-    prod_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("product", "item", "stock", "description", "category", "sku", "article", "desc"))]
+    prod_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("product", "item", "stock", "description", "category", "sku", "article", "desc")) and c not in tariff_cols]
     if prod_cols:
         dim_groups["dim_products"] = prod_cols
 
     # Clients / Utilisateurs / Acheteurs
-    cust_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("customer", "client", "user", "buyer", "subscriber", "account")) and c not in prod_cols]
+    cust_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("customer", "client", "user", "buyer", "subscriber", "account", "patient")) and c not in prod_cols]
     if cust_cols:
         dim_groups["dim_customers"] = cust_cols
 
@@ -217,11 +233,11 @@ def etl_node(state: BIFlowState) -> dict:
         dim_groups["dim_geography"] = geo_cols
 
     # Calendrier / Temps
-    date_cols = [c for c, cl in cols_lower.items() if (any(k in cl for k in ("date", "time", "year", "month", "day", "timestamp", "annee", "jour")) or pd.api.types.is_datetime64_any_dtype(df[c])) and c not in prod_cols]
+    date_cols = [c for c, cl in cols_lower.items() if (any(k in cl for k in ("date", "time", "year", "month", "day", "timestamp", "annee", "jour", "reading_date")) or pd.api.types.is_datetime64_any_dtype(df[c])) and c not in prod_cols]
     if date_cols:
         dim_groups["dim_calendar"] = date_cols
 
-    # Commandes / Expédition / Mode
+    # Commandes / Expédition / En-têtes
     order_cols = [c for c, cl in cols_lower.items() if any(k in cl for k in ("ship", "order", "invoice", "channel", "mode", "livraison")) and c not in prod_cols and c not in cust_cols and c not in geo_cols and c not in date_cols]
     if order_cols:
         dim_groups["dim_orders"] = order_cols
@@ -236,19 +252,76 @@ def etl_node(state: BIFlowState) -> dict:
         dim_groups["dim_entities"] = dim_cols[:4] if dim_cols else ["entity_type"]
 
     dimension_tables = list(dim_groups.keys())
-    fact_table = f"fact_{domain.lower()}" if domain and domain not in ("unknown", "generic") else "fact_transactions"
 
-    # Enrichissement avec LLaMA 3.2 (3B) local si Ollama est actif
-    ollama_res = _query_ollama(
-        prompt=f"Domaine: {domain}. Colonnes: {list(df.columns)[:15]}. Mesures: {numeric_cols[:5]}. Dimensions détectées: {dimension_tables}. Propose un nom précis pour fact_table (ex: fact_sales, fact_orders).",
-        system_prompt="Tu es un data architect expert. Réponds en JSON avec 'fact_table'.",
-        model="llama3.2:3b",
-    )
-    if ollama_res and isinstance(ollama_res, dict) and ollama_res.get("fact_table"):
-        fact_table = str(ollama_res["fact_table"])
-        llm_engine = "LLaMA 3.2 3B (Ollama Local) + Induction Dynamique"
-    else:
-        llm_engine = "Règles Déterministes d'Induction Dimensionnelle"
+    # B. Nom de la table de faits déduit de l'événement transactionnel principal
+    fact_table = None
+    # 1. Analyse par suffixes clés
+    for c in df.columns:
+        cl = c.lower()
+        if cl in ("reading_id", "meter_reading_id") or "kwh" in cl:
+            fact_table = "fact_meter_readings"
+            break
+        elif cl in ("order_id", "order_item_id"):
+            fact_table = "fact_orders"
+            break
+        elif cl in ("invoice_no", "invoice_id"):
+            fact_table = "fact_invoices"
+            break
+        elif cl in ("sale_id", "sales"):
+            fact_table = "fact_sales"
+            break
+        elif cl in ("transaction_id", "trans_id"):
+            fact_table = "fact_transactions"
+            break
+        elif cl in ("telemetry_id", "device_reading_id"):
+            fact_table = "fact_telemetry"
+            break
+
+    if not fact_table:
+        fact_table = f"fact_{domain.lower()}" if domain and domain not in ("unknown", "generic", "retail") else "fact_transactions"
+
+    llm_engine = "Règles Déterministes d'Induction Dimensionnelle"
+
+    # C. Amélioration par Gemini 3.5 Flash Lite ou LLaMA local
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        key_p = Path("agent_clean/key.txt")
+        if key_p.is_file():
+            api_key = key_p.read_text().strip()
+
+    if api_key:
+        try:
+            from google import genai
+            g_client = genai.Client(api_key=api_key)
+            prompt = (
+                f"Columns: {list(df.columns)[:15]}. Measures: {numeric_cols[:4]}. "
+                "Propose an OLAP Star Schema in JSON: "
+                "{\"fact_table\": \"fact_...\", \"dimensions\": {\"dim_...\": [\"col1\", ...]}}"
+            )
+            g_res = g_client.models.generate_content(model="gemini-3.5-flash-lite", contents=prompt)
+            raw = g_res.text.strip()
+            if "```json" in raw:
+                raw = raw.split("```json")[1].split("```")[0].strip()
+            elif "```" in raw:
+                raw = raw.split("```")[1].split("```")[0].strip()
+            parsed = json.loads(raw)
+            if parsed.get("fact_table"):
+                fact_table = str(parsed["fact_table"])
+                if not fact_table.startswith("fact_"):
+                    fact_table = f"fact_{fact_table}"
+            if parsed.get("dimensions") and isinstance(parsed["dimensions"], dict):
+                custom_dims = {}
+                for k, cols_list in parsed["dimensions"].items():
+                    k_clean = k if k.startswith("dim_") else f"dim_{k}"
+                    valid = [c for c in cols_list if c in df.columns]
+                    if valid:
+                        custom_dims[k_clean] = valid
+                if custom_dims:
+                    dim_groups = custom_dims
+                    dimension_tables = list(dim_groups.keys())
+            llm_engine = "Google Gemini 3.5 Flash Lite (Architecture OLAP)"
+        except Exception as e:
+            log.debug("Gemini schema inference fallback: %s", e)
 
     relations = [
         {"from": fact_table, "to": d, "type": "many_to_one"}
@@ -430,8 +503,45 @@ def dashboard_node(state: BIFlowState) -> dict:
         dash_engine = "Règles standard de mise en page sobre"
         primary_focus = "Surveillance de la rentabilité et du volume des commandes"
 
+    df = _load_df_from_state(state)
+    dynamic_charts = {}
+    try:
+        import duckdb
+        con = duckdb.connect(":memory:")
+        con.register("df_data", df)
+
+        # 1. Identifier la mesure numérique principale
+        num_candidates = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and not any(k in c.lower() for k in ("_id", "_key", "_code"))]
+        measure_col = num_candidates[0] if num_candidates else None
+
+        # 2. Identifier la dimension catégorielle principale
+        cat_candidates = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and not any(k in c.lower() for k in ("date", "time", "id", "key", "desc")) and df[c].nunique() > 1]
+        if not cat_candidates:
+            cat_candidates = [c for c in df.columns if c != measure_col and 1 < df[c].nunique() < 40]
+        dim_col = cat_candidates[0] if cat_candidates else None
+
+        # 3. Identifier la dimension temporelle
+        date_candidates = [c for c in df.columns if any(k in c.lower() for k in ("date", "time", "timestamp", "year", "day")) or pd.api.types.is_datetime64_any_dtype(df[c])]
+        date_col = date_candidates[0] if date_candidates else None
+
+        if measure_col and dim_col:
+            res_dim = con.execute(f"SELECT CAST({dim_col} AS VARCHAR) as entity, SUM(CAST({measure_col} AS DOUBLE)) as metric_val FROM df_data WHERE {dim_col} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 10").df()
+            dynamic_charts["dimension_name"] = dim_col
+            dynamic_charts["measure_name"] = measure_col
+            dynamic_charts["bar_data"] = res_dim.to_dict("records")
+            dynamic_charts["pie_data"] = res_dim.head(6).to_dict("records")
+
+        if measure_col and date_col:
+            res_date = con.execute(f"SELECT CAST({date_col} AS VARCHAR) as dt, SUM(CAST({measure_col} AS DOUBLE)) as metric_val FROM df_data WHERE {date_col} IS NOT NULL GROUP BY 1 ORDER BY 1 ASC LIMIT 35").df()
+            dynamic_charts["time_data"] = res_date.to_dict("records")
+            dynamic_charts["time_col"] = date_col
+    except Exception as e:
+        log.warning("DuckDB dynamic chart aggregation: %s", e)
+
     query_payload = state.get("_query_payload")
     breakdown_charts = getattr(query_payload, "breakdown_charts_data", {}) if query_payload else {}
+    if not breakdown_charts or not breakdown_charts.get("categories"):
+        breakdown_charts = dynamic_charts
 
     dashboard_spec = {
         "theme": "academic_clean_tables",
