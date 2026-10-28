@@ -73,19 +73,26 @@ def main() -> None:
         print(f"   • {t.node:<12} (Passage {t.attempt}) -> Statut: {t.status:<7} ({t.duration_s:.3f}s)")
 
     # KPIs calculés
-    kpis = result.get("kpi_catalog") or {}
-    print(f"\n📊 KPIs Calculés par DuckDB & Agent 5 ({len(kpis)}) :")
-    for k, v in list(kpis.items())[:8]:
-        print(f"   - {k}: {v}")
+    kpis_data = result.get("kpi_catalog") or {}
+    proofs = kpis_data.get("proofs", [])
+    print(f"\n📊 KPIs Calculés par DuckDB & Agent 5 ({len(proofs)}) :")
+    for p in proofs[:8]:
+        name = p.get("kpi_name", "KPI")
+        val = p.get("value", 0)
+        unit = p.get("unit", "")
+        print(f"   - {name}: {val:,.2f} {unit}")
 
     # Anomalies détectées
-    insights = result.get("insights") or []
-    print(f"\n🔍 Analyse Statistique & Anomalies (Agent 6) ({len(insights)} alertes) :")
-    for ins in insights[:5]:
+    insights = result.get("insights") or {}
+    anomalies = insights.get("anomalies", []) if isinstance(insights, dict) else (insights if isinstance(insights, list) else [])
+    print(f"\n🔍 Analyse Statistique & Anomalies (Agent 6) ({len(anomalies)} alertes) :")
+    for ins in anomalies[:5]:
         ent = ins.get("entity", "Inconnu")
         sev = ins.get("severity", "MEDIUM")
-        exp = ins.get("business_explanation") or ins.get("details", "")
-        print(f"   [{sev}] {ent}: {exp}")
+        exp = ins.get("business_explanation") or ins.get("description", "")
+        z = ins.get("z_score")
+        z_str = f" (Z={z:+.2f})" if z is not None else ""
+        print(f"   [{sev}] {ent}{z_str}: {exp}")
 
     # Rapport XAI
     xai = result.get("xai_report") or {}

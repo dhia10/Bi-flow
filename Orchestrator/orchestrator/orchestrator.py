@@ -139,6 +139,7 @@ def _wrap(name: str, agent: Agent) -> Callable[[BIFlowState], dict]:
 
         # (b) + (c) Exécuter l'agent, chronométré, sans jamais faire planter le graphe.
         t0 = time.perf_counter()
+        print(f"   [>>] [LangGraph] Execution du noeud : {name.upper()} (Passage {attempt})...", flush=True)
         raw_agent_payload = {}
         try:
             update = agent(state) or {}
@@ -179,6 +180,7 @@ def _wrap(name: str, agent: Agent) -> Callable[[BIFlowState], dict]:
             ))
 
         duration = round(time.perf_counter() - t0, 4)
+        print(f"   [OK] [LangGraph] Noeud {name.upper()} termine en {duration:.2f}s (Statut: {status})", flush=True)
         for w in warnings:
             log.warning("[%s] %s", name, w)
 

@@ -46,4 +46,5 @@ product_category_name_translation.csv
 data/cache/
 artifacts/
 runs/
+.langgraph_api/
 

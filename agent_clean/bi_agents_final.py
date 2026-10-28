@@ -28,7 +28,7 @@ if not os.getenv("GEMINI_API_KEY") and KEY_PATH.is_file():
     if raw_key:
         os.environ["GEMINI_API_KEY"] = raw_key
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
 _genai_client = None
 
@@ -198,26 +198,38 @@ def ask_json(system: str, user: str, max_tokens: int = 8000, retries: int = 3) -
 
     from google.genai import types
 
-    for attempt in range(retries):
-        try:
-            r = client.models.generate_content(
-                model=MODEL,
-                contents=user,
-                config=types.GenerateContentConfig(
-                    system_instruction=system + "\nReply with a single valid JSON object only.",
-                    response_mime_type="application/json",
-                    max_output_tokens=max_tokens,
-                ),
-            )
-            text = r.text
-            return json.loads(text[text.index("{"): text.rindex("}") + 1])
-        except Exception as e:
-            transient = any(
-                k in str(e) for k in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED")
-            )
-            if not transient or attempt == retries - 1:
-                raise
-            time.sleep(1)
+    models_to_try = [
+        os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
+        os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.8-flash"),
+    ]
+
+    last_err = None
+    for m_name in models_to_try:
+        for attempt in range(retries):
+            try:
+                r = client.models.generate_content(
+                    model=m_name,
+                    contents=user,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system + "\nReply with a single valid JSON object only.",
+                        response_mime_type="application/json",
+                        max_output_tokens=max_tokens,
+                    ),
+                )
+                text = r.text
+                return json.loads(text[text.index("{"): text.rindex("}") + 1])
+            except Exception as e:
+                last_err = e
+                transient = any(
+                    k in str(e) for k in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "404", "NOT_FOUND")
+                )
+                if transient and attempt < retries - 1:
+                    time.sleep(1)
+                else:
+                    break
+
+    if last_err:
+        raise last_err
 
 
 # Deterministic profiling, issue detection, quality score

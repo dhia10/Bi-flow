@@ -59,9 +59,8 @@ class ProductionLLMClient:
 
         if api_key:
             models_to_try = [
-                os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.5-flash-lite"),
-                "gemini-2.5-flash-lite",
+                os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
+                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.8-flash"),
             ]
             try:
                 from google import genai
@@ -165,9 +164,8 @@ class ProductionLLMClient:
 
         if api_key:
             models_to_try = [
-                os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.5-flash-lite"),
-                "gemini-2.5-flash-lite",
+                os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
+                os.getenv("FALLBACK_GEMINI_MODEL", "gemini-3.8-flash"),
             ]
             try:
                 from google import genai

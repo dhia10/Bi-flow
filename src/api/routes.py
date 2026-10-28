@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
-import re
+import os
 from pathlib import Path
+import re
+import sys
 from typing import Any, Dict, List, Optional
+import uuid
 
 import duckdb
 import numpy as np
@@ -13,6 +17,15 @@ from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+if str(_REPO_ROOT / "Orchestrator") not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT / "Orchestrator"))
+
+from Orchestrator.agents.nodes import get_production_agents
+from Orchestrator.orchestrator.orchestrator import run_pipeline
 
 from src.pipelines.query_pipeline import ProductionQueryPipeline
 from src.schemas.models import (
@@ -529,6 +542,72 @@ async def upload_csv(file: UploadFile = File(...)):
         force_refresh=True,
     )
 
+
+
+@app.post("/api/v1/run-langgraph")
+async def run_langgraph_endpoint(
+    file: Optional[UploadFile] = File(None),
+    demo_id: Optional[str] = None,
+    domain: str = "retail",
+):
+    """Exécute l'orchestrateur LangGraph complet (7 agents) et renvoie la télémétrie des nœuds et des JSON."""
+    runs_dir = Path("runs")
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    temp_dir = Path("artifacts") / "uploads"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    if file and file.filename:
+        contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Fichier vide téléversé.")
+        df = robust_read_csv(contents)
+        dataset_path = temp_dir / f"uploaded_{uuid.uuid4().hex[:6]}.csv"
+        df.to_csv(dataset_path, index=False)
+        target_ref = str(dataset_path.resolve())
+    elif demo_id == "superstore":
+        target_ref = str((pipeline.root_dir / "bi_pipeline" / "data" / "mock_clean_data.csv").resolve())
+    elif demo_id == "olist":
+        df = _load_olist(sample_limit=25000)
+        dataset_path = temp_dir / "olist_sample.csv"
+        df.to_csv(dataset_path, index=False)
+        target_ref = str(dataset_path.resolve())
+    elif demo_id == "iot":
+        df = _make_iot_sample()
+        dataset_path = temp_dir / "iot_sample.csv"
+        df.to_csv(dataset_path, index=False)
+        target_ref = str(dataset_path.resolve())
+    else:
+        target_ref = str((pipeline.root_dir / "bi_pipeline" / "data" / "mock_clean_data.csv").resolve())
+
+    agents = get_production_agents()
+    result = run_pipeline(agents, dataset_ref=target_ref, domain=domain)
+
+    # Format pure JSON response
+    return {
+        "status": "success",
+        "run_id": result.get("run_id"),
+        "domain": result.get("domain"),
+        "dataset_ref": result.get("dataset_ref"),
+        "trace": [
+            {
+                "node": t.node,
+                "status": t.status,
+                "attempt": t.attempt,
+                "duration_s": t.duration_s,
+                "message": t.message,
+                "timestamp": t.timestamp,
+            }
+            for t in result.get("trace", [])
+        ],
+        "agent_payloads": result.get("agent_payloads", {}),
+        "json_transitions": result.get("json_transitions", []),
+        "kpi_catalog": result.get("kpi_catalog", {}),
+        "insights": result.get("insights", {}),
+        "dashboard": result.get("dashboard", {}),
+        "xai_report": result.get("xai_report", {}),
+        "profile_report": result.get("profile_report", {}),
+        "quality_report": result.get("quality_report", {}),
+    }
 
 
 @app.post("/api/v1/clear-cache")
