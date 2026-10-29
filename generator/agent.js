@@ -2133,7 +2133,7 @@
     return fd;
   }
   function genDax(group, o) {
-    if (group.kind === 'summary') { const s = group.item; return s.dax || (`-- DAX Power BI\nTotal ${humanize(s.key)} = SUM('PwC Dataset'[${s.family}])`); }
+    if (group.kind === 'summary') { const s = group.item; return s.dax || (`-- DAX Power BI\nTotal ${humanize(s.key)} = SUM('Active Dataset'[${s.family}])`); }
     const ds = group.ds, topN = o && o.topN;
     return (topN ? `-- DAX avec Top ${topN}\n` : '-- DAX Power BI\n') + group.measures.map(me => {
       if (me.dax) return me.dax;

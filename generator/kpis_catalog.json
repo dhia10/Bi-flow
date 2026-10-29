@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "2.0.0",
-    "active_dataset": "retail",
+    "active_dataset": "clean",
     "table_name": "FACT_ORDERS",
     "n_rows": 66,
     "columns": [
@@ -23,17 +23,17 @@
       "profit"
     ],
     "datasets": [
-      "retail"
+      "clean"
     ],
-    "last_updated": "2026-10-28T23:29:14.718945",
-    "generated_by": "Bi-Flow LangGraph (Règles standard de mise en page sobre)",
+    "last_updated": "2026-10-29T01:04:50.255024",
+    "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
     "dashboard_background": "#0a0e17"
   },
   "kpis": [
     {
       "id": "KPI_FACT_ORDERS_0_TOTALREVENUE",
       "name": "Total Revenue",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Total Revenue ($)",
       "source_table": "FACT_ORDERS",
@@ -41,17 +41,18 @@
       "aggregation_type": "CALC",
       "metric_column": "sales",
       "dimension_column": "customer_name",
-      "chart_type": "bar",
-      "superset_chart_type": "echarts_bar",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
       "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") AS DOUBLE), 2) AS metric_value FROM df",
       "raw_value": 27850.85,
       "current_value_formatted": "27,850.85 $",
       "suggested_prompts": [
         "Total Revenue",
+        "Analyse de Total Revenue",
         "Évolution de Total Revenue"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Total Revenue = 27850.85 -- [$]",
       "api_endpoint": {
@@ -60,51 +61,51 @@
       },
       "_data": [
         {
-          "entity": "Claire Gute",
-          "metric_val": 4012.75
+          "customer_name": "Claire Gute",
+          "sales": 4012.75
         },
         {
-          "entity": "Kelly Williams",
-          "metric_val": 3238.474571249999
+          "customer_name": "Kelly Williams",
+          "sales": 3238.47
         },
         {
-          "entity": "Tracy Blumstein",
-          "metric_val": 3057.23
+          "customer_name": "Tracy Blumstein",
+          "sales": 3057.23
         },
         {
-          "entity": "Ken Brennan",
-          "metric_val": 2999.95
+          "customer_name": "Ken Brennan",
+          "sales": 2999.95
         },
         {
-          "entity": "Andrew Allen",
-          "metric_val": 2800.98
+          "customer_name": "Andrew Allen",
+          "sales": 2800.98
         },
         {
-          "entity": "Sean O'Donnell",
-          "metric_val": 1419.8700000000001
+          "customer_name": "Sean O'Donnell",
+          "sales": 1419.87
         },
         {
-          "entity": "Delfina Latchford",
-          "metric_val": 1405.9
+          "customer_name": "Delfina Latchford",
+          "sales": 1405.9
         },
         {
-          "entity": "Gene Hale",
-          "metric_val": 1210.86
+          "customer_name": "Gene Hale",
+          "sales": 1210.86
         },
         {
-          "entity": "Lena Cacioppo",
-          "metric_val": 1107.8999999999999
+          "customer_name": "Lena Cacioppo",
+          "sales": 1107.9
         },
         {
-          "entity": "Brosina Hoffman",
-          "metric_val": 1096.6
+          "customer_name": "Brosina Hoffman",
+          "sales": 1096.6
         }
       ]
     },
     {
       "id": "KPI_FACT_ORDERS_1_AVERAGEORDERVALUEAOV",
       "name": "Average Order Value (AOV)",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Average Order Value (AOV) ($)",
       "source_table": "FACT_ORDERS",
@@ -112,17 +113,18 @@
       "aggregation_type": "CALC",
       "metric_column": "sales",
       "dimension_column": "customer_name",
-      "chart_type": "line",
-      "superset_chart_type": "echarts_line",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
       "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") / NULLIF(COUNT(DISTINCT \"order_id\"), 0) AS DOUBLE), 2) AS metric_value FROM df",
       "raw_value": 421.98,
       "current_value_formatted": "421.98 $",
       "suggested_prompts": [
         "Average Order Value (AOV)",
+        "Analyse de Average Order Value (AOV)",
         "Évolution de Average Order Value (AOV)"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Average Order Value (AOV) = 421.98 -- [$]",
       "api_endpoint": {
@@ -131,151 +133,151 @@
       },
       "_data": [
         {
-          "dt": "2023-01-15 00:00:00",
-          "metric_val": 261.96
+          "order_date": "2023-01-15 00:00:00",
+          "sales": 261.96
         },
         {
-          "dt": "2023-01-16 00:00:00",
-          "metric_val": 731.94
+          "order_date": "2023-01-16 00:00:00",
+          "sales": 731.94
         },
         {
-          "dt": "2023-01-28 00:00:00",
-          "metric_val": 14.62
+          "order_date": "2023-01-28 00:00:00",
+          "sales": 14.62
         },
         {
-          "dt": "2023-02-05 00:00:00",
-          "metric_val": 957.58
+          "order_date": "2023-02-05 00:00:00",
+          "sales": 957.58
         },
         {
-          "dt": "2023-02-08 00:00:00",
-          "metric_val": 22.37
+          "order_date": "2023-02-08 00:00:00",
+          "sales": 22.37
         },
         {
-          "dt": "2023-02-19 00:00:00",
-          "metric_val": 48.86
+          "order_date": "2023-02-19 00:00:00",
+          "sales": 48.86
         },
         {
-          "dt": "2023-03-02 00:00:00",
-          "metric_val": 7.28
+          "order_date": "2023-03-02 00:00:00",
+          "sales": 7.28
         },
         {
-          "dt": "2023-03-14 00:00:00",
-          "metric_val": 907.15
+          "order_date": "2023-03-14 00:00:00",
+          "sales": 907.15
         },
         {
-          "dt": "2023-03-22 00:00:00",
-          "metric_val": 18.5
+          "order_date": "2023-03-22 00:00:00",
+          "sales": 18.5
         },
         {
-          "dt": "2023-04-01 00:00:00",
-          "metric_val": 1706.18
+          "order_date": "2023-04-01 00:00:00",
+          "sales": 1706.18
         },
         {
-          "dt": "2023-04-12 00:00:00",
-          "metric_val": 911.42
+          "order_date": "2023-04-12 00:00:00",
+          "sales": 911.42
         },
         {
-          "dt": "2023-04-25 00:00:00",
-          "metric_val": 15.55
+          "order_date": "2023-04-25 00:00:00",
+          "sales": 15.55
         },
         {
-          "dt": "2023-05-02 00:00:00",
-          "metric_val": 81.42
+          "order_date": "2023-05-02 00:00:00",
+          "sales": 81.42
         },
         {
-          "dt": "2023-05-18 00:00:00",
-          "metric_val": 4.08
+          "order_date": "2023-05-18 00:00:00",
+          "sales": 4.08
         },
         {
-          "dt": "2023-05-24 00:00:00",
-          "metric_val": 61.96
+          "order_date": "2023-05-24 00:00:00",
+          "sales": 61.96
         },
         {
-          "dt": "2023-06-05 00:00:00",
-          "metric_val": 55.5
+          "order_date": "2023-06-05 00:00:00",
+          "sales": 55.5
         },
         {
-          "dt": "2023-06-16 00:00:00",
-          "metric_val": 8.56
+          "order_date": "2023-06-16 00:00:00",
+          "sales": 8.56
         },
         {
-          "dt": "2023-06-28 00:00:00",
-          "metric_val": 213.48
+          "order_date": "2023-06-28 00:00:00",
+          "sales": 213.48
         },
         {
-          "dt": "2023-07-04 00:00:00",
-          "metric_val": 2999.95
+          "order_date": "2023-07-04 00:00:00",
+          "sales": 2999.95
         },
         {
-          "dt": "2023-07-15 00:00:00",
-          "metric_val": 71.37
+          "order_date": "2023-07-15 00:00:00",
+          "sales": 71.37
         },
         {
-          "dt": "2023-07-29 00:00:00",
-          "metric_val": 4.0448425
+          "order_date": "2023-07-29 00:00:00",
+          "sales": 4.04
         },
         {
-          "dt": "2023-08-05 00:00:00",
-          "metric_val": 12.96
+          "order_date": "2023-08-05 00:00:00",
+          "sales": 12.96
         },
         {
-          "dt": "2023-08-18 00:00:00",
-          "metric_val": 1044.63
+          "order_date": "2023-08-18 00:00:00",
+          "sales": 1044.63
         },
         {
-          "dt": "2023-08-27 00:00:00",
-          "metric_val": 4.38
+          "order_date": "2023-08-27 00:00:00",
+          "sales": 4.38
         },
         {
-          "dt": "2023-09-02 00:00:00",
-          "metric_val": 230.38
+          "order_date": "2023-09-02 00:00:00",
+          "sales": 230.38
         },
         {
-          "dt": "2023-09-14 00:00:00",
-          "metric_val": 10.86
+          "order_date": "2023-09-14 00:00:00",
+          "sales": 10.86
         },
         {
-          "dt": "2023-09-21 00:00:00",
-          "metric_val": 9.98
+          "order_date": "2023-09-21 00:00:00",
+          "sales": 9.98
         },
         {
-          "dt": "2023-10-06 00:00:00",
-          "metric_val": 1097.54
+          "order_date": "2023-10-06 00:00:00",
+          "sales": 1097.54
         },
         {
-          "dt": "2023-10-18 00:00:00",
-          "metric_val": 147.16
+          "order_date": "2023-10-18 00:00:00",
+          "sales": 147.16
         },
         {
-          "dt": "2023-10-29 00:00:00",
-          "metric_val": 831.94
+          "order_date": "2023-10-29 00:00:00",
+          "sales": 831.94
         },
         {
-          "dt": "2023-11-04 00:00:00",
-          "metric_val": 1399.98
+          "order_date": "2023-11-04 00:00:00",
+          "sales": 1399.98
         },
         {
-          "dt": "2023-11-15 00:00:00",
-          "metric_val": 5.92
+          "order_date": "2023-11-15 00:00:00",
+          "sales": 5.92
         },
         {
-          "dt": "2023-11-25 00:00:00",
-          "metric_val": 85.98
+          "order_date": "2023-11-25 00:00:00",
+          "sales": 85.98
         },
         {
-          "dt": "2023-12-08 00:00:00",
-          "metric_val": 45.98
+          "order_date": "2023-12-08 00:00:00",
+          "sales": 45.98
         },
         {
-          "dt": "2023-12-16 00:00:00",
-          "metric_val": 53.18
+          "order_date": "2023-12-16 00:00:00",
+          "sales": 53.18
         }
       ]
     },
     {
       "id": "KPI_FACT_ORDERS_2_TOTALUNITSSOLD",
       "name": "Total Units Sold",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Total Units Sold (units)",
       "source_table": "FACT_ORDERS",
@@ -283,17 +285,18 @@
       "aggregation_type": "CALC",
       "metric_column": "quantity",
       "dimension_column": "customer_name",
-      "chart_type": "bar",
-      "superset_chart_type": "echarts_bar",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
       "sql_superset": "SELECT CAST(SUM(\"quantity\") AS BIGINT) AS metric_value FROM df",
       "raw_value": 210,
       "current_value_formatted": "210.00 units",
       "suggested_prompts": [
         "Total Units Sold",
+        "Analyse de Total Units Sold",
         "Évolution de Total Units Sold"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Total Units Sold = 210 -- [units]",
       "api_endpoint": {
@@ -302,51 +305,23 @@
       },
       "_data": [
         {
-          "entity": "Claire Gute",
-          "metric_val": 4012.75
+          "segment": "Consumer",
+          "sales": 22123.29
         },
         {
-          "entity": "Kelly Williams",
-          "metric_val": 3238.474571249999
+          "segment": "Corporate",
+          "sales": 4842.35
         },
         {
-          "entity": "Tracy Blumstein",
-          "metric_val": 3057.23
-        },
-        {
-          "entity": "Ken Brennan",
-          "metric_val": 2999.95
-        },
-        {
-          "entity": "Andrew Allen",
-          "metric_val": 2800.98
-        },
-        {
-          "entity": "Sean O'Donnell",
-          "metric_val": 1419.8700000000001
-        },
-        {
-          "entity": "Delfina Latchford",
-          "metric_val": 1405.9
-        },
-        {
-          "entity": "Gene Hale",
-          "metric_val": 1210.86
-        },
-        {
-          "entity": "Lena Cacioppo",
-          "metric_val": 1107.8999999999999
-        },
-        {
-          "entity": "Brosina Hoffman",
-          "metric_val": 1096.6
+          "segment": "Home Office",
+          "sales": 885.21
         }
       ]
     },
     {
       "id": "KPI_FACT_ORDERS_3_TOTALORDERS",
       "name": "Total Orders",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Total Orders (orders)",
       "source_table": "FACT_ORDERS",
@@ -354,170 +329,30 @@
       "aggregation_type": "CALC",
       "metric_column": "order_id",
       "dimension_column": "customer_name",
-      "chart_type": "line",
-      "superset_chart_type": "echarts_line",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
       "sql_superset": "SELECT CAST(COUNT(DISTINCT \"order_id\") AS BIGINT) AS metric_value FROM df",
       "raw_value": 66,
       "current_value_formatted": "66.00 orders",
       "suggested_prompts": [
         "Total Orders",
+        "Analyse de Total Orders",
         "Évolution de Total Orders"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Total Orders = 66 -- [orders]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/3"
       },
-      "_data": [
-        {
-          "dt": "2023-01-15 00:00:00",
-          "metric_val": 261.96
-        },
-        {
-          "dt": "2023-01-16 00:00:00",
-          "metric_val": 731.94
-        },
-        {
-          "dt": "2023-01-28 00:00:00",
-          "metric_val": 14.62
-        },
-        {
-          "dt": "2023-02-05 00:00:00",
-          "metric_val": 957.58
-        },
-        {
-          "dt": "2023-02-08 00:00:00",
-          "metric_val": 22.37
-        },
-        {
-          "dt": "2023-02-19 00:00:00",
-          "metric_val": 48.86
-        },
-        {
-          "dt": "2023-03-02 00:00:00",
-          "metric_val": 7.28
-        },
-        {
-          "dt": "2023-03-14 00:00:00",
-          "metric_val": 907.15
-        },
-        {
-          "dt": "2023-03-22 00:00:00",
-          "metric_val": 18.5
-        },
-        {
-          "dt": "2023-04-01 00:00:00",
-          "metric_val": 1706.18
-        },
-        {
-          "dt": "2023-04-12 00:00:00",
-          "metric_val": 911.42
-        },
-        {
-          "dt": "2023-04-25 00:00:00",
-          "metric_val": 15.55
-        },
-        {
-          "dt": "2023-05-02 00:00:00",
-          "metric_val": 81.42
-        },
-        {
-          "dt": "2023-05-18 00:00:00",
-          "metric_val": 4.08
-        },
-        {
-          "dt": "2023-05-24 00:00:00",
-          "metric_val": 61.96
-        },
-        {
-          "dt": "2023-06-05 00:00:00",
-          "metric_val": 55.5
-        },
-        {
-          "dt": "2023-06-16 00:00:00",
-          "metric_val": 8.56
-        },
-        {
-          "dt": "2023-06-28 00:00:00",
-          "metric_val": 213.48
-        },
-        {
-          "dt": "2023-07-04 00:00:00",
-          "metric_val": 2999.95
-        },
-        {
-          "dt": "2023-07-15 00:00:00",
-          "metric_val": 71.37
-        },
-        {
-          "dt": "2023-07-29 00:00:00",
-          "metric_val": 4.0448425
-        },
-        {
-          "dt": "2023-08-05 00:00:00",
-          "metric_val": 12.96
-        },
-        {
-          "dt": "2023-08-18 00:00:00",
-          "metric_val": 1044.63
-        },
-        {
-          "dt": "2023-08-27 00:00:00",
-          "metric_val": 4.38
-        },
-        {
-          "dt": "2023-09-02 00:00:00",
-          "metric_val": 230.38
-        },
-        {
-          "dt": "2023-09-14 00:00:00",
-          "metric_val": 10.86
-        },
-        {
-          "dt": "2023-09-21 00:00:00",
-          "metric_val": 9.98
-        },
-        {
-          "dt": "2023-10-06 00:00:00",
-          "metric_val": 1097.54
-        },
-        {
-          "dt": "2023-10-18 00:00:00",
-          "metric_val": 147.16
-        },
-        {
-          "dt": "2023-10-29 00:00:00",
-          "metric_val": 831.94
-        },
-        {
-          "dt": "2023-11-04 00:00:00",
-          "metric_val": 1399.98
-        },
-        {
-          "dt": "2023-11-15 00:00:00",
-          "metric_val": 5.92
-        },
-        {
-          "dt": "2023-11-25 00:00:00",
-          "metric_val": 85.98
-        },
-        {
-          "dt": "2023-12-08 00:00:00",
-          "metric_val": 45.98
-        },
-        {
-          "dt": "2023-12-16 00:00:00",
-          "metric_val": 53.18
-        }
-      ]
+      "_data": []
     },
     {
-      "id": "KPI_FACT_ORDERS_4_UNIQUEACTIVECUSTOMER",
+      "id": "KPI_FACT_ORDERS_4_UNIQUEACTIVECUSTOMERS",
       "name": "Unique Active Customers",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Unique Active Customers (customers)",
       "source_table": "FACT_ORDERS",
@@ -525,70 +360,30 @@
       "aggregation_type": "CALC",
       "metric_column": "customer_id",
       "dimension_column": "customer_name",
-      "chart_type": "bar",
-      "superset_chart_type": "echarts_bar",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
       "sql_superset": "SELECT CAST(COUNT(DISTINCT \"customer_id\") AS BIGINT) AS metric_value FROM df",
       "raw_value": 26,
       "current_value_formatted": "26.00 customers",
       "suggested_prompts": [
         "Unique Active Customers",
+        "Analyse de Unique Active Customers",
         "Évolution de Unique Active Customers"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Unique Active Customers = 26 -- [customers]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/4"
       },
-      "_data": [
-        {
-          "entity": "Claire Gute",
-          "metric_val": 4012.75
-        },
-        {
-          "entity": "Kelly Williams",
-          "metric_val": 3238.474571249999
-        },
-        {
-          "entity": "Tracy Blumstein",
-          "metric_val": 3057.23
-        },
-        {
-          "entity": "Ken Brennan",
-          "metric_val": 2999.95
-        },
-        {
-          "entity": "Andrew Allen",
-          "metric_val": 2800.98
-        },
-        {
-          "entity": "Sean O'Donnell",
-          "metric_val": 1419.8700000000001
-        },
-        {
-          "entity": "Delfina Latchford",
-          "metric_val": 1405.9
-        },
-        {
-          "entity": "Gene Hale",
-          "metric_val": 1210.86
-        },
-        {
-          "entity": "Lena Cacioppo",
-          "metric_val": 1107.8999999999999
-        },
-        {
-          "entity": "Brosina Hoffman",
-          "metric_val": 1096.6
-        }
-      ]
+      "_data": []
     },
     {
       "id": "KPI_FACT_ORDERS_5_TOTALNETPROFIT",
       "name": "Total Net Profit",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Total Net Profit ($)",
       "source_table": "FACT_ORDERS",
@@ -603,163 +398,23 @@
       "current_value_formatted": "5,091.04 $",
       "suggested_prompts": [
         "Total Net Profit",
+        "Analyse de Total Net Profit",
         "Évolution de Total Net Profit"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Total Net Profit = 5091.04 -- [$]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/5"
       },
-      "_data": [
-        {
-          "dt": "2023-01-15 00:00:00",
-          "metric_val": 261.96
-        },
-        {
-          "dt": "2023-01-16 00:00:00",
-          "metric_val": 731.94
-        },
-        {
-          "dt": "2023-01-28 00:00:00",
-          "metric_val": 14.62
-        },
-        {
-          "dt": "2023-02-05 00:00:00",
-          "metric_val": 957.58
-        },
-        {
-          "dt": "2023-02-08 00:00:00",
-          "metric_val": 22.37
-        },
-        {
-          "dt": "2023-02-19 00:00:00",
-          "metric_val": 48.86
-        },
-        {
-          "dt": "2023-03-02 00:00:00",
-          "metric_val": 7.28
-        },
-        {
-          "dt": "2023-03-14 00:00:00",
-          "metric_val": 907.15
-        },
-        {
-          "dt": "2023-03-22 00:00:00",
-          "metric_val": 18.5
-        },
-        {
-          "dt": "2023-04-01 00:00:00",
-          "metric_val": 1706.18
-        },
-        {
-          "dt": "2023-04-12 00:00:00",
-          "metric_val": 911.42
-        },
-        {
-          "dt": "2023-04-25 00:00:00",
-          "metric_val": 15.55
-        },
-        {
-          "dt": "2023-05-02 00:00:00",
-          "metric_val": 81.42
-        },
-        {
-          "dt": "2023-05-18 00:00:00",
-          "metric_val": 4.08
-        },
-        {
-          "dt": "2023-05-24 00:00:00",
-          "metric_val": 61.96
-        },
-        {
-          "dt": "2023-06-05 00:00:00",
-          "metric_val": 55.5
-        },
-        {
-          "dt": "2023-06-16 00:00:00",
-          "metric_val": 8.56
-        },
-        {
-          "dt": "2023-06-28 00:00:00",
-          "metric_val": 213.48
-        },
-        {
-          "dt": "2023-07-04 00:00:00",
-          "metric_val": 2999.95
-        },
-        {
-          "dt": "2023-07-15 00:00:00",
-          "metric_val": 71.37
-        },
-        {
-          "dt": "2023-07-29 00:00:00",
-          "metric_val": 4.0448425
-        },
-        {
-          "dt": "2023-08-05 00:00:00",
-          "metric_val": 12.96
-        },
-        {
-          "dt": "2023-08-18 00:00:00",
-          "metric_val": 1044.63
-        },
-        {
-          "dt": "2023-08-27 00:00:00",
-          "metric_val": 4.38
-        },
-        {
-          "dt": "2023-09-02 00:00:00",
-          "metric_val": 230.38
-        },
-        {
-          "dt": "2023-09-14 00:00:00",
-          "metric_val": 10.86
-        },
-        {
-          "dt": "2023-09-21 00:00:00",
-          "metric_val": 9.98
-        },
-        {
-          "dt": "2023-10-06 00:00:00",
-          "metric_val": 1097.54
-        },
-        {
-          "dt": "2023-10-18 00:00:00",
-          "metric_val": 147.16
-        },
-        {
-          "dt": "2023-10-29 00:00:00",
-          "metric_val": 831.94
-        },
-        {
-          "dt": "2023-11-04 00:00:00",
-          "metric_val": 1399.98
-        },
-        {
-          "dt": "2023-11-15 00:00:00",
-          "metric_val": 5.92
-        },
-        {
-          "dt": "2023-11-25 00:00:00",
-          "metric_val": 85.98
-        },
-        {
-          "dt": "2023-12-08 00:00:00",
-          "metric_val": 45.98
-        },
-        {
-          "dt": "2023-12-16 00:00:00",
-          "metric_val": 53.18
-        }
-      ]
+      "_data": []
     },
     {
       "id": "KPI_FACT_ORDERS_6_PROFITMARGIN",
       "name": "Profit Margin",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Profit Margin (%)",
       "source_table": "FACT_ORDERS",
@@ -774,63 +429,23 @@
       "current_value_formatted": "18.28 %",
       "suggested_prompts": [
         "Profit Margin",
+        "Analyse de Profit Margin",
         "Évolution de Profit Margin"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Profit Margin = 18.28 -- [%]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/6"
       },
-      "_data": [
-        {
-          "entity": "Claire Gute",
-          "metric_val": 4012.75
-        },
-        {
-          "entity": "Kelly Williams",
-          "metric_val": 3238.474571249999
-        },
-        {
-          "entity": "Tracy Blumstein",
-          "metric_val": 3057.23
-        },
-        {
-          "entity": "Ken Brennan",
-          "metric_val": 2999.95
-        },
-        {
-          "entity": "Andrew Allen",
-          "metric_val": 2800.98
-        },
-        {
-          "entity": "Sean O'Donnell",
-          "metric_val": 1419.8700000000001
-        },
-        {
-          "entity": "Delfina Latchford",
-          "metric_val": 1405.9
-        },
-        {
-          "entity": "Gene Hale",
-          "metric_val": 1210.86
-        },
-        {
-          "entity": "Lena Cacioppo",
-          "metric_val": 1107.8999999999999
-        },
-        {
-          "entity": "Brosina Hoffman",
-          "metric_val": 1096.6
-        }
-      ]
+      "_data": []
     },
     {
       "id": "KPI_FACT_ORDERS_7_AVERAGEDISCOUNTRATE",
       "name": "Average Discount Rate",
-      "domain": "retail",
+      "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Average Discount Rate (%)",
       "source_table": "FACT_ORDERS",
@@ -845,158 +460,307 @@
       "current_value_formatted": "15.91 %",
       "suggested_prompts": [
         "Average Discount Rate",
+        "Analyse de Average Discount Rate",
         "Évolution de Average Discount Rate"
       ],
       "active": true,
-      "source_file": "retail",
+      "source_file": "clean",
       "top_n": 10,
       "dax_measure": "Average Discount Rate = 15.91 -- [%]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/7"
       },
-      "_data": [
+      "_data": []
+    }
+  ],
+  "auto_visuals": [
+    {
+      "id": "vis-bar-customer_name",
+      "kpi_id": "KPI_FACT_ORDERS_BAR",
+      "title": "Distribution de Sales par Customer Name (Top 10)",
+      "subtitle": "Dataset: clean | Apache Superset ECharts Bar",
+      "chartType": "bar",
+      "domain": "clean",
+      "data": [
         {
-          "dt": "2023-01-15 00:00:00",
-          "metric_val": 261.96
+          "customer_name": "Claire Gute",
+          "sales": 4012.75
         },
         {
-          "dt": "2023-01-16 00:00:00",
-          "metric_val": 731.94
+          "customer_name": "Kelly Williams",
+          "sales": 3238.47
         },
         {
-          "dt": "2023-01-28 00:00:00",
-          "metric_val": 14.62
+          "customer_name": "Tracy Blumstein",
+          "sales": 3057.23
         },
         {
-          "dt": "2023-02-05 00:00:00",
-          "metric_val": 957.58
+          "customer_name": "Ken Brennan",
+          "sales": 2999.95
         },
         {
-          "dt": "2023-02-08 00:00:00",
-          "metric_val": 22.37
+          "customer_name": "Andrew Allen",
+          "sales": 2800.98
         },
         {
-          "dt": "2023-02-19 00:00:00",
-          "metric_val": 48.86
+          "customer_name": "Sean O'Donnell",
+          "sales": 1419.87
         },
         {
-          "dt": "2023-03-02 00:00:00",
-          "metric_val": 7.28
+          "customer_name": "Delfina Latchford",
+          "sales": 1405.9
         },
         {
-          "dt": "2023-03-14 00:00:00",
-          "metric_val": 907.15
+          "customer_name": "Gene Hale",
+          "sales": 1210.86
         },
         {
-          "dt": "2023-03-22 00:00:00",
-          "metric_val": 18.5
+          "customer_name": "Lena Cacioppo",
+          "sales": 1107.9
         },
         {
-          "dt": "2023-04-01 00:00:00",
-          "metric_val": 1706.18
-        },
-        {
-          "dt": "2023-04-12 00:00:00",
-          "metric_val": 911.42
-        },
-        {
-          "dt": "2023-04-25 00:00:00",
-          "metric_val": 15.55
-        },
-        {
-          "dt": "2023-05-02 00:00:00",
-          "metric_val": 81.42
-        },
-        {
-          "dt": "2023-05-18 00:00:00",
-          "metric_val": 4.08
-        },
-        {
-          "dt": "2023-05-24 00:00:00",
-          "metric_val": 61.96
-        },
-        {
-          "dt": "2023-06-05 00:00:00",
-          "metric_val": 55.5
-        },
-        {
-          "dt": "2023-06-16 00:00:00",
-          "metric_val": 8.56
-        },
-        {
-          "dt": "2023-06-28 00:00:00",
-          "metric_val": 213.48
-        },
-        {
-          "dt": "2023-07-04 00:00:00",
-          "metric_val": 2999.95
-        },
-        {
-          "dt": "2023-07-15 00:00:00",
-          "metric_val": 71.37
-        },
-        {
-          "dt": "2023-07-29 00:00:00",
-          "metric_val": 4.0448425
-        },
-        {
-          "dt": "2023-08-05 00:00:00",
-          "metric_val": 12.96
-        },
-        {
-          "dt": "2023-08-18 00:00:00",
-          "metric_val": 1044.63
-        },
-        {
-          "dt": "2023-08-27 00:00:00",
-          "metric_val": 4.38
-        },
-        {
-          "dt": "2023-09-02 00:00:00",
-          "metric_val": 230.38
-        },
-        {
-          "dt": "2023-09-14 00:00:00",
-          "metric_val": 10.86
-        },
-        {
-          "dt": "2023-09-21 00:00:00",
-          "metric_val": 9.98
-        },
-        {
-          "dt": "2023-10-06 00:00:00",
-          "metric_val": 1097.54
-        },
-        {
-          "dt": "2023-10-18 00:00:00",
-          "metric_val": 147.16
-        },
-        {
-          "dt": "2023-10-29 00:00:00",
-          "metric_val": 831.94
-        },
-        {
-          "dt": "2023-11-04 00:00:00",
-          "metric_val": 1399.98
-        },
-        {
-          "dt": "2023-11-15 00:00:00",
-          "metric_val": 5.92
-        },
-        {
-          "dt": "2023-11-25 00:00:00",
-          "metric_val": 85.98
-        },
-        {
-          "dt": "2023-12-08 00:00:00",
-          "metric_val": 45.98
-        },
-        {
-          "dt": "2023-12-16 00:00:00",
-          "metric_val": 53.18
+          "customer_name": "Brosina Hoffman",
+          "sales": 1096.6
         }
-      ]
+      ],
+      "labelField": "customer_name",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"customer_name\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"customer_name\" ORDER BY \"sales\" DESC LIMIT 10;",
+      "dax": "sales By customer_name = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_bar",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 10
+    },
+    {
+      "id": "vis-line-order_date",
+      "kpi_id": "KPI_FACT_ORDERS_LINE",
+      "title": "Tendance Chronologique de Sales (order_date)",
+      "subtitle": "Dataset: clean | Apache Superset ECharts Line",
+      "chartType": "line",
+      "domain": "clean",
+      "data": [
+        {
+          "order_date": "2023-01-15 00:00:00",
+          "sales": 261.96
+        },
+        {
+          "order_date": "2023-01-16 00:00:00",
+          "sales": 731.94
+        },
+        {
+          "order_date": "2023-01-28 00:00:00",
+          "sales": 14.62
+        },
+        {
+          "order_date": "2023-02-05 00:00:00",
+          "sales": 957.58
+        },
+        {
+          "order_date": "2023-02-08 00:00:00",
+          "sales": 22.37
+        },
+        {
+          "order_date": "2023-02-19 00:00:00",
+          "sales": 48.86
+        },
+        {
+          "order_date": "2023-03-02 00:00:00",
+          "sales": 7.28
+        },
+        {
+          "order_date": "2023-03-14 00:00:00",
+          "sales": 907.15
+        },
+        {
+          "order_date": "2023-03-22 00:00:00",
+          "sales": 18.5
+        },
+        {
+          "order_date": "2023-04-01 00:00:00",
+          "sales": 1706.18
+        },
+        {
+          "order_date": "2023-04-12 00:00:00",
+          "sales": 911.42
+        },
+        {
+          "order_date": "2023-04-25 00:00:00",
+          "sales": 15.55
+        },
+        {
+          "order_date": "2023-05-02 00:00:00",
+          "sales": 81.42
+        },
+        {
+          "order_date": "2023-05-18 00:00:00",
+          "sales": 4.08
+        },
+        {
+          "order_date": "2023-05-24 00:00:00",
+          "sales": 61.96
+        },
+        {
+          "order_date": "2023-06-05 00:00:00",
+          "sales": 55.5
+        },
+        {
+          "order_date": "2023-06-16 00:00:00",
+          "sales": 8.56
+        },
+        {
+          "order_date": "2023-06-28 00:00:00",
+          "sales": 213.48
+        },
+        {
+          "order_date": "2023-07-04 00:00:00",
+          "sales": 2999.95
+        },
+        {
+          "order_date": "2023-07-15 00:00:00",
+          "sales": 71.37
+        },
+        {
+          "order_date": "2023-07-29 00:00:00",
+          "sales": 4.04
+        },
+        {
+          "order_date": "2023-08-05 00:00:00",
+          "sales": 12.96
+        },
+        {
+          "order_date": "2023-08-18 00:00:00",
+          "sales": 1044.63
+        },
+        {
+          "order_date": "2023-08-27 00:00:00",
+          "sales": 4.38
+        },
+        {
+          "order_date": "2023-09-02 00:00:00",
+          "sales": 230.38
+        },
+        {
+          "order_date": "2023-09-14 00:00:00",
+          "sales": 10.86
+        },
+        {
+          "order_date": "2023-09-21 00:00:00",
+          "sales": 9.98
+        },
+        {
+          "order_date": "2023-10-06 00:00:00",
+          "sales": 1097.54
+        },
+        {
+          "order_date": "2023-10-18 00:00:00",
+          "sales": 147.16
+        },
+        {
+          "order_date": "2023-10-29 00:00:00",
+          "sales": 831.94
+        },
+        {
+          "order_date": "2023-11-04 00:00:00",
+          "sales": 1399.98
+        },
+        {
+          "order_date": "2023-11-15 00:00:00",
+          "sales": 5.92
+        },
+        {
+          "order_date": "2023-11-25 00:00:00",
+          "sales": 85.98
+        },
+        {
+          "order_date": "2023-12-08 00:00:00",
+          "sales": 45.98
+        },
+        {
+          "order_date": "2023-12-16 00:00:00",
+          "sales": 53.18
+        }
+      ],
+      "labelField": "order_date",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"order_date\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"order_date\" ORDER BY \"order_date\" ASC;",
+      "dax": "sales Over Time = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_line",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 35
+    },
+    {
+      "id": "vis-pie-segment",
+      "kpi_id": "KPI_FACT_ORDERS_PIE",
+      "title": "Part de Marché par Segment (Top 6)",
+      "subtitle": "Dataset: clean | Apache Superset Donut / Pie",
+      "chartType": "pie",
+      "domain": "clean",
+      "data": [
+        {
+          "segment": "Consumer",
+          "sales": 22123.29
+        },
+        {
+          "segment": "Corporate",
+          "sales": 4842.35
+        },
+        {
+          "segment": "Home Office",
+          "sales": 885.21
+        }
+      ],
+      "labelField": "segment",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"segment\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"segment\" ORDER BY \"sales\" DESC LIMIT 6;",
+      "dax": "sales Share = DIVIDE(SUM('FACT_ORDERS'[sales]), CALCULATE(SUM('FACT_ORDERS'[sales]), ALL('FACT_ORDERS')))",
+      "superset": {
+        "viz_type": "pie",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 6
+    },
+    {
+      "id": "vis-card-anomaly-alert",
+      "kpi_id": "KPI_FACT_ORDERS_ANOMALY",
+      "title": "Alerte Statistique COMEX : Furniture",
+      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = -0.89",
+      "chartType": "card",
+      "domain": "clean",
+      "data": [
+        {
+          "entity": "Furniture",
+          "z_score": -0.89,
+          "alert": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
+        }
+      ],
+      "labelField": "entity",
+      "valueField": "z_score",
+      "metricLabel": "Z-Score",
+      "sql": "-- Détection automatique IQR & Z-score multi-agents",
+      "dax": "ZScore Outlier = -0.89",
+      "superset": {
+        "viz_type": "big_number_total",
+        "metric": "z_score"
+      },
+      "active": true,
+      "source_file": "clean",
+      "cardValue": -0.89,
+      "cardValueFormatted": "Z = -0.89",
+      "cardBenchmark": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
     }
   ]
 }

@@ -1,0 +1,291 @@
+{
+  "visuals": [
+    {
+      "id": "vis-bar-customer_name",
+      "kpi_id": "KPI_FACT_ORDERS_BAR",
+      "title": "Distribution de Sales par Customer Name (Top 10)",
+      "subtitle": "Dataset: clean | Apache Superset ECharts Bar",
+      "chartType": "bar",
+      "domain": "clean",
+      "data": [
+        {
+          "customer_name": "Claire Gute",
+          "sales": 4012.75
+        },
+        {
+          "customer_name": "Kelly Williams",
+          "sales": 3238.47
+        },
+        {
+          "customer_name": "Tracy Blumstein",
+          "sales": 3057.23
+        },
+        {
+          "customer_name": "Ken Brennan",
+          "sales": 2999.95
+        },
+        {
+          "customer_name": "Andrew Allen",
+          "sales": 2800.98
+        },
+        {
+          "customer_name": "Sean O'Donnell",
+          "sales": 1419.87
+        },
+        {
+          "customer_name": "Delfina Latchford",
+          "sales": 1405.9
+        },
+        {
+          "customer_name": "Gene Hale",
+          "sales": 1210.86
+        },
+        {
+          "customer_name": "Lena Cacioppo",
+          "sales": 1107.9
+        },
+        {
+          "customer_name": "Brosina Hoffman",
+          "sales": 1096.6
+        }
+      ],
+      "labelField": "customer_name",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"customer_name\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"customer_name\" ORDER BY \"sales\" DESC LIMIT 10;",
+      "dax": "sales By customer_name = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_bar",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 10
+    },
+    {
+      "id": "vis-line-order_date",
+      "kpi_id": "KPI_FACT_ORDERS_LINE",
+      "title": "Tendance Chronologique de Sales (order_date)",
+      "subtitle": "Dataset: clean | Apache Superset ECharts Line",
+      "chartType": "line",
+      "domain": "clean",
+      "data": [
+        {
+          "order_date": "2023-01-15 00:00:00",
+          "sales": 261.96
+        },
+        {
+          "order_date": "2023-01-16 00:00:00",
+          "sales": 731.94
+        },
+        {
+          "order_date": "2023-01-28 00:00:00",
+          "sales": 14.62
+        },
+        {
+          "order_date": "2023-02-05 00:00:00",
+          "sales": 957.58
+        },
+        {
+          "order_date": "2023-02-08 00:00:00",
+          "sales": 22.37
+        },
+        {
+          "order_date": "2023-02-19 00:00:00",
+          "sales": 48.86
+        },
+        {
+          "order_date": "2023-03-02 00:00:00",
+          "sales": 7.28
+        },
+        {
+          "order_date": "2023-03-14 00:00:00",
+          "sales": 907.15
+        },
+        {
+          "order_date": "2023-03-22 00:00:00",
+          "sales": 18.5
+        },
+        {
+          "order_date": "2023-04-01 00:00:00",
+          "sales": 1706.18
+        },
+        {
+          "order_date": "2023-04-12 00:00:00",
+          "sales": 911.42
+        },
+        {
+          "order_date": "2023-04-25 00:00:00",
+          "sales": 15.55
+        },
+        {
+          "order_date": "2023-05-02 00:00:00",
+          "sales": 81.42
+        },
+        {
+          "order_date": "2023-05-18 00:00:00",
+          "sales": 4.08
+        },
+        {
+          "order_date": "2023-05-24 00:00:00",
+          "sales": 61.96
+        },
+        {
+          "order_date": "2023-06-05 00:00:00",
+          "sales": 55.5
+        },
+        {
+          "order_date": "2023-06-16 00:00:00",
+          "sales": 8.56
+        },
+        {
+          "order_date": "2023-06-28 00:00:00",
+          "sales": 213.48
+        },
+        {
+          "order_date": "2023-07-04 00:00:00",
+          "sales": 2999.95
+        },
+        {
+          "order_date": "2023-07-15 00:00:00",
+          "sales": 71.37
+        },
+        {
+          "order_date": "2023-07-29 00:00:00",
+          "sales": 4.04
+        },
+        {
+          "order_date": "2023-08-05 00:00:00",
+          "sales": 12.96
+        },
+        {
+          "order_date": "2023-08-18 00:00:00",
+          "sales": 1044.63
+        },
+        {
+          "order_date": "2023-08-27 00:00:00",
+          "sales": 4.38
+        },
+        {
+          "order_date": "2023-09-02 00:00:00",
+          "sales": 230.38
+        },
+        {
+          "order_date": "2023-09-14 00:00:00",
+          "sales": 10.86
+        },
+        {
+          "order_date": "2023-09-21 00:00:00",
+          "sales": 9.98
+        },
+        {
+          "order_date": "2023-10-06 00:00:00",
+          "sales": 1097.54
+        },
+        {
+          "order_date": "2023-10-18 00:00:00",
+          "sales": 147.16
+        },
+        {
+          "order_date": "2023-10-29 00:00:00",
+          "sales": 831.94
+        },
+        {
+          "order_date": "2023-11-04 00:00:00",
+          "sales": 1399.98
+        },
+        {
+          "order_date": "2023-11-15 00:00:00",
+          "sales": 5.92
+        },
+        {
+          "order_date": "2023-11-25 00:00:00",
+          "sales": 85.98
+        },
+        {
+          "order_date": "2023-12-08 00:00:00",
+          "sales": 45.98
+        },
+        {
+          "order_date": "2023-12-16 00:00:00",
+          "sales": 53.18
+        }
+      ],
+      "labelField": "order_date",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"order_date\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"order_date\" ORDER BY \"order_date\" ASC;",
+      "dax": "sales Over Time = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_line",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 35
+    },
+    {
+      "id": "vis-pie-segment",
+      "kpi_id": "KPI_FACT_ORDERS_PIE",
+      "title": "Part de Marché par Segment (Top 6)",
+      "subtitle": "Dataset: clean | Apache Superset Donut / Pie",
+      "chartType": "pie",
+      "domain": "clean",
+      "data": [
+        {
+          "segment": "Consumer",
+          "sales": 22123.29
+        },
+        {
+          "segment": "Corporate",
+          "sales": 4842.35
+        },
+        {
+          "segment": "Home Office",
+          "sales": 885.21
+        }
+      ],
+      "labelField": "segment",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"segment\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"segment\" ORDER BY \"sales\" DESC LIMIT 6;",
+      "dax": "sales Share = DIVIDE(SUM('FACT_ORDERS'[sales]), CALCULATE(SUM('FACT_ORDERS'[sales]), ALL('FACT_ORDERS')))",
+      "superset": {
+        "viz_type": "pie",
+        "metric": "sales"
+      },
+      "active": true,
+      "source_file": "clean",
+      "top_n": 6
+    },
+    {
+      "id": "vis-card-anomaly-alert",
+      "kpi_id": "KPI_FACT_ORDERS_ANOMALY",
+      "title": "Alerte Statistique COMEX : Furniture",
+      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = -0.89",
+      "chartType": "card",
+      "domain": "clean",
+      "data": [
+        {
+          "entity": "Furniture",
+          "z_score": -0.89,
+          "alert": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
+        }
+      ],
+      "labelField": "entity",
+      "valueField": "z_score",
+      "metricLabel": "Z-Score",
+      "sql": "-- Détection automatique IQR & Z-score multi-agents",
+      "dax": "ZScore Outlier = -0.89",
+      "superset": {
+        "viz_type": "big_number_total",
+        "metric": "z_score"
+      },
+      "active": true,
+      "source_file": "clean",
+      "cardValue": -0.89,
+      "cardValueFormatted": "Z = -0.89",
+      "cardBenchmark": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
+    }
+  ]
+}
