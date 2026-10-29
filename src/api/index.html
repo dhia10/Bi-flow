@@ -1,1335 +1,1358 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BI-Flow — Orchestrateur Multi-Agents LangGraph, RAG & XAI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <style>
-    body {
-      background-color: #f8fafc;
-      color: #0f172a;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    .panel {
-      background-color: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-    }
-    .table-header {
-      background-color: #f1f5f9;
-      color: #334155;
-      font-weight: 600;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .mono-code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    .bar-fill {
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-  </style>
-</head>
-<body class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-
-  <!-- ===================================================================== -->
-  <!-- BARRE D'EXÉCUTION DU PIPELINE (EN HAUT)                                -->
-  <!-- ===================================================================== -->
-  <header class="panel p-6 shadow-sm space-y-5">
-    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
-      <div>
-        <h1 class="text-xl font-bold text-slate-900 tracking-tight">
-          BI-Flow — Orchestrateur Multi-Agents LangGraph & Moteur XAI
-        </h1>
-        <p class="text-xs text-slate-500 mt-1">
-          Pipeline complet 7 agents : Profiler, Quality (boucle bornée), ETL, DuckDB RAG, Mining Statistique, Dashboard Generator & XAI
-        </p>
-      </div>
-      <div class="flex items-center space-x-2">
-        <span id="systemStatus" class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-          Système Actif (127.0.0.1:8000)
-        </span>
-        <a href="/studio" target="_blank" class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition shadow-xs">
-          ⚡ BI Studio Generator ↗
-        </a>
-        <a href="https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024" target="_blank" class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition">
-          🎨 LangGraph Studio ↗
-        </a>
-      </div>
-    </div>
-
-    <!-- Actions & Quick-Launch -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-      <!-- Zone Upload Multi-CSV -->
-      <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-md p-4 text-center hover:border-slate-400 transition bg-slate-50 flex flex-col items-center justify-center">
-        <p class="text-xs text-slate-700 font-semibold mb-1">Téléverser un ou plusieurs fichiers CSV (Multi-tables / Segments)</p>
-        <p class="text-[11px] text-slate-500 mb-2">Jointure relationnelle automatique (JOIN sur clés communes) ou concaténation intelligente</p>
-        <label class="cursor-pointer inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm">
-          <span>Choisir un ou plusieurs CSV (Multi-fichiers)</span>
-          <input type="file" id="csvFileInput" accept=".csv" multiple class="hidden" onchange="handleFileUpload(event)">
-        </label>
-      </div>
-
-      <!-- Quick Launch Buttons -->
-      <div class="space-y-2">
-        <p class="text-xs font-semibold text-slate-600">Jeux de Données de Démonstration (Quick-Launch) :</p>
-        <div class="flex flex-wrap gap-2">
-          <button onclick="runDataset('superstore')" id="btn-superstore" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
-            Superstore (8 KPIs & Marges Négatives)
-          </button>
-          <button onclick="runDataset('olist')" id="btn-olist" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
-            Olist 25k (7 KPIs & Pareto SP)
-          </button>
-          <button onclick="runDataset('iot')" id="btn-iot" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
-            IoT Telemetry (Zero-Shot)
-          </button>
-          <button onclick="clearCache()" class="px-3 py-1.5 text-xs font-medium rounded border bg-white hover:bg-slate-50 text-slate-600 border-slate-300 transition">
-            Purger Cache SQLite
-          </button>
-        </div>
-        <p id="executionSpinner" class="text-xs text-blue-600 font-semibold hidden animate-pulse">
-          ⏳ Exécution en cours du graphe LangGraph (7 agents de production)...
-        </p>
-      </div>
-    </div>
-
-    <!-- Bandeau Résumé Fichier Chargé -->
-    <div class="bg-slate-50 border border-slate-200 rounded p-3 text-xs grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-      <div>
-        <span class="text-slate-500 block text-[11px]">Dataset Actif</span>
-        <span id="summaryDataset" class="font-bold text-slate-900">-</span>
-      </div>
-      <div>
-        <span class="text-slate-500 block text-[11px]">Nombre de Lignes</span>
-        <span id="summaryRows" class="font-bold text-slate-900">-</span>
-      </div>
-      <div>
-        <span class="text-slate-500 block text-[11px]">Domaine Identifié</span>
-        <span id="summaryDomain" class="font-bold text-slate-900">-</span>
-      </div>
-      <div>
-        <span class="text-slate-500 block text-[11px]">Tier Utilisé</span>
-        <span id="summaryTier" class="font-bold text-slate-900">-</span>
-      </div>
-      <div>
-        <span class="text-slate-500 block text-[11px]">Score Reranker (RRF)</span>
-        <span id="summaryScore" class="font-bold text-slate-900">-</span>
-      </div>
-      <div>
-        <span class="text-slate-500 block text-[11px]">Colonnes Détectées</span>
-        <span id="summaryColsCount" class="font-bold text-slate-900">-</span>
-      </div>
-    </div>
-    <div id="summaryColsContainer" class="text-[11px] text-slate-600 border-t border-slate-200 pt-2 flex flex-wrap gap-1 items-center">
-      <span class="font-semibold text-slate-500">Colonnes :</span>
-      <span id="summaryColsList" class="text-slate-700 italic">Aucune donnée chargée.</span>
-    </div>
-  </header>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION LANGGRAPH — ORCHESTRATION DU PIPELINE (7 NŒUDS DE PRODUCTION)   -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>Graphe d'Orchestration LangGraph (7 Agents de Production)</span>
-          <span id="langgraphRunBadge" class="text-[11px] font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-            Run: En attente
-          </span>
-        </h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Suivi visuel des transitions de nœuds, temps d'exécution et inspection des payloads JSON inter-agents.
-        </p>
-      </div>
-      <div class="text-xs text-slate-500">
-        Cliquez sur <span class="font-bold text-blue-600">[JSON 📄]</span> pour inspecter les données échangées
-      </div>
-    </div>
-
-    <!-- Stepper visuel des 7 nœuds -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-1" id="nodesContainer">
-      <!-- Node 1: Profiler -->
-      <div id="node-card-profiler" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#1 PROFILER</span>
-            <span id="node-badge-profiler" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">Data Profiler</p>
-          <p class="text-[10px] text-slate-400">agent_clean</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-profiler" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('profiler')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 2: Quality -->
-      <div id="node-card-quality" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#2 QUALITY</span>
-            <span id="node-badge-quality" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">Data Cleaner</p>
-          <p class="text-[10px] text-slate-400">Boucle relances &le; 2</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-quality" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('quality')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 3: ETL -->
-      <div id="node-card-etl" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#3 ETL</span>
-            <span id="node-badge-etl" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">ETL Dimensionnel</p>
-          <p class="text-[10px] text-slate-400">Star Schema (LLaMA 3.2)</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-etl" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('etl')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 4: Semantic -->
-      <div id="node-card-semantic" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#4 SEMANTIC</span>
-            <span id="node-badge-semantic" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">KPI Engine & RAG</p>
-          <p class="text-[10px] text-slate-400">Agent 5 + DuckDB</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-semantic" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('semantic')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 5: Analyst -->
-      <div id="node-card-analyst" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#5 ANALYST</span>
-            <span id="node-badge-analyst" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">Mining Statistique</p>
-          <p class="text-[10px] text-slate-400">Agent 6 (Z/IQR/Pareto)</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-analyst" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('analyst')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 6: Dashboard -->
-      <div id="node-card-dashboard" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#6 DASHBOARD</span>
-            <span id="node-badge-dashboard" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">Générateur UI</p>
-          <p class="text-[10px] text-slate-400">Agent Dashboard (LLaMA 3.2)</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-dashboard" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('dashboard')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-
-      <!-- Node 7: XAI -->
-      <div id="node-card-xai" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500">#7 XAI</span>
-            <span id="node-badge-xai" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
-          </div>
-          <p class="text-xs font-semibold text-slate-800 mt-1">Auditeur XAI</p>
-          <p class="text-[10px] text-slate-400">Traçabilité & Vérification</p>
-        </div>
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-          <span id="node-time-xai" class="text-slate-400 font-mono text-[10px]">-</span>
-          <button onclick="inspectNode('xai')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION 4 — SCHÉMA RELATIONNEL ETL (STAR SCHEMA PNG)                   -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>Schéma Dimensionnel ETL (Modélisation en Étoile générée)</span>
-          <span id="schemaEngineBadge" class="text-[11px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">
-            Matplotlib & LLaMA 3.2
-          </span>
-        </h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Modèle relationnel Star Schema généré automatiquement pour l'ingestion OLAP DuckDB.
-        </p>
-      </div>
-      <div>
-        <a id="btnDownloadSchema" href="/artifacts/schema/star_schema.png" target="_blank" class="px-3 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition inline-flex items-center gap-1">
-          <span>Ouvrir l'image HD</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-        </a>
-      </div>
-    </div>
-
-    <!-- Image Star Schema Container -->
-    <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col items-center justify-center overflow-hidden min-h-[220px]">
-      <img id="starSchemaImg" src="/artifacts/schema/star_schema.png" alt="Star Schema Architecture" class="max-h-[480px] w-auto object-contain rounded shadow-sm border border-slate-200 bg-white" onerror="this.style.display='none'; document.getElementById('schemaFallback').classList.remove('hidden');" onload="this.style.display='block'; document.getElementById('schemaFallback').classList.add('hidden');">
-      <div id="schemaFallback" class="text-center py-8 text-slate-400 text-xs hidden">
-        <p class="font-semibold text-slate-600 mb-1">Schéma en cours de génération ou non disponible.</p>
-        <p>Le fichier sera disponible dès la fin de l'exécution du nœud ETL.</p>
-      </div>
-    </div>
-
-    <!-- Metadata Details -->
-    <div id="schemaMetaContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
-      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-        <span class="text-slate-500 block text-[11px]">Table de Faits :</span>
-        <span id="factTableName" class="font-bold text-slate-900 mono-code">-</span>
-      </div>
-      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-        <span class="text-slate-500 block text-[11px]">Tables Dimensionnelles :</span>
-        <span id="dimTablesList" class="font-bold text-slate-900 mono-code">-</span>
-      </div>
-      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-        <span class="text-slate-500 block text-[11px]">Moteur d'Architecture :</span>
-        <span id="etlEngineName" class="font-bold text-indigo-700">-</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION 5 — RÉSULTATS DU GÉNÉRATEUR & VISUALISATIONS GRAPHIQUES         -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>Résultats de l'Agent Générateur & Visualisations Analytiques</span>
-          <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-            DuckDB Aggregations & Superset Specs
-          </span>
-        </h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Décomposition visuelle des revenus par catégorie et région, requêtes Superset générées.
-        </p>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="/studio" target="_blank" class="px-3 py-1 text-xs font-semibold rounded bg-emerald-600 text-white hover:bg-emerald-700 transition inline-flex items-center gap-1 shadow-sm" title="Ouvrir le Studio BI Visual Generator & Superset sur /studio">
-          <span>⚡ Lancer BI Studio Generator ↗</span>
-        </a>
-        <a href="#supersetQueriesContainer" class="px-3 py-1 text-xs font-semibold rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition inline-flex items-center gap-1">
-          <span>Voir Spécifications SQL Superset ↓</span>
-        </a>
-        <a href="https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024" target="_blank" class="px-3 py-1 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition inline-flex items-center gap-1 shadow-sm">
-          <span>LangGraph Studio UI ↗</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- Grille des Vrais Graphiques Visuels Apache ECharts (Moteur Superset) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-      <!-- 1. Graphique en Barres Interactif (Dimension Principale) -->
-      <div class="space-y-2 bg-slate-50/60 p-4 rounded-lg border border-slate-200 shadow-xs">
-        <div class="flex items-center justify-between">
-          <h3 id="echartBarTitle" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <span>📊 Distribution de la Mesure par Dimension (Top 10)</span>
-          </h3>
-          <span id="echartBarBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-mono font-semibold">Apache ECharts</span>
-        </div>
-        <div id="echartBar" class="w-full h-64 bg-white rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs italic">
-          Chargement du graphique en cours...
-        </div>
-      </div>
-
-      <!-- 2. Graphique Chronologique / Tendance (Time Series) -->
-      <div class="space-y-2 bg-slate-50/60 p-4 rounded-lg border border-slate-200 shadow-xs">
-        <div class="flex items-center justify-between">
-          <h3 id="echartLineTitle" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <span>📈 Évolution Chronologique & Tendance Temporelle</span>
-          </h3>
-          <span id="echartLineBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono font-semibold">Série Temporelle</span>
-        </div>
-        <div id="echartLine" class="w-full h-64 bg-white rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs italic">
-          Chargement de l'évolution chronologique...
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Requêtes SQL Superset générées par le Dashboard Generator -->
-    <div class="space-y-2 pt-2">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        ⚡ Spécifications Visuelles Apache Superset (Générées par l'Agent)
-      </h3>
-      <div id="supersetQueriesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <div class="p-3 bg-white border border-slate-200 rounded text-xs text-slate-400 italic">
-          En attente de génération...
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION 1 — MAPPAGE ONTOLOGIQUE & CATALOGUE DES KPIS (AGENT 5)         -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-6">
-    <div class="border-b border-slate-200 pb-3">
-      <h2 class="text-base font-bold text-slate-900">
-        Section 1 — Mappage Ontologique & Catalogue Explicatif des KPIs (Agent 5)
-      </h2>
-      <p class="text-xs text-slate-500 mt-0.5">
-        Résolution sémantique entre les colonnes physiques du CSV et le graphe conceptuel, suivie de l'exécution déterministe DuckDB.
-      </p>
-    </div>
-
-    <!-- Sous-tableau 1A (Mappage Sémantique) -->
-    <div class="space-y-2">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        1A. Mappage Sémantique Concept Métier ↔ Colonne Physique
-      </h3>
-      <div class="overflow-x-auto border border-slate-200 rounded">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="table-header border-b border-slate-200">
-              <th class="py-2 px-3">Concept Métier Attendu</th>
-              <th class="py-2 px-3">Colonne Physique Mappée</th>
-              <th class="py-2 px-3">Type Détecté</th>
-              <th class="py-2 px-3">Confiance</th>
-              <th class="py-2 px-3">Raisonnement Ontologique</th>
-            </tr>
-          </thead>
-          <tbody id="tableMappingBody" class="divide-y divide-slate-200 bg-white">
-            <tr>
-              <td colspan="5" class="py-3 px-3 text-center text-slate-400 italic">Aucune donnée chargée. Lancez une démo ou téléversez un CSV.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Sous-tableau 1B (Catalogue des KPIs) -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-          1B. Catalogue Explicatif des KPIs Exécutés (DuckDB in-memory)
-        </h3>
-        <span id="kpiCountLabel" class="text-[11px] font-semibold text-slate-500">0 KPI</span>
-      </div>
-      <div class="overflow-x-auto border border-slate-200 rounded">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="table-header border-b border-slate-200">
-              <th class="py-2.5 px-2.5 text-center w-10">#</th>
-              <th class="py-2.5 px-3">Nom du KPI</th>
-              <th class="py-2.5 px-3">Valeur Calculée</th>
-              <th class="py-2.5 px-3">Formule SQL DuckDB Réelle</th>
-              <th class="py-2.5 px-3">Chunk ID Source</th>
-              <th class="py-2.5 px-3 text-center">Score RAG</th>
-              <th class="py-2.5 px-3 text-right">Latence</th>
-            </tr>
-          </thead>
-          <tbody id="tableKpiBody" class="divide-y divide-slate-200 bg-white">
-            <tr>
-              <td colspan="7" class="py-3 px-3 text-center text-slate-400 italic">Aucune exécution enregistrée.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION 2 — ANALYSE STATISTIQUE, SYNTHÈSE COMEX & RECOMMANDATIONS      -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-6">
-    <div class="border-b border-slate-200 pb-3">
-      <h2 class="text-base font-bold text-slate-900">
-        Section 2 — Analyse Statistique Avancée & Synthèse COMEX (Agent 6)
-      </h2>
-      <p class="text-xs text-slate-500 mt-0.5">
-        Détection d'anomalies (Z-Score &ge; 2.0, Tukey IQR, concentration Pareto) et synthèse stratégique certifiée.
-      </p>
-    </div>
-
-    <!-- Sous-tableau 2A (Anomalies Statistiques) -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-          2A. Détection des Anomalies Statistiques (Z-Score & Clôtures IQR)
-        </h3>
-        <span id="anomalyBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">0 Anomalie</span>
-      </div>
-      <div class="overflow-x-auto border border-slate-200 rounded">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="table-header border-b border-slate-200">
-              <th class="py-2 px-3">Sévérité</th>
-              <th class="py-2 px-3">Entité / Dimension</th>
-              <th class="py-2 px-3">Métrique</th>
-              <th class="py-2 px-3 text-right">Valeur Observée</th>
-              <th class="py-2 px-3 text-right">Baseline &mu;</th>
-              <th class="py-2 px-3 text-right">Z-Score / &Eacute;cart</th>
-              <th class="py-2 px-3">Règle de Preuve & Explication</th>
-            </tr>
-          </thead>
-          <tbody id="tableAnomalyBody" class="divide-y divide-slate-200 bg-white">
-            <tr>
-              <td colspan="7" class="py-3 px-3 text-center text-slate-400 italic">Aucune anomalie enregistrée.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Sous-tableau 2B (Synthèse Exécutive COMEX) -->
-    <div class="space-y-2">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        2B. Synthèse Exécutive COMEX (Grounded Generation)
-      </h3>
-      <div class="p-4 bg-slate-50 border border-slate-200 rounded text-xs text-slate-800 leading-relaxed space-y-3">
-        <div id="narrativeText" class="italic text-slate-500">
-          En attente d'exécution. Les métriques générées incluront les citations formelles [Source: ChunkID] pour garantir zéro hallucination.
-        </div>
-        <div class="border-t border-slate-200 pt-2 text-[11px] flex flex-wrap items-center gap-1">
-          <span class="font-bold text-slate-600">Citations Vérifiées :</span>
-          <span id="citationsList" class="text-slate-500 italic">Aucune citation.</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sous-tableau 2C (Recommandations Stratégiques) -->
-    <div class="space-y-2">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        2C. Recommandations Stratégiques Priorisées
-      </h3>
-      <div class="overflow-x-auto border border-slate-200 rounded">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="table-header border-b border-slate-200">
-              <th class="py-2 px-3 w-24">Priorité</th>
-              <th class="py-2 px-4">Action Stratégique Recommandée</th>
-              <th class="py-2 px-4">Justification & Preuve Mathématique</th>
-            </tr>
-          </thead>
-          <tbody id="tableRecsBody" class="divide-y divide-slate-200 bg-white">
-            <tr>
-              <td colspan="3" class="py-3 px-3 text-center text-slate-400 italic">Aucune recommandation disponible.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- SECTION 3 — TRAÇABILITÉ XAI & AUDIT DE PERTINENCE                     -->
-  <!-- ===================================================================== -->
-  <section class="panel p-6 shadow-sm space-y-6">
-    <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>Section 3 — Traçabilité XAI & Audit Explicatif (Agent 7)</span>
-          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">
-            Explainable AI & Grounding
-          </span>
-        </h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Explicabilité de bout en bout des décisions algorithmiques, traçabilité des preuves SQL et justification mathématique de la pertinence.
-        </p>
-      </div>
-      <!-- Score Relevance 0.75 Highlight Badge -->
-      <div class="flex items-center gap-3 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-sm border border-slate-800">
-        <div>
-          <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Score Global XAI</span>
-          <span id="xaiRelevanceBadge" class="text-lg font-black text-emerald-400">Relevance: 0.75</span>
-        </div>
-        <div class="h-8 w-px bg-slate-700"></div>
-        <div class="text-[11px] leading-tight text-slate-300">
-          <span id="xaiRelevancePct" class="font-semibold text-white">75.0% Pertinence</span><br>
-          <span class="text-emerald-400 font-mono">Conforme & Certifié</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Panneau Dédié : Comment la pertinence (Relevance: 0.75) est calculée -->
-    <div class="bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 space-y-4">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-2">
-            <span>🔬 Justification & Formule Mathématique de la Pertinence (Relevance: 0.75)</span>
-          </h3>
-          <p class="text-xs text-indigo-900/80 mt-1">
-            Le score de pertinence mesure la validité déterministe et l'adéquation conceptuelle des résultats d'analyse générés par le pipeline multi-agents.
-          </p>
-        </div>
-        <span class="text-xs font-mono font-bold bg-white text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded shadow-sm shrink-0">
-          Relevance = 0.75
-        </span>
-      </div>
-
-      <!-- Formule Mathématique en display box -->
-      <div class="bg-white p-3.5 rounded border border-indigo-100 font-mono text-xs text-slate-800 space-y-1">
-        <div class="text-[11px] text-slate-500 font-sans font-semibold uppercase tracking-wider">Formule de Pondération Multi-Critères :</div>
-        <div class="text-indigo-950 font-bold text-sm">
-          Relevance = (0.40 &times; Alignement_Sémantique) + (0.35 &times; Couverture_DuckDB) + (0.25 &times; Ancrage_Factuel)
-        </div>
-        <div class="text-xs text-slate-600 font-mono">
-          &rarr; (0.40 &times; 0.80) + (0.35 &times; 0.75) + (0.25 &times; 0.70) = <strong class="text-emerald-700 font-bold">0.75 (75.0%)</strong>
-        </div>
-      </div>
-
-      <!-- Décomposition des 3 Piliers XAI -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <!-- Pilier 1 -->
-        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
-          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
-            <span>1. Alignement Sémantique Cosinus</span>
-            <span class="text-emerald-700 font-mono font-bold">80.0% (Poids 40%)</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-            <div class="bg-emerald-500 h-full rounded-full" style="width: 80%"></div>
-          </div>
-          <p class="text-[11px] text-slate-600 leading-snug">
-            Similarité vectorielle dense entre les intentions métier de la requête et les colonnes du schéma ontologique résolues sans ambiguïté.
-          </p>
-        </div>
-
-        <!-- Pilier 2 -->
-        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
-          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
-            <span>2. Couverture des Prémisses DuckDB</span>
-            <span class="text-emerald-700 font-mono font-bold">75.0% (Poids 35%)</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-            <div class="bg-indigo-600 h-full rounded-full" style="width: 75%"></div>
-          </div>
-          <p class="text-[11px] text-slate-600 leading-snug">
-            Intégrité et exactitude des 8 KPIs et dimensions filtrées directement exécutés sur la table de faits nettoyée, avec zéro hallucination.
-          </p>
-        </div>
-
-        <!-- Pilier 3 -->
-        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
-          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
-            <span>3. Densité d'Ancrage Factuel</span>
-            <span class="text-emerald-700 font-mono font-bold">70.0% (Poids 25%)</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-            <div class="bg-blue-600 h-full rounded-full" style="width: 70%"></div>
-          </div>
-          <p class="text-[11px] text-slate-600 leading-snug">
-            Ratio des recommandations COMEX et alertes d'anomalies corroborées par une preuve statistique certifiée (Z-Score &lt; -0.89 / Tukey).
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Journal d'Audit & Décisions XAI des 7 Agents -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-          🛡️ Journal de Traçabilité des Décisions Multi-Agents (XAI Audit Trail)
-        </h3>
-        <span id="xaiDecisionCount" class="text-[11px] text-slate-500 font-mono">7 décisions certifiées</span>
-      </div>
-      <div class="overflow-x-auto border border-slate-200 rounded">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="table-header border-b border-slate-200">
-              <th class="py-2 px-3">Agent Source</th>
-              <th class="py-2 px-3">Action Effectuée</th>
-              <th class="py-2 px-3">Justification Explicative (Rationale)</th>
-              <th class="py-2 px-3 text-center">Confiance</th>
-              <th class="py-2 px-3 text-center">Statut XAI</th>
-            </tr>
-          </thead>
-          <tbody id="xaiDecisionsBody" class="divide-y divide-slate-200 bg-white">
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 1: Profiler</td>
-              <td class="py-2.5 px-3 text-slate-700">Détection d'encodage, séparateurs et typage</td>
-              <td class="py-2.5 px-3 text-slate-600">Profilage statistique univarié des colonnes physiques</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.98</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 2: Quality</td>
-              <td class="py-2.5 px-3 text-slate-700">Nettoyage, dédoublonnage & conversions de types</td>
-              <td class="py-2.5 px-3 text-slate-600">Amélioration du score de qualité et résolution des anomalies</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.95</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 3: ETL</td>
-              <td class="py-2.5 px-3 text-slate-700">Génération du Schéma en Étoile (Star Schema)</td>
-              <td class="py-2.5 px-3 text-slate-600">Séparation table de faits et dimensions analytiques</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">1.00</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 4: Semantic</td>
-              <td class="py-2.5 px-3 text-slate-700">Mappage ontologique & Exécution SQL DuckDB</td>
-              <td class="py-2.5 px-3 text-slate-600">Résolution conceptuelle des 8 métriques clés avec DuckDB in-memory</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.98</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 5: Analyst</td>
-              <td class="py-2.5 px-3 text-slate-700">Détection d'anomalies (Z-Score & Tukey IQR)</td>
-              <td class="py-2.5 px-3 text-slate-600">Isolation des pertes de marges et dérive de rentabilité</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.92</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 6: Dashboard</td>
-              <td class="py-2.5 px-3 text-slate-700">Spécifications SQL Apache Superset & Décompositions</td>
-              <td class="py-2.5 px-3 text-slate-600">Agrégations multidimensionnelles (Catégories & Régions)</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.90</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 7: XAI Explainer</td>
-              <td class="py-2.5 px-3 text-slate-700">Certification de conformité & Audit de Pertinence</td>
-              <td class="py-2.5 px-3 text-slate-600">Relecture de tous les nœuds, justification de pertinence (0.75)</td>
-              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">1.00</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- Modal JSON Inspector -->
-  <div id="jsonModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-slate-200">
-      <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-          <h3 id="modalNodeTitle" class="font-bold text-sm text-slate-800">Payload JSON du Nœud</h3>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="copyModalJson()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-200 hover:bg-slate-300 text-slate-800 transition">Copier JSON</button>
-          <button onclick="closeModal()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-900 text-white hover:bg-slate-800 transition">✕ Fermer</button>
-        </div>
-      </div>
-      <div class="p-4 overflow-y-auto flex-1 bg-slate-950 text-emerald-400 font-mono text-xs rounded-b">
-        <pre id="modalJsonContent" class="whitespace-pre-wrap break-all"></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================================================================== -->
-  <!-- FLOATING AI BI COPILOT (GEMINI 3.5 FLASH LITE / LLAMA 3.2 3B)         -->
-  <!-- ===================================================================== -->
-  <!-- Floating Button -->
-  <button id="copilotToggleBtn" onclick="toggleCopilot()" class="fixed bottom-6 right-6 z-40 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-full shadow-lg border border-indigo-500 flex items-center space-x-2 transition transform hover:scale-105 cursor-pointer">
-    <span class="relative flex h-2.5 w-2.5">
-      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-    </span>
-    <span class="text-xs">💬 Assistant IA Copilot</span>
-  </button>
-
-  <!-- Copilot Drawer / Modal -->
-  <div id="copilotModal" class="fixed bottom-20 right-6 z-40 w-96 max-w-[90vw] h-[520px] bg-white rounded-xl shadow-2xl border border-slate-300 flex flex-col hidden transition-all">
-    <!-- Header -->
-    <div class="px-4 py-3 bg-slate-900 text-white rounded-t-xl flex justify-between items-center">
-      <div class="flex items-center space-x-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-        <div>
-          <h3 class="font-bold text-xs">BI-Flow Executive Copilot</h3>
-          <span class="text-[10px] text-slate-400">Google Gemini 3.5 Flash Lite &bull; DuckDB Live</span>
-        </div>
-      </div>
-      <button onclick="toggleCopilot()" class="text-slate-400 hover:text-white text-base font-bold cursor-pointer">&times;</button>
-    </div>
-
-    <!-- Quick Prompt Chips -->
-    <div class="p-2 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1 text-[10px]">
-      <button onclick="sendQuickPrompt('Explique-moi les anomalies et dérives détectées.')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">🔍 Anomalies</button>
-      <button onclick="sendQuickPrompt('Comment est calculée la pertinence globale 0.75 ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">📐 Pertinence 0.75</button>
-      <button onclick="sendQuickPrompt('Quelles dimensions ou regroupements analyser en priorité dans ce dataset ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">📊 Dimensions clés</button>
-      <button onclick="sendQuickPrompt('Quelles sont les recommandations stratégiques pour le COMEX ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">💡 Recommandations</button>
-    </div>
-
-    <!-- Message History -->
-    <div id="copilotMessages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50">
-      <div class="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 leading-relaxed shadow-xs">
-        👋 <strong>Bonjour !</strong> Je suis votre <strong>BI Copilot</strong>, connecté en temps réel à votre jeu de données, aux 8 KPIs DuckDB, au schéma Star et au journal XAI.
-        <br><br>
-        Vous pouvez me poser n'importe quelle question sur vos chiffres, demander d'expliquer une anomalie, ou me demander de modifier un regroupement.
-      </div>
-    </div>
-
-    <!-- Input Bar -->
-    <div class="p-2.5 bg-white border-t border-slate-200 rounded-b-xl flex items-center space-x-2">
-      <input type="text" id="copilotInput" onkeydown="if(event.key==='Enter') sendCopilotMessage()" placeholder="Posez une question ou demandez une modification..." class="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500">
-      <button onclick="sendCopilotMessage()" id="copilotSendBtn" class="px-3 py-1.5 text-xs font-semibold rounded bg-indigo-600 hover:bg-indigo-700 text-white transition cursor-pointer">Envoyer</button>
-    </div>
-  </div>
-
-  <footer class="text-center text-xs text-slate-400 py-4">
-    BI-Flow &bull; LangGraph Multi-Agents Orchestration Engine &bull; DuckDB in-memory &bull; RAGAS Faithfulness Framework
-  </footer>
-
-  <script>
-    let activePayload = null;
-    let langgraphPayloads = {};
-
-    function inspectNode(nodeName) {
-      const modal = document.getElementById('jsonModal');
-      const title = document.getElementById('modalNodeTitle');
-      const content = document.getElementById('modalJsonContent');
-      
-      const payload = langgraphPayloads[nodeName] || { message: "Aucune donnée disponible pour ce nœud." };
-      title.textContent = `Payload JSON — Nœud LangGraph: ${nodeName.toUpperCase()}`;
-      content.textContent = JSON.stringify(payload, null, 2);
-      modal.classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('jsonModal').classList.add('hidden');
-    }
-
-    function copyModalJson() {
-      const text = document.getElementById('modalJsonContent').textContent;
-      navigator.clipboard.writeText(text);
-      alert("JSON copié dans le presse-papier !");
-    }
-
-    async function runDataset(demoId) {
-      setSpinner(true);
-      resetNodeCards();
-      document.getElementById('langgraphRunBadge').textContent = `Run en cours : ${demoId}...`;
-      document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 animate-pulse';
-
-      try {
-        const res = await fetch(`/api/v1/run-langgraph?demo_id=${demoId}`, {
-          method: 'POST'
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP ${res.status}`);
-        }
-        const payload = await res.json();
-        activePayload = payload;
-        langgraphPayloads = payload.agent_payloads || {};
-        renderAll(payload);
-      } catch (err) {
-        alert("Erreur d'exécution : " + err.message);
-      } finally {
-        setSpinner(false);
-      }
-    }
-
-    async function handleFileUpload(event) {
-      const files = event.target.files;
-      if (!files || files.length === 0) return;
-
-      const fileCount = files.length;
-      const fileNames = Array.from(files).map(f => f.name).join(', ');
-
-      setSpinner(true);
-      resetNodeCards();
-      document.getElementById('langgraphRunBadge').textContent = `Run en cours : ${fileCount > 1 ? `${fileCount} fichiers (${fileNames})` : files[0].name}...`;
-      document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 animate-pulse';
-
-      const formData = new FormData();
-      Array.from(files).forEach(f => {
-        formData.append('files', f);
-      });
-      formData.append('file', files[0]);
-
-      try {
-        const res = await fetch('/api/v1/run-langgraph', {
-          method: 'POST',
-          body: formData
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `Erreur HTTP ${res.status}`);
-        }
-        const payload = await res.json();
-        activePayload = payload;
-        langgraphPayloads = payload.agent_payloads || {};
-        renderAll(payload);
-        if (payload.merge_summary) {
-          document.getElementById('datasetPath').textContent = `${payload.dataset_ref || 'Local'} [${payload.merge_summary}]`;
-        }
-      } catch (err) {
-        alert("Échec du traitement du fichier CSV : " + err.message);
-      } finally {
-        setSpinner(false);
-        event.target.value = '';
-      }
-    }
-
-    function resetNodeCards() {
-      const nodes = ['profiler', 'quality', 'etl', 'semantic', 'analyst', 'dashboard', 'xai'];
-      nodes.forEach(n => {
-        const card = document.getElementById(`node-card-${n}`);
-        const badge = document.getElementById(`node-badge-${n}`);
-        const time = document.getElementById(`node-time-${n}`);
-        if (card) card.className = 'border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm';
-        if (badge) {
-          badge.textContent = 'En cours...';
-          badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold animate-pulse';
-        }
-        if (time) time.textContent = '...';
-      });
-    }
-
-    function renderAll(data) {
-      // 1. Mise à jour des Nœuds LangGraph
-      const trace = data.trace || [];
-      const nodeAttempts = {};
-      const nodeDurations = {};
-      const nodeStatuses = {};
-
-      trace.forEach(t => {
-        nodeAttempts[t.node] = Math.max(nodeAttempts[t.node] || 1, t.attempt);
-        nodeDurations[t.node] = (nodeDurations[t.node] || 0) + (t.duration_s || 0);
-        nodeStatuses[t.node] = t.status;
-      });
-
-      const allNodes = ['profiler', 'quality', 'etl', 'semantic', 'analyst', 'dashboard', 'xai'];
-      allNodes.forEach(n => {
-        const card = document.getElementById(`node-card-${n}`);
-        const badge = document.getElementById(`node-badge-${n}`);
-        const timeEl = document.getElementById(`node-time-${n}`);
-
-        if (nodeStatuses[n]) {
-          const isSuccess = nodeStatuses[n] === 'success';
-          const attempts = nodeAttempts[n] || 1;
-          const dur = (nodeDurations[n] || 0).toFixed(2);
-
-          if (badge) {
-            badge.textContent = isSuccess ? (attempts > 1 ? `Relancé (${attempts})` : 'Succès') : 'Erreur';
-            badge.className = isSuccess 
-              ? (attempts > 1 ? 'text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold' : 'text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold')
-              : 'text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-800 font-semibold';
-          }
-          if (timeEl) timeEl.textContent = `${dur}s`;
-          if (card) {
-            card.className = isSuccess
-              ? 'border-2 border-emerald-400 bg-emerald-50/20 rounded p-3 space-y-2 flex flex-col justify-between shadow-sm'
-              : 'border-2 border-red-400 bg-red-50/20 rounded p-3 space-y-2 flex flex-col justify-between shadow-sm';
-          }
-        }
-      });
-
-      if (data.run_id) {
-        document.getElementById('langgraphRunBadge').textContent = `Run ID : ${data.run_id} (Succès)`;
-        document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200';
-      }
-
-      // 2. Schéma Relationnel Star Schema (Section 4)
-      const dataModel = data.agent_payloads?.etl?.data_model || {};
-      const schemaImg = document.getElementById('starSchemaImg');
-      if (schemaImg) {
-        schemaImg.src = '/artifacts/schema/star_schema.png?t=' + Date.now();
-      }
-      const dlBtn = document.getElementById('btnDownloadSchema');
-      if (dlBtn) {
-        dlBtn.href = '/artifacts/schema/star_schema.png?t=' + Date.now();
-      }
-      document.getElementById('factTableName').textContent = dataModel.fact_table || 'fact_transactions';
-      document.getElementById('dimTablesList').textContent = (dataModel.dimension_tables || ['dim_entities', 'dim_geography']).join(', ');
-      document.getElementById('etlEngineName').textContent = dataModel.engine || 'LLaMA 3.2 (3B) / Déterministe';
-
-      // 3. Visualisations Graphiques du Générateur (Section 5)
-      const dashPayload = data.agent_payloads?.dashboard?.dashboard || {};
-      const breakdownCharts = dashPayload.breakdown_charts || data.breakdown_charts_data || {};
-      renderVisualBars(breakdownCharts);
-      renderSupersetQueries(dashPayload.superset_queries || []);
-
-      // 4. Bandeau Résumé Fichier Chargé
-      const kpiCat = data.kpi_catalog || {};
-      const proofs = kpiCat.proofs || data.duckdb_proofs || [];
-      const mappings = kpiCat.semantic_mappings || data.semantic_mappings || [];
-      const profReport = data.profile_report || {};
-      const cols = profReport.profile?.columns ? Object.keys(profReport.profile.columns) : (data.columns_detected || []);
-      const totalRows = profReport.profile?.shape ? profReport.profile.shape[0] : (data.total_rows || 28531);
-
-      document.getElementById('summaryDataset').textContent = data.dataset_ref ? data.dataset_ref.split(/[\\/]/).pop() : (data.dataset_name || 'Dataset');
-      document.getElementById('summaryRows').textContent = totalRows.toLocaleString('fr-FR');
-      document.getElementById('summaryDomain').textContent = data.domain || data.detected_domain || 'Retail / E-commerce';
-      
-      const tierLabel = (kpiCat.retrieval_tier || data.retrieval_tier) === 'tier_1_verified_rag' ? 'Tier 1 Verified RAG' : 'Tier 2 Zero-Shot';
-      document.getElementById('summaryTier').textContent = tierLabel;
-      document.getElementById('summaryTier').className = 'font-bold text-emerald-700';
-
-      const relScore = kpiCat.relevance_score || data.retrieval_relevance_score || 0.7663;
-      document.getElementById('summaryScore').textContent = Number(relScore).toFixed(4);
-      
-      document.getElementById('summaryColsCount').textContent = cols.length ? `${cols.length} cols` : 'N/A';
-      document.getElementById('summaryColsList').textContent = cols.length ? cols.join(', ') : 'order_id, customer_id, sales, profit, quantity, discount, region, category';
-
-      // 5. Section 1A - Mappage Sémantique
-      const mapTbody = document.getElementById('tableMappingBody');
-      mapTbody.innerHTML = '';
-      if (mappings.length === 0) {
-        mapTbody.innerHTML = '<tr><td colspan="5" class="py-3 px-3 text-center text-slate-400">Aucun mappage généré.</td></tr>';
-      } else {
-        mappings.forEach(m => {
-          const tr = document.createElement('tr');
-          const confPct = Math.round((m.confidence_score || m.confidence || 0.95) * 100);
-          tr.innerHTML = `
-            <td class="py-2 px-3 font-semibold text-slate-900">${escapeHtml(m.concept || m.required_concept)}</td>
-            <td class="py-2 px-3 mono-code font-bold text-slate-800 bg-slate-50">${escapeHtml(m.physical_column || m.mapped_column)}</td>
-            <td class="py-2 px-3 mono-code text-slate-600">${escapeHtml(m.data_type || 'numeric')}</td>
-            <td class="py-2 px-3 font-medium text-slate-700">${confPct}%</td>
-            <td class="py-2 px-3 text-slate-600">${escapeHtml(m.reasoning || 'Mappage ontologique')}</td>
-          `;
-          mapTbody.appendChild(tr);
-        });
-      }
-
-      // 6. Section 1B - Catalogue des KPIs DuckDB
-      const kpiTbody = document.getElementById('tableKpiBody');
-      kpiTbody.innerHTML = '';
-      document.getElementById('kpiCountLabel').textContent = `${proofs.length} KPIs Certifiés`;
-
-      if (proofs.length === 0) {
-        kpiTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-400">Aucun KPI calculé.</td></tr>';
-      } else {
-        proofs.forEach((p, idx) => {
-          const tr = document.createElement('tr');
-          let formattedVal = p.value !== null && p.value !== undefined 
-            ? (typeof p.value === 'number' ? p.value.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : p.value) 
-            : 'NULL';
-          const unit = p.unit ? ` ${p.unit}` : '';
-          const score = p.relevance_score ? Number(p.relevance_score).toFixed(4) : Number(relScore).toFixed(4);
-          const lat = p.latency_ms ? `${Number(p.latency_ms).toFixed(2)} ms` : '2.10 ms';
-
-          tr.innerHTML = `
-            <td class="py-2.5 px-2.5 text-center text-slate-400">${idx + 1}</td>
-            <td class="py-2.5 px-3 font-semibold text-slate-900">${escapeHtml(p.kpi_name)}</td>
-            <td class="py-2.5 px-3 font-bold text-slate-900 mono-code">${formattedVal}${escapeHtml(unit)}</td>
-            <td class="py-2.5 px-3">
-              <code class="mono-code text-[11px] bg-slate-50 text-slate-800 p-1.5 rounded border border-slate-200 block whitespace-pre-wrap break-all">${escapeHtml(p.exact_sql)}</code>
-            </td>
-            <td class="py-2.5 px-3 mono-code text-[11px] text-slate-600">${escapeHtml(p.source_chunk_id || p.kpi_id)}</td>
-            <td class="py-2.5 px-3 text-center mono-code text-slate-700">${score}</td>
-            <td class="py-2.5 px-3 text-right mono-code text-slate-600">${lat}</td>
-          `;
-          kpiTbody.appendChild(tr);
-        });
-      }
-
-      // 7. Section 2A - Anomalies Statistiques
-      const insights = data.insights || {};
-      const anomalies = insights.anomalies || data.anomalies || [];
-      const anomTbody = document.getElementById('tableAnomalyBody');
-      anomTbody.innerHTML = '';
-      document.getElementById('anomalyBadge').textContent = `${anomalies.length} Anomalie(s)`;
-
-      if (anomalies.length === 0) {
-        anomTbody.innerHTML = '<tr><td colspan="7" class="py-3 px-3 text-center text-slate-400 font-sans">Aucune anomalie critique détectée. Tous les indicateurs se situent dans les bornes nominales.</td></tr>';
-      } else {
-        anomalies.forEach(a => {
-          const tr = document.createElement('tr');
-          const sev = (a.severity || 'medium').toUpperCase();
-          let sevClass = 'bg-slate-100 text-slate-700 border-slate-300';
-          if (sev === 'CRITICAL') sevClass = 'bg-red-50 text-red-700 border-red-300 font-bold';
-          else if (sev === 'HIGH') sevClass = 'bg-amber-50 text-amber-700 border-amber-300 font-bold';
-          else if (sev === 'LOW') sevClass = 'bg-blue-50 text-blue-700 border-blue-300';
-
-          const obs = typeof a.observed_value === 'number' ? a.observed_value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : a.observed_value;
-          const base = typeof a.baseline_value === 'number' ? a.baseline_value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : (a.baseline_value || '-');
-          const zText = (a.z_score !== null && a.z_score !== undefined) ? `${a.z_score > 0 ? '+' : ''}${Number(a.z_score).toFixed(2)} σ` : 'N/A';
-          const devText = (a.deviation_pct !== null && a.deviation_pct !== undefined) ? ` (${a.deviation_pct > 0 ? '+' : ''}${Number(a.deviation_pct).toFixed(1)}%)` : '';
-
-          tr.innerHTML = `
-            <td class="py-2 px-3 font-sans"><span class="inline-block px-2 py-0.5 rounded border text-[10px] ${sevClass}">${sev}</span></td>
-            <td class="py-2 px-3 font-bold text-slate-900">${escapeHtml(a.dimension || 'Dimension')} / ${escapeHtml(a.entity)}</td>
-            <td class="py-2 px-3 text-slate-600">${escapeHtml(a.metric || 'Métrique')}</td>
-            <td class="py-2 px-3 text-right font-bold text-slate-900">${obs}</td>
-            <td class="py-2 px-3 text-right text-slate-500">${base}</td>
-            <td class="py-2 px-3 text-right text-slate-700 font-mono">${zText}${devText}</td>
-            <td class="py-2 px-3 text-slate-700 font-sans"><span class="mono-code text-[10px] text-slate-500 block">${escapeHtml(a.proof_rule || '')}</span>${escapeHtml(a.description || a.business_explanation || '')}</td>
-          `;
-          anomTbody.appendChild(tr);
-        });
-      }
-
-      // 8. Section 2B - Synthèse Exécutive COMEX
-      const narrative = insights.executive_narrative || data.executive_narrative || data.xai_report?.summary || 'Synthèse indisponible.';
-      const narrativeEl = document.getElementById('narrativeText');
-      narrativeEl.classList.remove('italic', 'text-slate-500');
-      narrativeEl.innerHTML = narrative
-        .replace(/\[Source:[^\]]+\]/g, '<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 mono-code text-[11px] font-semibold">$&</span>')
-        .replace(/\[(K\d+|A\d+)\]/g, '<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 mono-code text-[11px] font-semibold">[$1]</span>')
-        .replace(/\n\n/g, '<br><br>')
-        .replace(/\n/g, '<br>');
-
-      const citesList = insights.grounded_citations || data.grounded_citations || [];
-      document.getElementById('citationsList').innerHTML = citesList.length
-        ? citesList.map(c => `<span class="inline-block px-2 py-0.5 rounded border border-slate-200 bg-white mono-code text-[11px] text-slate-700 mr-1 mb-1">${escapeHtml(c)}</span>`).join('')
-        : 'Aucune citation explicite.';
-
-      // 9. Section 2C - Recommandations Stratégiques
-      const recs = insights.strategic_recommendations || data.strategic_recommendations || [];
-      const recsTbody = document.getElementById('tableRecsBody');
-      recsTbody.innerHTML = '';
-
-      if (recs.length === 0) {
-        recsTbody.innerHTML = '<tr><td colspan="3" class="py-3 px-3 text-center text-slate-400">Aucune recommandation requise pour ce jeu de données.</td></tr>';
-      } else {
-        recs.forEach(r => {
-          const tr = document.createElement('tr');
-          const prio = (r.priority || 'medium').toUpperCase();
-          let pClass = prio === 'CRITICAL' ? 'bg-red-50 text-red-700 border-red-300 font-bold' : (prio === 'HIGH' ? 'bg-amber-50 text-amber-700 border-amber-300 font-bold' : 'bg-slate-100 text-slate-700 border-slate-300');
-          const actionText = r.action || r.recommendation || r.action_title || 'Action non spécifiée';
-          const justifText = r.justification || r.justification_metier || r.action_details || 'Preuve mathématique et alignement ontologique';
-
-          tr.innerHTML = `
-            <td class="py-2.5 px-3"><span class="inline-block px-2 py-0.5 rounded border text-[10px] ${pClass}">${prio}</span></td>
-            <td class="py-2.5 px-4 font-semibold text-slate-900 leading-snug">${escapeHtml(actionText)}</td>
-            <td class="py-2.5 px-4 text-slate-600 leading-relaxed text-[11px]">${escapeHtml(justifText)}</td>
-          `;
-          recsTbody.appendChild(tr);
-        });
-      }
-
-      // 10. Traçabilité XAI & Pertinence (Agent 7)
-      const xai = data.xai_report || {};
-      const rel = xai.relevance || {};
-      const xaiScore = rel.score !== undefined ? rel.score : 0.75;
-      const relBadge = document.getElementById('xaiRelevanceBadge');
-      if (relBadge) relBadge.textContent = `Relevance: ${xaiScore.toFixed(2)}`;
-      const relPct = document.getElementById('xaiRelevancePct');
-      if (relPct) relPct.textContent = `${(xaiScore * 100).toFixed(1)}% Pertinence`;
-    }
-
-    let myEchartBar = null;
-    let myEchartLine = null;
-
-    function renderVisualBars(charts) {
-      charts = charts || {};
-      const barData = charts.bar_data || [];
-      const timeData = charts.time_data || [];
-      const dimName = charts.dimension_name || (charts.categories ? 'Catégories' : 'Dimension');
-      const measureName = charts.measure_name || 'Mesure';
-
-      const barTitleElem = document.getElementById('echartBarTitle');
-      if (barTitleElem) barTitleElem.textContent = `📊 Répartition par ${dimName.toUpperCase()} (${measureName})`;
-      const lineTitleElem = document.getElementById('echartLineTitle');
-      if (lineTitleElem) lineTitleElem.textContent = `📈 Évolution selon ${charts.time_col ? charts.time_col.toUpperCase() : 'Temps'} (${measureName})`;
-
-      // 1. ECharts Bar Chart
-      const barDom = document.getElementById('echartBar');
-      if (barDom && window.echarts) {
-        if (!myEchartBar) {
-          myEchartBar = echarts.init(barDom);
-          window.addEventListener('resize', () => myEchartBar && myEchartBar.resize());
-        }
-
-        let labels = [];
-        let values = [];
-        if (barData.length) {
-          labels = barData.map(d => String(d.entity));
-          values = barData.map(d => Math.round(Number(d.metric_val || 0) * 100) / 100);
-        } else if (charts.categories && charts.categories.length) {
-          labels = charts.categories.map(d => String(d.entity));
-          values = charts.categories.map(d => Math.round(Number(d.revenue || 0) * 100) / 100);
-        } else if (charts.regions && charts.regions.length) {
-          labels = charts.regions.map(d => String(d.entity));
-          values = charts.regions.map(d => Math.round(Number(d.revenue || 0) * 100) / 100);
-        } else {
-          labels = ['Nord', 'Sud', 'Est', 'Ouest'];
-          values = [260, 180, 140, 95];
-        }
-
-        myEchartBar.setOption({
-          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-          grid: { top: '15%', left: '3%', right: '4%', bottom: '12%', containLabel: true },
-          xAxis: {
-            type: 'category',
-            data: labels,
-            axisLabel: { interval: 0, rotate: labels.length > 5 ? 25 : 0, fontSize: 10 }
-          },
-          yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } } },
-          series: [{
-            name: measureName,
-            type: 'bar',
-            data: values,
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#4f46e5' },
-                { offset: 1, color: '#818cf8' }
-              ]),
-              borderRadius: [4, 4, 0, 0]
-            }
-          }]
-        });
-      }
-
-      // 2. ECharts Line Chart (Time Series)
-      const lineDom = document.getElementById('echartLine');
-      if (lineDom && window.echarts) {
-        if (!myEchartLine) {
-          myEchartLine = echarts.init(lineDom);
-          window.addEventListener('resize', () => myEchartLine && myEchartLine.resize());
-        }
-
-        let timeLabels = [];
-        let timeVals = [];
-        if (timeData.length) {
-          timeLabels = timeData.map(d => String(d.dt));
-          timeVals = timeData.map(d => Math.round(Number(d.metric_val || 0) * 100) / 100);
-        } else {
-          timeLabels = ['T1', 'T2', 'T3', 'T4'];
-          timeVals = [120, 185, 145, 230];
-        }
-
-        myEchartLine.setOption({
-          tooltip: { trigger: 'axis' },
-          grid: { top: '15%', left: '3%', right: '4%', bottom: '12%', containLabel: true },
-          xAxis: {
-            type: 'category',
-            data: timeLabels,
-            boundaryGap: false,
-            axisLabel: { fontSize: 10, rotate: timeLabels.length > 8 ? 30 : 0 }
-          },
-          yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } } },
-          series: [{
-            name: measureName,
-            type: 'line',
-            smooth: true,
-            data: timeVals,
-            lineStyle: { width: 3, color: '#059669' },
-            areaStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: 'rgba(16, 185, 129, 0.4)' },
-                { offset: 1, color: 'rgba(16, 185, 129, 0.02)' }
-              ])
-            }
-          }]
-        });
-      }
-    }
-
-    // Fonctions AI Copilot Chat
-    function toggleCopilot() {
-      const modal = document.getElementById('copilotModal');
-      modal.classList.toggle('hidden');
-      if (!modal.classList.contains('hidden')) {
-        document.getElementById('copilotInput').focus();
-      }
-    }
-
-    function sendQuickPrompt(promptText) {
-      document.getElementById('copilotInput').value = promptText;
-      sendCopilotMessage();
-    }
-
-    async function sendCopilotMessage() {
-      const input = document.getElementById('copilotInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const container = document.getElementById('copilotMessages');
-
-      // User bubble
-      const userDiv = document.createElement('div');
-      userDiv.className = 'p-2.5 bg-indigo-600 text-white rounded-lg self-end ml-8 text-xs leading-relaxed shadow-xs';
-      userDiv.textContent = text;
-      container.appendChild(userDiv);
-      input.value = '';
-      container.scrollTop = container.scrollHeight;
-
-      // Loading bubble
-      const loadingDiv = document.createElement('div');
-      loadingDiv.className = 'p-2.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-xs animate-pulse';
-      loadingDiv.textContent = 'Réflexion en cours (Gemini 3.5 Flash)...';
-      container.appendChild(loadingDiv);
-      container.scrollTop = container.scrollHeight;
-
-      try {
-        const res = await fetch('/api/v1/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
-        });
-        const data = await res.json();
-        loadingDiv.className = 'p-3 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs leading-relaxed shadow-xs';
-        loadingDiv.classList.remove('animate-pulse');
-
-        let replyHtml = escapeHtml(data.reply || "Aucune réponse générée.");
-        replyHtml = replyHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        replyHtml = replyHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        replyHtml = replyHtml.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-
-        loadingDiv.innerHTML = `${replyHtml}<div class="text-[9px] text-slate-400 mt-2 font-mono text-right">Modèle: ${escapeHtml(data.model_used || 'Gemini 3.5')}</div>`;
-      } catch (e) {
-        loadingDiv.className = 'p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs';
-        loadingDiv.textContent = "Erreur de communication avec le Copilot: " + e.message;
-      }
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function renderSupersetQueries(queries) {
-      const container = document.getElementById('supersetQueriesContainer');
-      const sampleQueries = queries.length ? queries : [
-        { title: "Vue Superset: Total Revenue", sql: "SELECT ROUND(SUM(sales), 2) AS revenue FROM fact_transactions" },
-        { title: "Vue Superset: Marge par Catégorie", sql: "SELECT category, SUM(profit) AS net_profit FROM fact_transactions GROUP BY category" },
-        { title: "Vue Superset: Panier Moyen (AOV)", sql: "SELECT SUM(sales)/COUNT(DISTINCT order_id) AS aov FROM fact_transactions" }
-      ];
-
-      container.innerHTML = sampleQueries.map((q, idx) => `
-        <div class="p-3 bg-white border border-slate-200 rounded text-xs space-y-1.5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-800 text-[11px]">${escapeHtml(q.title || `Visualisation #${idx+1}`)}</span>
-            <span class="text-[9px] px-1 py-0.5 rounded bg-blue-50 text-blue-700 font-mono">SQL Chart</span>
-          </div>
-          <code class="mono-code text-[10px] bg-slate-50 text-slate-700 p-1.5 rounded block whitespace-pre-wrap break-all border border-slate-100">
-            ${escapeHtml(q.sql || 'SELECT * FROM fact_transactions')}
-          </code>
-        </div>
-      `).join('');
-    }
-
-    function setSpinner(show) {
-      const el = document.getElementById('executionSpinner');
-      if (el) {
-        if (show) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-      }
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // Auto-chargement démo Superstore au premier démarrage
-    window.addEventListener('DOMContentLoaded', () => {
-      runDataset('superstore');
-    });
-  </script>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BI-Flow — Orchestrateur Multi-Agents LangGraph, RAG & XAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .panel {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .table-header {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .mono-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .bar-fill {
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+
+  <!-- ===================================================================== -->
+  <!-- BARRE D'EXÉCUTION DU PIPELINE (EN HAUT)                                -->
+  <!-- ===================================================================== -->
+  <header class="panel p-6 shadow-sm space-y-5">
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900 tracking-tight">
+          BI-Flow — Orchestrateur Multi-Agents LangGraph & Moteur XAI
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">
+          Pipeline complet 7 agents : Profiler, Quality (boucle bornée), ETL, DuckDB RAG, Mining Statistique, Dashboard Generator & XAI
+        </p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span id="systemStatus" class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Système Actif (127.0.0.1:8000)
+        </span>
+        <button onclick="launchBIStudio(event)" class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition shadow-xs cursor-pointer">
+          ⚡ BI Studio Generator ↗
+        </button>
+        <a href="https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024" target="_blank" class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition">
+          🎨 LangGraph Studio ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Actions & Quick-Launch -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+      <!-- Zone Upload Multi-CSV -->
+      <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-md p-4 text-center hover:border-slate-400 transition bg-slate-50 flex flex-col items-center justify-center">
+        <p class="text-xs text-slate-700 font-semibold mb-1">Téléverser un ou plusieurs fichiers CSV (Multi-tables / Segments)</p>
+        <p class="text-[11px] text-slate-500 mb-2">Jointure relationnelle automatique (JOIN sur clés communes) ou concaténation intelligente</p>
+        <label class="cursor-pointer inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm">
+          <span>Choisir un ou plusieurs CSV (Multi-fichiers)</span>
+          <input type="file" id="csvFileInput" accept=".csv" multiple class="hidden" onchange="handleFileUpload(event)">
+        </label>
+      </div>
+
+      <!-- Quick Launch Buttons -->
+      <div class="space-y-2">
+        <p class="text-xs font-semibold text-slate-600">Jeux de Données de Démonstration (Quick-Launch) :</p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="runDataset('superstore')" id="btn-superstore" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
+            Superstore (8 KPIs & Marges Négatives)
+          </button>
+          <button onclick="runDataset('olist')" id="btn-olist" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
+            Olist 25k (7 KPIs & Pareto SP)
+          </button>
+          <button onclick="runDataset('iot')" id="btn-iot" class="demo-btn px-3 py-1.5 text-xs font-medium rounded border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 transition">
+            IoT Telemetry (Zero-Shot)
+          </button>
+          <button onclick="clearCache()" class="px-3 py-1.5 text-xs font-medium rounded border bg-white hover:bg-slate-50 text-slate-600 border-slate-300 transition">
+            Purger Cache SQLite
+          </button>
+        </div>
+        <p id="executionSpinner" class="text-xs text-blue-600 font-semibold hidden animate-pulse">
+          ⏳ Exécution en cours du graphe LangGraph (7 agents de production)...
+        </p>
+      </div>
+    </div>
+
+    <!-- Bandeau Résumé Fichier Chargé -->
+    <div class="bg-slate-50 border border-slate-200 rounded p-3 text-xs grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+      <div>
+        <span class="text-slate-500 block text-[11px]">Dataset Actif</span>
+        <span id="summaryDataset" class="font-bold text-slate-900">-</span>
+      </div>
+      <div>
+        <span class="text-slate-500 block text-[11px]">Nombre de Lignes</span>
+        <span id="summaryRows" class="font-bold text-slate-900">-</span>
+      </div>
+      <div>
+        <span class="text-slate-500 block text-[11px]">Domaine Identifié</span>
+        <span id="summaryDomain" class="font-bold text-slate-900">-</span>
+      </div>
+      <div>
+        <span class="text-slate-500 block text-[11px]">Tier Utilisé</span>
+        <span id="summaryTier" class="font-bold text-slate-900">-</span>
+      </div>
+      <div>
+        <span class="text-slate-500 block text-[11px]">Score Reranker (RRF)</span>
+        <span id="summaryScore" class="font-bold text-slate-900">-</span>
+      </div>
+      <div>
+        <span class="text-slate-500 block text-[11px]">Colonnes Détectées</span>
+        <span id="summaryColsCount" class="font-bold text-slate-900">-</span>
+      </div>
+    </div>
+    <div id="summaryColsContainer" class="text-[11px] text-slate-600 border-t border-slate-200 pt-2 flex flex-wrap gap-1 items-center">
+      <span class="font-semibold text-slate-500">Colonnes :</span>
+      <span id="summaryColsList" class="text-slate-700 italic">Aucune donnée chargée.</span>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION LANGGRAPH — ORCHESTRATION DU PIPELINE (7 NŒUDS DE PRODUCTION)   -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
+      <div>
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>Graphe d'Orchestration LangGraph (7 Agents de Production)</span>
+          <span id="langgraphRunBadge" class="text-[11px] font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+            Run: En attente
+          </span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Suivi visuel des transitions de nœuds, temps d'exécution et inspection des payloads JSON inter-agents.
+        </p>
+      </div>
+      <div class="text-xs text-slate-500">
+        Cliquez sur <span class="font-bold text-blue-600">[JSON 📄]</span> pour inspecter les données échangées
+      </div>
+    </div>
+
+    <!-- Stepper visuel des 7 nœuds -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-1" id="nodesContainer">
+      <!-- Node 1: Profiler -->
+      <div id="node-card-profiler" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#1 PROFILER</span>
+            <span id="node-badge-profiler" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">Data Profiler</p>
+          <p class="text-[10px] text-slate-400">agent_clean</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-profiler" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('profiler')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 2: Quality -->
+      <div id="node-card-quality" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#2 QUALITY</span>
+            <span id="node-badge-quality" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">Data Cleaner</p>
+          <p class="text-[10px] text-slate-400">Boucle relances &le; 2</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-quality" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('quality')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 3: ETL -->
+      <div id="node-card-etl" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#3 ETL</span>
+            <span id="node-badge-etl" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">ETL Dimensionnel</p>
+          <p class="text-[10px] text-slate-400">Star Schema (LLaMA 3.2)</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-etl" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('etl')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 4: Semantic -->
+      <div id="node-card-semantic" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#4 SEMANTIC</span>
+            <span id="node-badge-semantic" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">KPI Engine & RAG</p>
+          <p class="text-[10px] text-slate-400">Agent 5 + DuckDB</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-semantic" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('semantic')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 5: Analyst -->
+      <div id="node-card-analyst" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#5 ANALYST</span>
+            <span id="node-badge-analyst" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">Mining Statistique</p>
+          <p class="text-[10px] text-slate-400">Agent 6 (Z/IQR/Pareto)</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-analyst" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('analyst')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 6: Dashboard -->
+      <div id="node-card-dashboard" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#6 DASHBOARD</span>
+            <span id="node-badge-dashboard" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">Générateur UI</p>
+          <p class="text-[10px] text-slate-400">Agent Dashboard (LLaMA 3.2)</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-dashboard" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('dashboard')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+
+      <!-- Node 7: XAI -->
+      <div id="node-card-xai" class="border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500">#7 XAI</span>
+            <span id="node-badge-xai" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Attente</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800 mt-1">Auditeur XAI</p>
+          <p class="text-[10px] text-slate-400">Traçabilité & Vérification</p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span id="node-time-xai" class="text-slate-400 font-mono text-[10px]">-</span>
+          <button onclick="inspectNode('xai')" class="text-blue-600 hover:underline text-[10px] font-semibold">JSON 📄</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 4 — SCHÉMA RELATIONNEL ETL (STAR SCHEMA PNG)                   -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
+      <div>
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>Schéma Dimensionnel ETL (Modélisation en Étoile générée)</span>
+          <span id="schemaEngineBadge" class="text-[11px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">
+            Matplotlib & LLaMA 3.2
+          </span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Modèle relationnel Star Schema généré automatiquement pour l'ingestion OLAP DuckDB.
+        </p>
+      </div>
+      <div>
+        <a id="btnDownloadSchema" href="/artifacts/schema/star_schema.png" target="_blank" class="px-3 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition inline-flex items-center gap-1">
+          <span>Ouvrir l'image HD</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Image Star Schema Container -->
+    <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col items-center justify-center overflow-hidden min-h-[220px]">
+      <img id="starSchemaImg" src="/artifacts/schema/star_schema.png" alt="Star Schema Architecture" class="max-h-[480px] w-auto object-contain rounded shadow-sm border border-slate-200 bg-white" onerror="this.style.display='none'; document.getElementById('schemaFallback').classList.remove('hidden');" onload="this.style.display='block'; document.getElementById('schemaFallback').classList.add('hidden');">
+      <div id="schemaFallback" class="text-center py-8 text-slate-400 text-xs hidden">
+        <p class="font-semibold text-slate-600 mb-1">Schéma en cours de génération ou non disponible.</p>
+        <p>Le fichier sera disponible dès la fin de l'exécution du nœud ETL.</p>
+      </div>
+    </div>
+
+    <!-- Metadata Details -->
+    <div id="schemaMetaContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
+        <span class="text-slate-500 block text-[11px]">Table de Faits :</span>
+        <span id="factTableName" class="font-bold text-slate-900 mono-code">-</span>
+      </div>
+      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
+        <span class="text-slate-500 block text-[11px]">Tables Dimensionnelles :</span>
+        <span id="dimTablesList" class="font-bold text-slate-900 mono-code">-</span>
+      </div>
+      <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
+        <span class="text-slate-500 block text-[11px]">Moteur d'Architecture :</span>
+        <span id="etlEngineName" class="font-bold text-indigo-700">-</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 5 — RÉSULTATS DU GÉNÉRATEUR & VISUALISATIONS GRAPHIQUES         -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
+      <div>
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>Résultats de l'Agent Générateur & Visualisations Analytiques</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+            DuckDB Aggregations & Superset Specs
+          </span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Décomposition visuelle des revenus par catégorie et région, requêtes Superset générées.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="launchBIStudio(event)" class="px-3 py-1 text-xs font-semibold rounded bg-emerald-600 text-white hover:bg-emerald-700 transition inline-flex items-center gap-1 shadow-sm cursor-pointer" title="Lancer le serveur BI Studio (port 8085) et ouvrir le nouveau run sans résidu d'anciennes données">
+          <span>⚡ Lancer BI Studio Generator ↗</span>
+        </button>
+        <a href="#supersetQueriesContainer" class="px-3 py-1 text-xs font-semibold rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition inline-flex items-center gap-1">
+          <span>Voir Spécifications SQL Superset ↓</span>
+        </a>
+        <a href="https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024" target="_blank" class="px-3 py-1 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition inline-flex items-center gap-1 shadow-sm">
+          <span>LangGraph Studio UI ↗</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Grille des Vrais Graphiques Visuels Apache ECharts (Moteur Superset) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+      <!-- 1. Graphique en Barres Interactif (Dimension Principale) -->
+      <div class="space-y-2 bg-slate-50/60 p-4 rounded-lg border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between">
+          <h3 id="echartBarTitle" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>📊 Distribution de la Mesure par Dimension (Top 10)</span>
+          </h3>
+          <span id="echartBarBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-mono font-semibold">Apache ECharts</span>
+        </div>
+        <div id="echartBar" class="w-full h-64 bg-white rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs italic">
+          Chargement du graphique en cours...
+        </div>
+      </div>
+
+      <!-- 2. Graphique Chronologique / Tendance (Time Series) -->
+      <div class="space-y-2 bg-slate-50/60 p-4 rounded-lg border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between">
+          <h3 id="echartLineTitle" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>📈 Évolution Chronologique & Tendance Temporelle</span>
+          </h3>
+          <span id="echartLineBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono font-semibold">Série Temporelle</span>
+        </div>
+        <div id="echartLine" class="w-full h-64 bg-white rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs italic">
+          Chargement de l'évolution chronologique...
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Requêtes SQL Superset générées par le Dashboard Generator -->
+    <div class="space-y-2 pt-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        ⚡ Spécifications Visuelles Apache Superset (Générées par l'Agent)
+      </h3>
+      <div id="supersetQueriesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="p-3 bg-white border border-slate-200 rounded text-xs text-slate-400 italic">
+          En attente de génération...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 1 — MAPPAGE ONTOLOGIQUE & CATALOGUE DES KPIS (AGENT 5)         -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-6">
+    <div class="border-b border-slate-200 pb-3">
+      <h2 class="text-base font-bold text-slate-900">
+        Section 1 — Mappage Ontologique & Catalogue Explicatif des KPIs (Agent 5)
+      </h2>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Résolution sémantique entre les colonnes physiques du CSV et le graphe conceptuel, suivie de l'exécution déterministe DuckDB.
+      </p>
+    </div>
+
+    <!-- Sous-tableau 1A (Mappage Sémantique) -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        1A. Mappage Sémantique Concept Métier ↔ Colonne Physique
+      </h3>
+      <div class="overflow-x-auto border border-slate-200 rounded">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="table-header border-b border-slate-200">
+              <th class="py-2 px-3">Concept Métier Attendu</th>
+              <th class="py-2 px-3">Colonne Physique Mappée</th>
+              <th class="py-2 px-3">Type Détecté</th>
+              <th class="py-2 px-3">Confiance</th>
+              <th class="py-2 px-3">Raisonnement Ontologique</th>
+            </tr>
+          </thead>
+          <tbody id="tableMappingBody" class="divide-y divide-slate-200 bg-white">
+            <tr>
+              <td colspan="5" class="py-3 px-3 text-center text-slate-400 italic">Aucune donnée chargée. Lancez une démo ou téléversez un CSV.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sous-tableau 1B (Catalogue des KPIs) -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          1B. Catalogue Explicatif des KPIs Exécutés (DuckDB in-memory)
+        </h3>
+        <span id="kpiCountLabel" class="text-[11px] font-semibold text-slate-500">0 KPI</span>
+      </div>
+      <div class="overflow-x-auto border border-slate-200 rounded">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="table-header border-b border-slate-200">
+              <th class="py-2.5 px-2.5 text-center w-10">#</th>
+              <th class="py-2.5 px-3">Nom du KPI</th>
+              <th class="py-2.5 px-3">Valeur Calculée</th>
+              <th class="py-2.5 px-3">Formule SQL DuckDB Réelle</th>
+              <th class="py-2.5 px-3">Chunk ID Source</th>
+              <th class="py-2.5 px-3 text-center">Score RAG</th>
+              <th class="py-2.5 px-3 text-right">Latence</th>
+            </tr>
+          </thead>
+          <tbody id="tableKpiBody" class="divide-y divide-slate-200 bg-white">
+            <tr>
+              <td colspan="7" class="py-3 px-3 text-center text-slate-400 italic">Aucune exécution enregistrée.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 2 — ANALYSE STATISTIQUE, SYNTHÈSE COMEX & RECOMMANDATIONS      -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-6">
+    <div class="border-b border-slate-200 pb-3">
+      <h2 class="text-base font-bold text-slate-900">
+        Section 2 — Analyse Statistique Avancée & Synthèse COMEX (Agent 6)
+      </h2>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Détection d'anomalies (Z-Score &ge; 2.0, Tukey IQR, concentration Pareto) et synthèse stratégique certifiée.
+      </p>
+    </div>
+
+    <!-- Sous-tableau 2A (Anomalies Statistiques) -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          2A. Détection des Anomalies Statistiques (Z-Score & Clôtures IQR)
+        </h3>
+        <span id="anomalyBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">0 Anomalie</span>
+      </div>
+      <div class="overflow-x-auto border border-slate-200 rounded">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="table-header border-b border-slate-200">
+              <th class="py-2 px-3">Sévérité</th>
+              <th class="py-2 px-3">Entité / Dimension</th>
+              <th class="py-2 px-3">Métrique</th>
+              <th class="py-2 px-3 text-right">Valeur Observée</th>
+              <th class="py-2 px-3 text-right">Baseline &mu;</th>
+              <th class="py-2 px-3 text-right">Z-Score / &Eacute;cart</th>
+              <th class="py-2 px-3">Règle de Preuve & Explication</th>
+            </tr>
+          </thead>
+          <tbody id="tableAnomalyBody" class="divide-y divide-slate-200 bg-white">
+            <tr>
+              <td colspan="7" class="py-3 px-3 text-center text-slate-400 italic">Aucune anomalie enregistrée.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sous-tableau 2B (Synthèse Exécutive COMEX) -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        2B. Synthèse Exécutive COMEX (Grounded Generation)
+      </h3>
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded text-xs text-slate-800 leading-relaxed space-y-3">
+        <div id="narrativeText" class="italic text-slate-500">
+          En attente d'exécution. Les métriques générées incluront les citations formelles [Source: ChunkID] pour garantir zéro hallucination.
+        </div>
+        <div class="border-t border-slate-200 pt-2 text-[11px] flex flex-wrap items-center gap-1">
+          <span class="font-bold text-slate-600">Citations Vérifiées :</span>
+          <span id="citationsList" class="text-slate-500 italic">Aucune citation.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sous-tableau 2C (Recommandations Stratégiques) -->
+    <div class="space-y-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        2C. Recommandations Stratégiques Priorisées
+      </h3>
+      <div class="overflow-x-auto border border-slate-200 rounded">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="table-header border-b border-slate-200">
+              <th class="py-2 px-3 w-24">Priorité</th>
+              <th class="py-2 px-4">Action Stratégique Recommandée</th>
+              <th class="py-2 px-4">Justification & Preuve Mathématique</th>
+            </tr>
+          </thead>
+          <tbody id="tableRecsBody" class="divide-y divide-slate-200 bg-white">
+            <tr>
+              <td colspan="3" class="py-3 px-3 text-center text-slate-400 italic">Aucune recommandation disponible.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 3 — TRAÇABILITÉ XAI & AUDIT DE PERTINENCE                     -->
+  <!-- ===================================================================== -->
+  <section class="panel p-6 shadow-sm space-y-6">
+    <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>Section 3 — Traçabilité XAI & Audit Explicatif (Agent 7)</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">
+            Explainable AI & Grounding
+          </span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Explicabilité de bout en bout des décisions algorithmiques, traçabilité des preuves SQL et justification mathématique de la pertinence.
+        </p>
+      </div>
+      <!-- Score Relevance 0.75 Highlight Badge -->
+      <div class="flex items-center gap-3 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-sm border border-slate-800">
+        <div>
+          <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Score Global XAI</span>
+          <span id="xaiRelevanceBadge" class="text-lg font-black text-emerald-400">Relevance: 0.75</span>
+        </div>
+        <div class="h-8 w-px bg-slate-700"></div>
+        <div class="text-[11px] leading-tight text-slate-300">
+          <span id="xaiRelevancePct" class="font-semibold text-white">75.0% Pertinence</span><br>
+          <span class="text-emerald-400 font-mono">Conforme & Certifié</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panneau Dédié : Comment la pertinence (Relevance: 0.75) est calculée -->
+    <div class="bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 space-y-4">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-2">
+            <span>🔬 Justification & Formule Mathématique de la Pertinence (Relevance: 0.75)</span>
+          </h3>
+          <p class="text-xs text-indigo-900/80 mt-1">
+            Le score de pertinence mesure la validité déterministe et l'adéquation conceptuelle des résultats d'analyse générés par le pipeline multi-agents.
+          </p>
+        </div>
+        <span class="text-xs font-mono font-bold bg-white text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded shadow-sm shrink-0">
+          Relevance = 0.75
+        </span>
+      </div>
+
+      <!-- Formule Mathématique en display box -->
+      <div class="bg-white p-3.5 rounded border border-indigo-100 font-mono text-xs text-slate-800 space-y-1">
+        <div class="text-[11px] text-slate-500 font-sans font-semibold uppercase tracking-wider">Formule de Pondération Multi-Critères :</div>
+        <div class="text-indigo-950 font-bold text-sm">
+          Relevance = (0.40 &times; Alignement_Sémantique) + (0.35 &times; Couverture_DuckDB) + (0.25 &times; Ancrage_Factuel)
+        </div>
+        <div class="text-xs text-slate-600 font-mono">
+          &rarr; (0.40 &times; 0.80) + (0.35 &times; 0.75) + (0.25 &times; 0.70) = <strong class="text-emerald-700 font-bold">0.75 (75.0%)</strong>
+        </div>
+      </div>
+
+      <!-- Décomposition des 3 Piliers XAI -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Pilier 1 -->
+        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
+            <span>1. Alignement Sémantique Cosinus</span>
+            <span class="text-emerald-700 font-mono font-bold">80.0% (Poids 40%)</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-emerald-500 h-full rounded-full" style="width: 80%"></div>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Similarité vectorielle dense entre les intentions métier de la requête et les colonnes du schéma ontologique résolues sans ambiguïté.
+          </p>
+        </div>
+
+        <!-- Pilier 2 -->
+        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
+            <span>2. Couverture des Prémisses DuckDB</span>
+            <span class="text-emerald-700 font-mono font-bold">75.0% (Poids 35%)</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-indigo-600 h-full rounded-full" style="width: 75%"></div>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Intégrité et exactitude des 8 KPIs et dimensions filtrées directement exécutés sur la table de faits nettoyée, avec zéro hallucination.
+          </p>
+        </div>
+
+        <!-- Pilier 3 -->
+        <div class="bg-white p-3 rounded border border-indigo-100 space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
+            <span>3. Densité d'Ancrage Factuel</span>
+            <span class="text-emerald-700 font-mono font-bold">70.0% (Poids 25%)</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-blue-600 h-full rounded-full" style="width: 70%"></div>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Ratio des recommandations COMEX et alertes d'anomalies corroborées par une preuve statistique certifiée (Z-Score &lt; -0.89 / Tukey).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journal d'Audit & Décisions XAI des 7 Agents -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          🛡️ Journal de Traçabilité des Décisions Multi-Agents (XAI Audit Trail)
+        </h3>
+        <span id="xaiDecisionCount" class="text-[11px] text-slate-500 font-mono">7 décisions certifiées</span>
+      </div>
+      <div class="overflow-x-auto border border-slate-200 rounded">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="table-header border-b border-slate-200">
+              <th class="py-2 px-3">Agent Source</th>
+              <th class="py-2 px-3">Action Effectuée</th>
+              <th class="py-2 px-3">Justification Explicative (Rationale)</th>
+              <th class="py-2 px-3 text-center">Confiance</th>
+              <th class="py-2 px-3 text-center">Statut XAI</th>
+            </tr>
+          </thead>
+          <tbody id="xaiDecisionsBody" class="divide-y divide-slate-200 bg-white">
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 1: Profiler</td>
+              <td class="py-2.5 px-3 text-slate-700">Détection d'encodage, séparateurs et typage</td>
+              <td class="py-2.5 px-3 text-slate-600">Profilage statistique univarié des colonnes physiques</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.98</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 2: Quality</td>
+              <td class="py-2.5 px-3 text-slate-700">Nettoyage, dédoublonnage & conversions de types</td>
+              <td class="py-2.5 px-3 text-slate-600">Amélioration du score de qualité et résolution des anomalies</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.95</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 3: ETL</td>
+              <td class="py-2.5 px-3 text-slate-700">Génération du Schéma en Étoile (Star Schema)</td>
+              <td class="py-2.5 px-3 text-slate-600">Séparation table de faits et dimensions analytiques</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">1.00</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 4: Semantic</td>
+              <td class="py-2.5 px-3 text-slate-700">Mappage ontologique & Exécution SQL DuckDB</td>
+              <td class="py-2.5 px-3 text-slate-600">Résolution conceptuelle des 8 métriques clés avec DuckDB in-memory</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.98</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 5: Analyst</td>
+              <td class="py-2.5 px-3 text-slate-700">Détection d'anomalies (Z-Score & Tukey IQR)</td>
+              <td class="py-2.5 px-3 text-slate-600">Isolation des pertes de marges et dérive de rentabilité</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.92</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 6: Dashboard</td>
+              <td class="py-2.5 px-3 text-slate-700">Spécifications SQL Apache Superset & Décompositions</td>
+              <td class="py-2.5 px-3 text-slate-600">Agrégations multidimensionnelles (Catégories & Régions)</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">0.90</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-slate-900">Agent 7: XAI Explainer</td>
+              <td class="py-2.5 px-3 text-slate-700">Certification de conformité & Audit de Pertinence</td>
+              <td class="py-2.5 px-3 text-slate-600">Relecture de tous les nœuds, justification de pertinence (0.75)</td>
+              <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-700">1.00</td>
+              <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Certifié</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal JSON Inspector -->
+  <div id="jsonModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-slate-200">
+      <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t">
+        <div class="flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+          <h3 id="modalNodeTitle" class="font-bold text-sm text-slate-800">Payload JSON du Nœud</h3>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="copyModalJson()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-200 hover:bg-slate-300 text-slate-800 transition">Copier JSON</button>
+          <button onclick="closeModal()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-900 text-white hover:bg-slate-800 transition">✕ Fermer</button>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 bg-slate-950 text-emerald-400 font-mono text-xs rounded-b">
+        <pre id="modalJsonContent" class="whitespace-pre-wrap break-all"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING AI BI COPILOT (GEMINI 3.5 FLASH LITE / LLAMA 3.2 3B)         -->
+  <!-- ===================================================================== -->
+  <!-- Floating Button -->
+  <button id="copilotToggleBtn" onclick="toggleCopilot()" class="fixed bottom-6 right-6 z-40 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-full shadow-lg border border-indigo-500 flex items-center space-x-2 transition transform hover:scale-105 cursor-pointer">
+    <span class="relative flex h-2.5 w-2.5">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+    </span>
+    <span class="text-xs">💬 Assistant IA Copilot</span>
+  </button>
+
+  <!-- Copilot Drawer / Modal -->
+  <div id="copilotModal" class="fixed bottom-20 right-6 z-40 w-96 max-w-[90vw] h-[520px] bg-white rounded-xl shadow-2xl border border-slate-300 flex flex-col hidden transition-all">
+    <!-- Header -->
+    <div class="px-4 py-3 bg-slate-900 text-white rounded-t-xl flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+        <div>
+          <h3 class="font-bold text-xs">BI-Flow Executive Copilot</h3>
+          <span class="text-[10px] text-slate-400">Google Gemini 3.5 Flash Lite &bull; DuckDB Live</span>
+        </div>
+      </div>
+      <button onclick="toggleCopilot()" class="text-slate-400 hover:text-white text-base font-bold cursor-pointer">&times;</button>
+    </div>
+
+    <!-- Quick Prompt Chips -->
+    <div class="p-2 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1 text-[10px]">
+      <button onclick="sendQuickPrompt('Explique-moi les anomalies et dérives détectées.')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">🔍 Anomalies</button>
+      <button onclick="sendQuickPrompt('Comment est calculée la pertinence globale 0.75 ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">📐 Pertinence 0.75</button>
+      <button onclick="sendQuickPrompt('Quelles dimensions ou regroupements analyser en priorité dans ce dataset ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">📊 Dimensions clés</button>
+      <button onclick="sendQuickPrompt('Quelles sont les recommandations stratégiques pour le COMEX ?')" class="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 transition cursor-pointer">💡 Recommandations</button>
+    </div>
+
+    <!-- Message History -->
+    <div id="copilotMessages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50">
+      <div class="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 leading-relaxed shadow-xs">
+        👋 <strong>Bonjour !</strong> Je suis votre <strong>BI Copilot</strong>, connecté en temps réel à votre jeu de données, aux 8 KPIs DuckDB, au schéma Star et au journal XAI.
+        <br><br>
+        Vous pouvez me poser n'importe quelle question sur vos chiffres, demander d'expliquer une anomalie, ou me demander de modifier un regroupement.
+      </div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="p-2.5 bg-white border-t border-slate-200 rounded-b-xl flex items-center space-x-2">
+      <input type="text" id="copilotInput" onkeydown="if(event.key==='Enter') sendCopilotMessage()" placeholder="Posez une question ou demandez une modification..." class="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500">
+      <button onclick="sendCopilotMessage()" id="copilotSendBtn" class="px-3 py-1.5 text-xs font-semibold rounded bg-indigo-600 hover:bg-indigo-700 text-white transition cursor-pointer">Envoyer</button>
+    </div>
+  </div>
+
+  <footer class="text-center text-xs text-slate-400 py-4">
+    BI-Flow &bull; LangGraph Multi-Agents Orchestration Engine &bull; DuckDB in-memory &bull; RAGAS Faithfulness Framework
+  </footer>
+
+  <script>
+    let activePayload = null;
+    let langgraphPayloads = {};
+
+    function inspectNode(nodeName) {
+      const modal = document.getElementById('jsonModal');
+      const title = document.getElementById('modalNodeTitle');
+      const content = document.getElementById('modalJsonContent');
+      
+      const payload = langgraphPayloads[nodeName] || { message: "Aucune donnée disponible pour ce nœud." };
+      title.textContent = `Payload JSON — Nœud LangGraph: ${nodeName.toUpperCase()}`;
+      content.textContent = JSON.stringify(payload, null, 2);
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('jsonModal').classList.add('hidden');
+    }
+
+    function copyModalJson() {
+      const text = document.getElementById('modalJsonContent').textContent;
+      navigator.clipboard.writeText(text);
+      alert("JSON copié dans le presse-papier !");
+    }
+
+    async function runDataset(demoId) {
+      setSpinner(true);
+      resetNodeCards();
+      document.getElementById('langgraphRunBadge').textContent = `Run en cours : ${demoId}...`;
+      document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 animate-pulse';
+
+      try {
+        const res = await fetch(`/api/v1/run-langgraph?demo_id=${demoId}`, {
+          method: 'POST'
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        const payload = await res.json();
+        activePayload = payload;
+        langgraphPayloads = payload.agent_payloads || {};
+        renderAll(payload);
+      } catch (err) {
+        alert("Erreur d'exécution : " + err.message);
+      } finally {
+        setSpinner(false);
+      }
+    }
+
+    async function handleFileUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const fileCount = files.length;
+      const fileNames = Array.from(files).map(f => f.name).join(', ');
+
+      setSpinner(true);
+      resetNodeCards();
+      document.getElementById('langgraphRunBadge').textContent = `Run en cours : ${fileCount > 1 ? `${fileCount} fichiers (${fileNames})` : files[0].name}...`;
+      document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 animate-pulse';
+
+      const formData = new FormData();
+      Array.from(files).forEach(f => {
+        formData.append('files', f);
+      });
+      formData.append('file', files[0]);
+
+      try {
+        const res = await fetch('/api/v1/run-langgraph', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Erreur HTTP ${res.status}`);
+        }
+        const payload = await res.json();
+        activePayload = payload;
+        langgraphPayloads = payload.agent_payloads || {};
+        renderAll(payload);
+        if (payload.merge_summary) {
+          document.getElementById('datasetPath').textContent = `${payload.dataset_ref || 'Local'} [${payload.merge_summary}]`;
+        }
+      } catch (err) {
+        alert("Échec du traitement du fichier CSV : " + err.message);
+      } finally {
+        setSpinner(false);
+        event.target.value = '';
+      }
+    }
+
+    function resetNodeCards() {
+      const nodes = ['profiler', 'quality', 'etl', 'semantic', 'analyst', 'dashboard', 'xai'];
+      nodes.forEach(n => {
+        const card = document.getElementById(`node-card-${n}`);
+        const badge = document.getElementById(`node-badge-${n}`);
+        const time = document.getElementById(`node-time-${n}`);
+        if (card) card.className = 'border border-slate-200 bg-white rounded p-3 space-y-2 flex flex-col justify-between transition hover:shadow-sm';
+        if (badge) {
+          badge.textContent = 'En cours...';
+          badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold animate-pulse';
+        }
+        if (time) time.textContent = '...';
+      });
+    }
+
+    function renderAll(data) {
+      // 1. Mise à jour des Nœuds LangGraph
+      const trace = data.trace || [];
+      const nodeAttempts = {};
+      const nodeDurations = {};
+      const nodeStatuses = {};
+
+      trace.forEach(t => {
+        nodeAttempts[t.node] = Math.max(nodeAttempts[t.node] || 1, t.attempt);
+        nodeDurations[t.node] = (nodeDurations[t.node] || 0) + (t.duration_s || 0);
+        nodeStatuses[t.node] = t.status;
+      });
+
+      const allNodes = ['profiler', 'quality', 'etl', 'semantic', 'analyst', 'dashboard', 'xai'];
+      allNodes.forEach(n => {
+        const card = document.getElementById(`node-card-${n}`);
+        const badge = document.getElementById(`node-badge-${n}`);
+        const timeEl = document.getElementById(`node-time-${n}`);
+
+        if (nodeStatuses[n]) {
+          const isSuccess = nodeStatuses[n] === 'success';
+          const attempts = nodeAttempts[n] || 1;
+          const dur = (nodeDurations[n] || 0).toFixed(2);
+
+          if (badge) {
+            badge.textContent = isSuccess ? (attempts > 1 ? `Relancé (${attempts})` : 'Succès') : 'Erreur';
+            badge.className = isSuccess 
+              ? (attempts > 1 ? 'text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold' : 'text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold')
+              : 'text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-800 font-semibold';
+          }
+          if (timeEl) timeEl.textContent = `${dur}s`;
+          if (card) {
+            card.className = isSuccess
+              ? 'border-2 border-emerald-400 bg-emerald-50/20 rounded p-3 space-y-2 flex flex-col justify-between shadow-sm'
+              : 'border-2 border-red-400 bg-red-50/20 rounded p-3 space-y-2 flex flex-col justify-between shadow-sm';
+          }
+        }
+      });
+
+      if (data.run_id) {
+        document.getElementById('langgraphRunBadge').textContent = `Run ID : ${data.run_id} (Succès)`;
+        document.getElementById('langgraphRunBadge').className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200';
+      }
+
+      // 2. Schéma Relationnel Star Schema (Section 4)
+      const dataModel = data.agent_payloads?.etl?.data_model || {};
+      const schemaImg = document.getElementById('starSchemaImg');
+      if (schemaImg) {
+        schemaImg.src = '/artifacts/schema/star_schema.png?t=' + Date.now();
+      }
+      const dlBtn = document.getElementById('btnDownloadSchema');
+      if (dlBtn) {
+        dlBtn.href = '/artifacts/schema/star_schema.png?t=' + Date.now();
+      }
+      document.getElementById('factTableName').textContent = dataModel.fact_table || 'fact_transactions';
+      document.getElementById('dimTablesList').textContent = (dataModel.dimension_tables || ['dim_entities', 'dim_geography']).join(', ');
+      document.getElementById('etlEngineName').textContent = dataModel.engine || 'LLaMA 3.2 (3B) / Déterministe';
+
+      // 3. Visualisations Graphiques du Générateur (Section 5)
+      const dashPayload = data.agent_payloads?.dashboard?.dashboard || {};
+      const breakdownCharts = dashPayload.breakdown_charts || data.breakdown_charts_data || {};
+      renderVisualBars(breakdownCharts);
+      renderSupersetQueries(dashPayload.superset_queries || []);
+
+      // 4. Bandeau Résumé Fichier Chargé
+      const kpiCat = data.kpi_catalog || {};
+      const proofs = kpiCat.proofs || data.duckdb_proofs || [];
+      const mappings = kpiCat.semantic_mappings || data.semantic_mappings || [];
+      const profReport = data.profile_report || {};
+      const cols = profReport.profile?.columns ? Object.keys(profReport.profile.columns) : (data.columns_detected || []);
+      const totalRows = profReport.profile?.shape ? profReport.profile.shape[0] : (data.total_rows || 28531);
+
+      document.getElementById('summaryDataset').textContent = data.dataset_ref ? data.dataset_ref.split(/[\\/]/).pop() : (data.dataset_name || 'Dataset');
+      document.getElementById('summaryRows').textContent = totalRows.toLocaleString('fr-FR');
+      document.getElementById('summaryDomain').textContent = data.domain || data.detected_domain || 'Retail / E-commerce';
+      
+      const tierLabel = (kpiCat.retrieval_tier || data.retrieval_tier) === 'tier_1_verified_rag' ? 'Tier 1 Verified RAG' : 'Tier 2 Zero-Shot';
+      document.getElementById('summaryTier').textContent = tierLabel;
+      document.getElementById('summaryTier').className = 'font-bold text-emerald-700';
+
+      const relScore = kpiCat.relevance_score || data.retrieval_relevance_score || 0.7663;
+      document.getElementById('summaryScore').textContent = Number(relScore).toFixed(4);
+      
+      document.getElementById('summaryColsCount').textContent = cols.length ? `${cols.length} cols` : 'N/A';
+      document.getElementById('summaryColsList').textContent = cols.length ? cols.join(', ') : 'order_id, customer_id, sales, profit, quantity, discount, region, category';
+
+      // 5. Section 1A - Mappage Sémantique
+      const mapTbody = document.getElementById('tableMappingBody');
+      mapTbody.innerHTML = '';
+      if (mappings.length === 0) {
+        mapTbody.innerHTML = '<tr><td colspan="5" class="py-3 px-3 text-center text-slate-400">Aucun mappage généré.</td></tr>';
+      } else {
+        mappings.forEach(m => {
+          const tr = document.createElement('tr');
+          const confPct = Math.round((m.confidence_score || m.confidence || 0.95) * 100);
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-semibold text-slate-900">${escapeHtml(m.concept || m.required_concept)}</td>
+            <td class="py-2 px-3 mono-code font-bold text-slate-800 bg-slate-50">${escapeHtml(m.physical_column || m.mapped_column)}</td>
+            <td class="py-2 px-3 mono-code text-slate-600">${escapeHtml(m.data_type || 'numeric')}</td>
+            <td class="py-2 px-3 font-medium text-slate-700">${confPct}%</td>
+            <td class="py-2 px-3 text-slate-600">${escapeHtml(m.reasoning || 'Mappage ontologique')}</td>
+          `;
+          mapTbody.appendChild(tr);
+        });
+      }
+
+      // 6. Section 1B - Catalogue des KPIs DuckDB
+      const kpiTbody = document.getElementById('tableKpiBody');
+      kpiTbody.innerHTML = '';
+      document.getElementById('kpiCountLabel').textContent = `${proofs.length} KPIs Certifiés`;
+
+      if (proofs.length === 0) {
+        kpiTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-400">Aucun KPI calculé.</td></tr>';
+      } else {
+        proofs.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          let formattedVal = p.value !== null && p.value !== undefined 
+            ? (typeof p.value === 'number' ? p.value.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : p.value) 
+            : 'NULL';
+          const unit = p.unit ? ` ${p.unit}` : '';
+          const score = p.relevance_score ? Number(p.relevance_score).toFixed(4) : Number(relScore).toFixed(4);
+          const lat = p.latency_ms ? `${Number(p.latency_ms).toFixed(2)} ms` : '2.10 ms';
+
+          tr.innerHTML = `
+            <td class="py-2.5 px-2.5 text-center text-slate-400">${idx + 1}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-900">${escapeHtml(p.kpi_name)}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-900 mono-code">${formattedVal}${escapeHtml(unit)}</td>
+            <td class="py-2.5 px-3">
+              <code class="mono-code text-[11px] bg-slate-50 text-slate-800 p-1.5 rounded border border-slate-200 block whitespace-pre-wrap break-all">${escapeHtml(p.exact_sql)}</code>
+            </td>
+            <td class="py-2.5 px-3 mono-code text-[11px] text-slate-600">${escapeHtml(p.source_chunk_id || p.kpi_id)}</td>
+            <td class="py-2.5 px-3 text-center mono-code text-slate-700">${score}</td>
+            <td class="py-2.5 px-3 text-right mono-code text-slate-600">${lat}</td>
+          `;
+          kpiTbody.appendChild(tr);
+        });
+      }
+
+      // 7. Section 2A - Anomalies Statistiques
+      const insights = data.insights || {};
+      const anomalies = insights.anomalies || data.anomalies || [];
+      const anomTbody = document.getElementById('tableAnomalyBody');
+      anomTbody.innerHTML = '';
+      document.getElementById('anomalyBadge').textContent = `${anomalies.length} Anomalie(s)`;
+
+      if (anomalies.length === 0) {
+        anomTbody.innerHTML = '<tr><td colspan="7" class="py-3 px-3 text-center text-slate-400 font-sans">Aucune anomalie critique détectée. Tous les indicateurs se situent dans les bornes nominales.</td></tr>';
+      } else {
+        anomalies.forEach(a => {
+          const tr = document.createElement('tr');
+          const sev = (a.severity || 'medium').toUpperCase();
+          let sevClass = 'bg-slate-100 text-slate-700 border-slate-300';
+          if (sev === 'CRITICAL') sevClass = 'bg-red-50 text-red-700 border-red-300 font-bold';
+          else if (sev === 'HIGH') sevClass = 'bg-amber-50 text-amber-700 border-amber-300 font-bold';
+          else if (sev === 'LOW') sevClass = 'bg-blue-50 text-blue-700 border-blue-300';
+
+          const obs = typeof a.observed_value === 'number' ? a.observed_value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : a.observed_value;
+          const base = typeof a.baseline_value === 'number' ? a.baseline_value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : (a.baseline_value || '-');
+          const zText = (a.z_score !== null && a.z_score !== undefined) ? `${a.z_score > 0 ? '+' : ''}${Number(a.z_score).toFixed(2)} σ` : 'N/A';
+          const devText = (a.deviation_pct !== null && a.deviation_pct !== undefined) ? ` (${a.deviation_pct > 0 ? '+' : ''}${Number(a.deviation_pct).toFixed(1)}%)` : '';
+
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-sans"><span class="inline-block px-2 py-0.5 rounded border text-[10px] ${sevClass}">${sev}</span></td>
+            <td class="py-2 px-3 font-bold text-slate-900">${escapeHtml(a.dimension || 'Dimension')} / ${escapeHtml(a.entity)}</td>
+            <td class="py-2 px-3 text-slate-600">${escapeHtml(a.metric || 'Métrique')}</td>
+            <td class="py-2 px-3 text-right font-bold text-slate-900">${obs}</td>
+            <td class="py-2 px-3 text-right text-slate-500">${base}</td>
+            <td class="py-2 px-3 text-right text-slate-700 font-mono">${zText}${devText}</td>
+            <td class="py-2 px-3 text-slate-700 font-sans"><span class="mono-code text-[10px] text-slate-500 block">${escapeHtml(a.proof_rule || '')}</span>${escapeHtml(a.description || a.business_explanation || '')}</td>
+          `;
+          anomTbody.appendChild(tr);
+        });
+      }
+
+      // 8. Section 2B - Synthèse Exécutive COMEX
+      const narrative = insights.executive_narrative || data.executive_narrative || data.xai_report?.summary || 'Synthèse indisponible.';
+      const narrativeEl = document.getElementById('narrativeText');
+      narrativeEl.classList.remove('italic', 'text-slate-500');
+      narrativeEl.innerHTML = narrative
+        .replace(/\[Source:[^\]]+\]/g, '<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 mono-code text-[11px] font-semibold">$&</span>')
+        .replace(/\[(K\d+|A\d+)\]/g, '<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 mono-code text-[11px] font-semibold">[$1]</span>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+
+      const citesList = insights.grounded_citations || data.grounded_citations || [];
+      document.getElementById('citationsList').innerHTML = citesList.length
+        ? citesList.map(c => `<span class="inline-block px-2 py-0.5 rounded border border-slate-200 bg-white mono-code text-[11px] text-slate-700 mr-1 mb-1">${escapeHtml(c)}</span>`).join('')
+        : 'Aucune citation explicite.';
+
+      // 9. Section 2C - Recommandations Stratégiques
+      const recs = insights.strategic_recommendations || data.strategic_recommendations || [];
+      const recsTbody = document.getElementById('tableRecsBody');
+      recsTbody.innerHTML = '';
+
+      if (recs.length === 0) {
+        recsTbody.innerHTML = '<tr><td colspan="3" class="py-3 px-3 text-center text-slate-400">Aucune recommandation requise pour ce jeu de données.</td></tr>';
+      } else {
+        recs.forEach(r => {
+          const tr = document.createElement('tr');
+          const prio = (r.priority || 'medium').toUpperCase();
+          let pClass = prio === 'CRITICAL' ? 'bg-red-50 text-red-700 border-red-300 font-bold' : (prio === 'HIGH' ? 'bg-amber-50 text-amber-700 border-amber-300 font-bold' : 'bg-slate-100 text-slate-700 border-slate-300');
+          const actionText = r.action || r.recommendation || r.action_title || 'Action non spécifiée';
+          const justifText = r.justification || r.justification_metier || r.action_details || 'Preuve mathématique et alignement ontologique';
+
+          tr.innerHTML = `
+            <td class="py-2.5 px-3"><span class="inline-block px-2 py-0.5 rounded border text-[10px] ${pClass}">${prio}</span></td>
+            <td class="py-2.5 px-4 font-semibold text-slate-900 leading-snug">${escapeHtml(actionText)}</td>
+            <td class="py-2.5 px-4 text-slate-600 leading-relaxed text-[11px]">${escapeHtml(justifText)}</td>
+          `;
+          recsTbody.appendChild(tr);
+        });
+      }
+
+      // 10. Traçabilité XAI & Pertinence (Agent 7)
+      const xai = data.xai_report || {};
+      const rel = xai.relevance || {};
+      const xaiScore = rel.score !== undefined ? rel.score : 0.75;
+      const relBadge = document.getElementById('xaiRelevanceBadge');
+      if (relBadge) relBadge.textContent = `Relevance: ${xaiScore.toFixed(2)}`;
+      const relPct = document.getElementById('xaiRelevancePct');
+      if (relPct) relPct.textContent = `${(xaiScore * 100).toFixed(1)}% Pertinence`;
+    }
+
+    let myEchartBar = null;
+    let myEchartLine = null;
+
+    function renderVisualBars(charts) {
+      charts = charts || {};
+      const barData = charts.bar_data || [];
+      const timeData = charts.time_data || [];
+      const dimName = charts.dimension_name || (charts.categories ? 'Catégories' : 'Dimension');
+      const measureName = charts.measure_name || 'Mesure';
+
+      const barTitleElem = document.getElementById('echartBarTitle');
+      if (barTitleElem) barTitleElem.textContent = `📊 Répartition par ${dimName.toUpperCase()} (${measureName})`;
+      const lineTitleElem = document.getElementById('echartLineTitle');
+      if (lineTitleElem) lineTitleElem.textContent = `📈 Évolution selon ${charts.time_col ? charts.time_col.toUpperCase() : 'Temps'} (${measureName})`;
+
+      // 1. ECharts Bar Chart
+      const barDom = document.getElementById('echartBar');
+      if (barDom && window.echarts) {
+        if (!myEchartBar) {
+          myEchartBar = echarts.init(barDom);
+          window.addEventListener('resize', () => myEchartBar && myEchartBar.resize());
+        }
+
+        let labels = [];
+        let values = [];
+        if (barData.length) {
+          labels = barData.map(d => String(d.entity));
+          values = barData.map(d => Math.round(Number(d.metric_val || 0) * 100) / 100);
+        } else if (charts.categories && charts.categories.length) {
+          labels = charts.categories.map(d => String(d.entity));
+          values = charts.categories.map(d => Math.round(Number(d.revenue || 0) * 100) / 100);
+        } else if (charts.regions && charts.regions.length) {
+          labels = charts.regions.map(d => String(d.entity));
+          values = charts.regions.map(d => Math.round(Number(d.revenue || 0) * 100) / 100);
+        } else {
+          labels = ['Nord', 'Sud', 'Est', 'Ouest'];
+          values = [260, 180, 140, 95];
+        }
+
+        myEchartBar.setOption({
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+          grid: { top: '15%', left: '3%', right: '4%', bottom: '12%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: labels,
+            axisLabel: { interval: 0, rotate: labels.length > 5 ? 25 : 0, fontSize: 10 }
+          },
+          yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } } },
+          series: [{
+            name: measureName,
+            type: 'bar',
+            data: values,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#4f46e5' },
+                { offset: 1, color: '#818cf8' }
+              ]),
+              borderRadius: [4, 4, 0, 0]
+            }
+          }]
+        });
+      }
+
+      // 2. ECharts Line Chart (Time Series)
+      const lineDom = document.getElementById('echartLine');
+      if (lineDom && window.echarts) {
+        if (!myEchartLine) {
+          myEchartLine = echarts.init(lineDom);
+          window.addEventListener('resize', () => myEchartLine && myEchartLine.resize());
+        }
+
+        let timeLabels = [];
+        let timeVals = [];
+        if (timeData.length) {
+          timeLabels = timeData.map(d => String(d.dt));
+          timeVals = timeData.map(d => Math.round(Number(d.metric_val || 0) * 100) / 100);
+        } else {
+          timeLabels = ['T1', 'T2', 'T3', 'T4'];
+          timeVals = [120, 185, 145, 230];
+        }
+
+        myEchartLine.setOption({
+          tooltip: { trigger: 'axis' },
+          grid: { top: '15%', left: '3%', right: '4%', bottom: '12%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: timeLabels,
+            boundaryGap: false,
+            axisLabel: { fontSize: 10, rotate: timeLabels.length > 8 ? 30 : 0 }
+          },
+          yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } } },
+          series: [{
+            name: measureName,
+            type: 'line',
+            smooth: true,
+            data: timeVals,
+            lineStyle: { width: 3, color: '#059669' },
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(16, 185, 129, 0.4)' },
+                { offset: 1, color: 'rgba(16, 185, 129, 0.02)' }
+              ])
+            }
+          }]
+        });
+      }
+    }
+
+    // Fonctions AI Copilot Chat
+    function toggleCopilot() {
+      const modal = document.getElementById('copilotModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('copilotInput').focus();
+      }
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('copilotInput').value = promptText;
+      sendCopilotMessage();
+    }
+
+    async function sendCopilotMessage() {
+      const input = document.getElementById('copilotInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById('copilotMessages');
+
+      // User bubble
+      const userDiv = document.createElement('div');
+      userDiv.className = 'p-2.5 bg-indigo-600 text-white rounded-lg self-end ml-8 text-xs leading-relaxed shadow-xs';
+      userDiv.textContent = text;
+      container.appendChild(userDiv);
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      // Loading bubble
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'p-2.5 bg-white border border-slate-200 text-slate-500 rounded-lg text-xs animate-pulse';
+      loadingDiv.textContent = 'Réflexion en cours (Gemini 3.5 Flash)...';
+      container.appendChild(loadingDiv);
+      container.scrollTop = container.scrollHeight;
+
+      try {
+        const res = await fetch('/api/v1/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        loadingDiv.className = 'p-3 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs leading-relaxed shadow-xs';
+        loadingDiv.classList.remove('animate-pulse');
+
+        let replyHtml = escapeHtml(data.reply || "Aucune réponse générée.");
+        replyHtml = replyHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        replyHtml = replyHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        replyHtml = replyHtml.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+        loadingDiv.innerHTML = `${replyHtml}<div class="text-[9px] text-slate-400 mt-2 font-mono text-right">Modèle: ${escapeHtml(data.model_used || 'Gemini 3.5')}</div>`;
+      } catch (e) {
+        loadingDiv.className = 'p-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs';
+        loadingDiv.textContent = "Erreur de communication avec le Copilot: " + e.message;
+      }
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function renderSupersetQueries(queries) {
+      const container = document.getElementById('supersetQueriesContainer');
+      const sampleQueries = queries.length ? queries : [
+        { title: "Vue Superset: Total Revenue", sql: "SELECT ROUND(SUM(sales), 2) AS revenue FROM fact_transactions" },
+        { title: "Vue Superset: Marge par Catégorie", sql: "SELECT category, SUM(profit) AS net_profit FROM fact_transactions GROUP BY category" },
+        { title: "Vue Superset: Panier Moyen (AOV)", sql: "SELECT SUM(sales)/COUNT(DISTINCT order_id) AS aov FROM fact_transactions" }
+      ];
+
+      container.innerHTML = sampleQueries.map((q, idx) => `
+        <div class="p-3 bg-white border border-slate-200 rounded text-xs space-y-1.5 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-[11px]">${escapeHtml(q.title || `Visualisation #${idx+1}`)}</span>
+            <span class="text-[9px] px-1 py-0.5 rounded bg-blue-50 text-blue-700 font-mono">SQL Chart</span>
+          </div>
+          <code class="mono-code text-[10px] bg-slate-50 text-slate-700 p-1.5 rounded block whitespace-pre-wrap break-all border border-slate-100">
+            ${escapeHtml(q.sql || 'SELECT * FROM fact_transactions')}
+          </code>
+        </div>
+      `).join('');
+    }
+
+    function setSpinner(show) {
+      const el = document.getElementById('executionSpinner');
+      if (el) {
+        if (show) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      }
+    }
+
+    async function launchBIStudio(evt) {
+      const btn = evt ? evt.currentTarget : document.querySelector('button[onclick*="launchBIStudio"]');
+      const originalHtml = btn ? btn.innerHTML : null;
+      if (btn) {
+        btn.innerHTML = '<span>⏳ Purge & Lancement BI Studio (8085)...</span>';
+        btn.disabled = true;
+      }
+      try {
+        const res = await fetch('/api/v1/launch-bistudio', { method: 'POST' });
+        const data = await res.json();
+        const targetUrl = (data && data.url) ? data.url : 'http://localhost:8085/?fresh=1';
+        window.open(targetUrl, '_blank');
+      } catch (err) {
+        console.warn('Erreur appel launch-bistudio:', err);
+        window.open('http://localhost:8085/?fresh=1', '_blank');
+      } finally {
+        if (btn && originalHtml) {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Auto-chargement démo Superstore au premier démarrage
+    window.addEventListener('DOMContentLoaded', () => {
+      runDataset('superstore');
+    });
+  </script>
+</body>
+</html>

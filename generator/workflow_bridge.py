@@ -44,6 +44,14 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
     uploads_dir = gen_dir / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
 
+    # Nettoyage préventif des anciens fichiers uploadés
+    for old_f in uploads_dir.iterdir():
+        if old_f.is_file() and old_f.name != "active_dataset.csv":
+            try:
+                old_f.unlink()
+            except Exception:
+                pass
+
     # 1. Charger l'état le plus récent du pipeline LangGraph
     state = state_override
     state_file = root / "runs" / "state.json"
@@ -324,7 +332,8 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
             "dashboard_background": "#0a0e17"
         },
         "kpis": kpis_list,
-        "auto_visuals": auto_visuals
+        "auto_visuals": auto_visuals,
+        "prompt_visuals": []
     }
 
     catalog_path = gen_dir / "kpis_catalog.json"

@@ -253,7 +253,7 @@ window.KPIS_CATALOG = {
     "datasets": [
       "clean"
     ],
-    "last_updated": "2026-10-29T01:04:50.255024",
+    "last_updated": "2026-10-29T01:12:38.110554",
     "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
     "dashboard_background": "#0a0e17"
   },
@@ -990,5 +990,6 @@ window.KPIS_CATALOG = {
       "cardValueFormatted": "Z = -0.89",
       "cardBenchmark": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
     }
-  ]
+  ],
+  "prompt_visuals": []
 };
