@@ -253,7 +253,7 @@ window.KPIS_CATALOG = {
     "datasets": [
       "clean"
     ],
-    "last_updated": "2026-10-29T01:12:38.110554",
+    "last_updated": "2026-11-01T12:17:30.619928",
     "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
     "dashboard_background": "#0a0e17"
   },
