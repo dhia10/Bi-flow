@@ -179,7 +179,31 @@ class ProductionQueryPipeline:
             elif m["required_concept"] == "item_quantity":
                 role_to_col["quantity"] = mapped_c
 
-        # Automatic fallback aliases detection across all columns
+        # Automatic ontology-driven mapping across all indexed domain rules
+        rule_chunks = [c for c in self.indexer.chunks if c.entity_type == "mapping_rule"]
+        rule_chunks.sort(key=lambda r: 0 if r.domain == detected_domain else 1)
+
+        for r in rule_chunks:
+            role = r.required_roles[0]
+            if role in role_to_col:
+                continue
+            aliases = [a.lower() for a in r.metadata.get("aliases", [])]
+            for c in df.columns:
+                c_low = c.lower().strip()
+                if c_low in aliases or c_low == role.lower():
+                    role_to_col[role] = c
+                    semantic_mappings.append(
+                        SemanticMappingResult(
+                            concept=role,
+                            physical_column=c,
+                            confidence_score=0.98 if c_low == role.lower() else 0.95,
+                            reasoning=f"Mappage ontologique sur le concept métier '{role}' (Domaine: {r.domain}).",
+                            data_type=schema_dict.get(c, "string"),
+                        )
+                    )
+                    break
+
+        # Fallback aliases detection across all columns
         for c in df.columns:
             c_low = c.lower()
             if ("sales" in c_low or "price" in c_low or "revenue" in c_low or "payment_value" in c_low) and "monetary_sales" not in role_to_col:
@@ -269,12 +293,17 @@ class ProductionQueryPipeline:
                     except Exception as e:
                         log.debug("Failed executing KPI %s: %s", chunk.name, e)
 
-                # Dimensional Breakdown 1: Category
-                if "category" in role_to_col and "monetary_sales" in role_to_col:
-                    cat_col = role_to_col["category"]
-                    sales_col = role_to_col["monetary_sales"]
-                    profit_col_sql = f', ROUND(CAST(SUM("{role_to_col["monetary_profit"]}") AS DOUBLE), 2) AS profit' if "monetary_profit" in role_to_col else ""
-                    cat_sql = f'SELECT CAST("{cat_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM("{sales_col}") AS DOUBLE), 2) AS revenue{profit_col_sql} FROM df WHERE "{cat_col}" IS NOT NULL GROUP BY "{cat_col}" ORDER BY revenue DESC LIMIT 20'
+                # Dimensional Breakdown 1: Category / Brand
+                cat_col = role_to_col.get("brand") or role_to_col.get("category")
+                if cat_col:
+                    if "unit_price" in role_to_col and "units_sold" in role_to_col:
+                        cat_sql = f'SELECT CAST("{cat_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM(CAST("{role_to_col["unit_price"]}" AS DOUBLE) * CAST("{role_to_col["units_sold"]}" AS DOUBLE)) AS DOUBLE), 2) AS revenue FROM df WHERE "{cat_col}" IS NOT NULL GROUP BY "{cat_col}" ORDER BY revenue DESC LIMIT 20'
+                    elif "monetary_sales" in role_to_col:
+                        sales_col = role_to_col["monetary_sales"]
+                        profit_col_sql = f', ROUND(CAST(SUM("{role_to_col["monetary_profit"]}") AS DOUBLE), 2) AS profit' if "monetary_profit" in role_to_col else ""
+                        cat_sql = f'SELECT CAST("{cat_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM("{sales_col}") AS DOUBLE), 2) AS revenue{profit_col_sql} FROM df WHERE "{cat_col}" IS NOT NULL GROUP BY "{cat_col}" ORDER BY revenue DESC LIMIT 20'
+                    else:
+                        cat_sql = f'SELECT CAST("{cat_col}" AS VARCHAR) AS entity, COUNT(*) AS revenue FROM df WHERE "{cat_col}" IS NOT NULL GROUP BY "{cat_col}" ORDER BY revenue DESC LIMIT 20'
                     try:
                         category_records = con.execute(cat_sql).fetchdf().to_dict(orient="records")
                         breakdown_charts["categories"] = category_records[:10]
@@ -282,10 +311,15 @@ class ProductionQueryPipeline:
                         log.debug("Category breakdown query failed: %s", e)
 
                 # Dimensional Breakdown 2: Region / Geographic
-                if "region" in role_to_col and "monetary_sales" in role_to_col:
+                if "region" in role_to_col:
                     reg_col = role_to_col["region"]
-                    sales_col = role_to_col["monetary_sales"]
-                    reg_sql = f'SELECT CAST("{reg_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM("{sales_col}") AS DOUBLE), 2) AS revenue FROM df WHERE "{reg_col}" IS NOT NULL GROUP BY "{reg_col}" ORDER BY revenue DESC LIMIT 25'
+                    if "unit_price" in role_to_col and "units_sold" in role_to_col:
+                        reg_sql = f'SELECT CAST("{reg_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM(CAST("{role_to_col["unit_price"]}" AS DOUBLE) * CAST("{role_to_col["units_sold"]}" AS DOUBLE)) AS DOUBLE), 2) AS revenue FROM df WHERE "{reg_col}" IS NOT NULL GROUP BY "{reg_col}" ORDER BY revenue DESC LIMIT 25'
+                    elif "monetary_sales" in role_to_col:
+                        sales_col = role_to_col["monetary_sales"]
+                        reg_sql = f'SELECT CAST("{reg_col}" AS VARCHAR) AS entity, ROUND(CAST(SUM("{sales_col}") AS DOUBLE), 2) AS revenue FROM df WHERE "{reg_col}" IS NOT NULL GROUP BY "{reg_col}" ORDER BY revenue DESC LIMIT 25'
+                    else:
+                        reg_sql = f'SELECT CAST("{reg_col}" AS VARCHAR) AS entity, COUNT(*) AS revenue FROM df WHERE "{reg_col}" IS NOT NULL GROUP BY "{reg_col}" ORDER BY revenue DESC LIMIT 25'
                     try:
                         region_records = con.execute(reg_sql).fetchdf().to_dict(orient="records")
                         breakdown_charts["regions"] = region_records[:10]
@@ -293,10 +327,15 @@ class ProductionQueryPipeline:
                         log.debug("Region breakdown query failed: %s", e)
 
                 # Dimensional Breakdown 3: Temporal monthly progression
-                if "date" in role_to_col and "monetary_sales" in role_to_col:
+                if "date" in role_to_col:
                     date_col = role_to_col["date"]
-                    sales_col = role_to_col["monetary_sales"]
-                    period_sql = f"SELECT strftime(TRY_CAST(\"{date_col}\" AS TIMESTAMP), '%Y-%m') AS period, ROUND(CAST(SUM(\"{sales_col}\") AS DOUBLE), 2) AS revenue FROM df WHERE \"{date_col}\" IS NOT NULL AND TRY_CAST(\"{date_col}\" AS TIMESTAMP) IS NOT NULL GROUP BY period ORDER BY period ASC"
+                    if "unit_price" in role_to_col and "units_sold" in role_to_col:
+                        period_sql = f'SELECT strftime(TRY_CAST("{date_col}" AS TIMESTAMP), \'%Y-%m\') AS period, ROUND(CAST(SUM(CAST("{role_to_col["unit_price"]}" AS DOUBLE) * CAST("{role_to_col["units_sold"]}" AS DOUBLE)) AS DOUBLE), 2) AS revenue FROM df WHERE "{date_col}" IS NOT NULL AND TRY_CAST("{date_col}" AS TIMESTAMP) IS NOT NULL GROUP BY period ORDER BY period ASC'
+                    elif "monetary_sales" in role_to_col:
+                        sales_col = role_to_col["monetary_sales"]
+                        period_sql = f"SELECT strftime(TRY_CAST(\"{date_col}\" AS TIMESTAMP), '%Y-%m') AS period, ROUND(CAST(SUM(\"{sales_col}\") AS DOUBLE), 2) AS revenue FROM df WHERE \"{date_col}\" IS NOT NULL AND TRY_CAST(\"{date_col}\" AS TIMESTAMP) IS NOT NULL GROUP BY period ORDER BY period ASC"
+                    else:
+                        period_sql = f"SELECT strftime(TRY_CAST(\"{date_col}\" AS TIMESTAMP), '%Y-%m') AS period, COUNT(*) AS revenue FROM df WHERE \"{date_col}\" IS NOT NULL AND TRY_CAST(\"{date_col}\" AS TIMESTAMP) IS NOT NULL GROUP BY period ORDER BY period ASC"
                     try:
                         period_records = con.execute(period_sql).fetchdf().to_dict(orient="records")
                         breakdown_charts["timeline"] = period_records

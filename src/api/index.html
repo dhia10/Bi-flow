@@ -121,6 +121,9 @@
           <button onclick="runDataset('iot')" id="btn-iot" class="px-3 py-1.5 text-xs font-medium rounded-lg border bg-slate-800/80 hover:bg-slate-700 text-slate-200 border-slate-700 transition">
             ⚡ IoT Smart Meters
           </button>
+          <button onclick="runDataset('luxury')" id="btn-luxury" class="px-3 py-1.5 text-xs font-semibold rounded-lg border bg-gradient-to-r from-emerald-950/90 to-teal-950/90 hover:from-emerald-900 hover:to-teal-900 text-emerald-300 border-emerald-500/50 transition shadow-sm flex items-center gap-1.5">
+            <span>✨</span> <span>Luxury Cosmetics (Pop-Ups)</span>
+          </button>
           <button onclick="clearCache()" class="px-3 py-1.5 text-xs font-medium rounded-lg border bg-slate-900/80 hover:bg-slate-800 text-slate-400 border-slate-800 transition">
             🧹 Purger Cache
           </button>
@@ -707,22 +710,74 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- MODAL JSON INSPECTOR                                                  -->
+  <!-- MODAL MULTI-ONGLETS : INSPECTEUR DE DONNÉES & PAYLOAD DU NŒUD        -->
   <!-- ===================================================================== -->
-  <div id="jsonModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-slate-700">
-      <div class="px-5 py-3.5 border-b border-slate-800 flex justify-between items-center bg-slate-950/80 rounded-t-xl">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
-          <h3 id="modalNodeTitle" class="font-bold text-sm text-white">Payload JSON du Nœud</h3>
+  <div id="jsonModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-slate-700">
+      <!-- Modal Header -->
+      <div class="px-5 py-3 border-b border-slate-800 flex flex-wrap justify-between items-center bg-slate-950/90 rounded-t-xl gap-3">
+        <div class="flex items-center space-x-3">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h3 id="modalNodeTitle" class="font-bold text-sm text-white flex items-center gap-2">Inspecteur de Nœud</h3>
+            <div id="modalNodeSub" class="text-[11px] text-slate-400">Accès transparent aux données transformées à cette étape</div>
+          </div>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="copyModalJson()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Copier JSON</button>
-          <button onclick="closeModal()" class="px-3 py-1 text-xs font-semibold rounded bg-slate-700 hover:bg-slate-600 text-white transition">✕ Fermer</button>
+          <!-- Onglets du Modal -->
+          <div class="flex bg-slate-800/80 p-0.5 rounded-lg border border-slate-700 text-xs">
+            <button onclick="switchModalTab('table')" id="tabBtn-table" class="px-3 py-1 font-medium rounded-md bg-cyan-600 text-white transition">📊 Données & Échantillon</button>
+            <button onclick="switchModalTab('decisions')" id="tabBtn-decisions" class="px-3 py-1 font-medium rounded-md text-slate-300 hover:text-white transition">⚙️ Opérations & Métriques</button>
+            <button onclick="switchModalTab('json')" id="tabBtn-json" class="px-3 py-1 font-medium rounded-md text-slate-300 hover:text-white transition">💻 JSON Brut</button>
+          </div>
+          <button onclick="copyModalJson()" class="px-2.5 py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Copier le JSON">📋 Copier</button>
+          <button onclick="closeModal()" class="px-2.5 py-1 text-xs font-semibold rounded bg-slate-700 hover:bg-slate-600 text-white transition">✕</button>
         </div>
       </div>
-      <div class="p-4 overflow-y-auto flex-1 bg-slate-950 text-cyan-300 font-mono text-xs rounded-b-xl">
-        <pre id="modalJsonContent" class="whitespace-pre-wrap break-all"></pre>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto flex-1 bg-slate-950 text-slate-200 text-xs space-y-3">
+        <!-- ONGLET 1 : DONNÉES & ÉCHANTILLON TABULAIRE -->
+        <div id="modalViewTable" class="space-y-3">
+          <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-medium">Volumétrie :</span>
+              <span id="modalDataBadge" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono text-[11px] font-semibold">10 lignes affichées</span>
+            </div>
+            <!-- Sélecteur de tables pour ETL -->
+            <div id="modalTableSelector" class="hidden flex items-center gap-1.5 text-xs">
+              <span class="text-slate-400 text-[11px]">Table :</span>
+              <div id="modalTableButtons" class="flex flex-wrap gap-1"></div>
+            </div>
+          </div>
+          <div class="overflow-x-auto border border-slate-800 rounded-lg max-h-[55vh] shadow-inner">
+            <table id="modalDataTable" class="w-full text-left text-xs border-collapse">
+              <thead id="modalDataTableHead" class="bg-slate-800/90 sticky top-0 text-slate-300 uppercase tracking-wider font-semibold border-b border-slate-700"></thead>
+              <tbody id="modalDataTableBody" class="divide-y divide-slate-800/80 bg-slate-950 font-mono"></tbody>
+            </table>
+          </div>
+          <div id="modalTableEmpty" class="hidden py-8 text-center text-slate-500">Aucune donnée tabulaire disponible à cette étape.</div>
+        </div>
+
+        <!-- ONGLET 2 : DÉCISIONS & OPÉRATIONS DE L'AGENT -->
+        <div id="modalViewDecisions" class="hidden space-y-3">
+          <div id="modalSummaryBanner" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200"></div>
+          <div class="font-semibold text-white text-xs flex items-center gap-1.5">
+            <span>🛡️</span> <span>Journal des Décisions Loggées par l'Agent :</span>
+          </div>
+          <div id="modalDecisionsList" class="space-y-2"></div>
+        </div>
+
+        <!-- ONGLET 3 : JSON BRUT -->
+        <div id="modalViewJson" class="hidden">
+          <pre id="modalJsonContent" class="whitespace-pre-wrap break-all text-cyan-300 font-mono text-xs p-3 bg-slate-900/80 rounded-lg border border-slate-800 max-h-[60vh] overflow-y-auto"></pre>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-2.5 border-t border-slate-800 bg-slate-900/60 rounded-b-xl flex justify-between items-center text-[11px] text-slate-400">
+        <span>BI-Flow Multi-Agents — Auditabilité complète et reproductibilité certifiée</span>
+        <button onclick="closeModal()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-medium transition">Fermer la fenêtre</button>
       </div>
     </div>
   </div>
@@ -876,13 +931,188 @@
       alert("✅ État complet du graphe (State JSON) copié dans le presse-papier !");
     }
 
+    let currentModalNode = null;
+    let currentModalTab = 'table';
+
+    function switchModalTab(tab) {
+      currentModalTab = tab;
+      ['table', 'decisions', 'json'].forEach(t => {
+        const view = document.getElementById(`modalView${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (t === tab) {
+          view.classList.remove('hidden');
+          btn.className = 'px-3 py-1 font-medium rounded-md bg-cyan-600 text-white transition';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'px-3 py-1 font-medium rounded-md text-slate-300 hover:text-white transition';
+        }
+      });
+    }
+
+    function renderModalTable(dataRows) {
+      const thead = document.getElementById('modalDataTableHead');
+      const tbody = document.getElementById('modalDataTableBody');
+      const emptyDiv = document.getElementById('modalTableEmpty');
+      const table = document.getElementById('modalDataTable');
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      if (!dataRows || dataRows.length === 0) {
+        table.classList.add('hidden');
+        emptyDiv.classList.remove('hidden');
+        return;
+      }
+
+      table.classList.remove('hidden');
+      emptyDiv.classList.add('hidden');
+
+      const cols = Object.keys(dataRows[0]);
+      
+      // En-têtes avec index
+      const trHead = document.createElement('tr');
+      const thIndex = document.createElement('th');
+      thIndex.className = 'px-3 py-2 border-b border-slate-700 text-slate-400 font-mono text-[11px] w-12 text-center';
+      thIndex.textContent = '#';
+      trHead.appendChild(thIndex);
+
+      cols.forEach(col => {
+        const th = document.createElement('th');
+        th.className = 'px-3 py-2 border-b border-slate-700 text-slate-300 font-medium text-xs whitespace-nowrap';
+        th.textContent = col;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+
+      // Lignes
+      dataRows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 === 0 ? 'bg-slate-900/60 hover:bg-slate-800/60 transition' : 'bg-slate-950 hover:bg-slate-800/60 transition';
+        
+        const tdIdx = document.createElement('td');
+        tdIdx.className = 'px-3 py-1.5 border-b border-slate-800 text-slate-500 font-mono text-[11px] text-center';
+        tdIdx.textContent = String(idx + 1);
+        tr.appendChild(tdIdx);
+
+        cols.forEach(col => {
+          const td = document.createElement('td');
+          td.className = 'px-3 py-1.5 border-b border-slate-800 text-slate-200 text-xs whitespace-nowrap';
+          const val = row[col];
+          if (val === null || val === undefined) {
+            td.innerHTML = '<span class="text-slate-600 italic">null</span>';
+          } else if (typeof val === 'number') {
+            td.className += ' text-emerald-300 font-mono';
+            td.textContent = Number.isInteger(val) ? val.toLocaleString('fr-FR') : val.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+          } else {
+            td.textContent = String(val);
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
     function inspectNode(nodeName) {
+      currentModalNode = nodeName;
       const modal = document.getElementById('jsonModal');
       const title = document.getElementById('modalNodeTitle');
-      const content = document.getElementById('modalJsonContent');
-      const payload = langgraphPayloads[nodeName] || { message: "Aucune donnée disponible pour ce nœud." };
-      title.textContent = `Payload JSON — Nœud LangGraph: ${nodeName.toUpperCase()}`;
-      content.textContent = JSON.stringify(payload, null, 2);
+      const sub = document.getElementById('modalNodeSub');
+      const jsonContent = document.getElementById('modalJsonContent');
+      const payload = langgraphPayloads[nodeName] || {};
+      const nodeLabels = {
+        profiler: "PROFILER (Agent Profilage & Analyse Exploratoire)",
+        quality: "DATA QUALITY (Agent Nettoyage & Correction)",
+        etl: "ETL PIPELINE (Agent Modélisation Dimensionnelle Star Schema)",
+        semantic: "BI SEMANTIC (Agent Calcul Ontologique & KPIs DuckDB)",
+        analyst: "BI ANALYST (Agent Minage Statistique Z-Score & Recommandations)",
+        dashboard: "DASHBOARD GENERATOR (Agent Génération Visuelle Superset)",
+        xai: "XAI AUDITOR (Agent Auditabilité, RAGAS & Traçabilité)"
+      };
+
+      title.innerHTML = `<span>Étape :</span> <span class="text-cyan-400 font-bold uppercase">${nodeName}</span> — ${nodeLabels[nodeName] || 'Agent BI-Flow'}`;
+      sub.textContent = payload.step_summary || "Visualisation interactive de la structure et des données après exécution de ce nœud.";
+
+      // 1. Peuplement du JSON
+      jsonContent.textContent = JSON.stringify(payload, null, 2);
+
+      // 2. Gestion des données tabulaires
+      const tableSelector = document.getElementById('modalTableSelector');
+      const tableButtons = document.getElementById('modalTableButtons');
+      const dataBadge = document.getElementById('modalDataBadge');
+      tableButtons.innerHTML = '';
+
+      let rowsToDisplay = payload.data_preview || [];
+      if (nodeName === 'etl') {
+        const factRows = payload.fact_preview || payload.data_preview || [];
+        const dimPreviews = payload.dim_previews || {};
+        rowsToDisplay = factRows;
+
+        if (Object.keys(dimPreviews).length > 0) {
+          tableSelector.classList.remove('hidden');
+          // Bouton Fact Table
+          const factBtn = document.createElement('button');
+          factBtn.className = 'px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-600 text-white transition';
+          factBtn.textContent = payload.data_model?.fact_table || 'Table de Faits';
+          factBtn.onclick = () => {
+            Array.from(tableButtons.children).forEach(b => b.className = 'px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 hover:text-white transition');
+            factBtn.className = 'px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-600 text-white transition';
+            renderModalTable(factRows);
+            dataBadge.textContent = `${factRows.length} lignes de faits (${payload.data_model?.fact_rows || factRows.length} au total)`;
+          };
+          tableButtons.appendChild(factBtn);
+
+          // Boutons Dimensions
+          Object.entries(dimPreviews).forEach(([dimName, dimRows]) => {
+            const btn = document.createElement('button');
+            btn.className = 'px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 hover:text-white transition';
+            btn.textContent = dimName;
+            btn.onclick = () => {
+              Array.from(tableButtons.children).forEach(b => b.className = 'px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 hover:text-white transition');
+              btn.className = 'px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-600 text-white transition';
+              renderModalTable(dimRows);
+              dataBadge.textContent = `${dimRows.length} lignes dimensionnelles (${dimName})`;
+            };
+            tableButtons.appendChild(btn);
+          });
+        } else {
+          tableSelector.classList.add('hidden');
+        }
+      } else {
+        tableSelector.classList.add('hidden');
+      }
+
+      const shape = payload.data_shape || [rowsToDisplay.length, payload.data_columns ? payload.data_columns.length : 0];
+      dataBadge.textContent = `${rowsToDisplay.length} lignes affichées (Total étape : ${shape[0]} lignes × ${shape[1]} colonnes)`;
+      renderModalTable(rowsToDisplay);
+
+      // 3. Peuplement de l'onglet Décisions
+      const summaryBanner = document.getElementById('modalSummaryBanner');
+      summaryBanner.innerHTML = `
+        <div class="font-bold text-white text-xs mb-1">Synthèse de l'Étape :</div>
+        <div class="text-slate-300 text-xs">${payload.step_summary || "Opération terminée avec succès."}</div>
+        ${payload.quality_report ? `<div class="mt-2 text-xs font-mono text-cyan-400">Qualité avant : ${payload.quality_report.quality_before || 0}% ➔ Qualité après : ${payload.quality_report.quality_after || 0}%</div>` : ''}
+      `;
+
+      const decisionsList = document.getElementById('modalDecisionsList');
+      decisionsList.innerHTML = '';
+      const decisions = activePayload?.decision_log?.filter(d => (d.agent || '').toLowerCase().includes(nodeName.toLowerCase())) || [];
+      if (decisions.length === 0) {
+        decisionsList.innerHTML = '<div class="text-slate-500 italic p-2">Aucune décision spécifique enregistrée.</div>';
+      } else {
+        decisions.forEach(d => {
+          const div = document.createElement('div');
+          div.className = 'p-3 bg-slate-900 rounded-lg border border-slate-800/80 text-xs space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-200">${d.action || 'Action'}</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono">Confiance: ${(d.confidence * 100).toFixed(0)}%</span>
+            </div>
+            <div class="text-slate-400 text-[11px]">${d.rationale || ''}</div>
+          `;
+          decisionsList.appendChild(div);
+        });
+      }
+
+      switchModalTab('table');
       modal.classList.remove('hidden');
     }
 
@@ -968,6 +1198,85 @@
       });
     }
 
+    function renderDynamicHeroKpis(proofs, relScore) {
+      const grid = document.getElementById('heroKpiGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      if (!proofs || proofs.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-4 text-center text-slate-500">Aucun KPI calculé pour ce jeu de données.</div>';
+        return;
+      }
+
+      // Palette et icônes sémantiques adaptées au domaine
+      const getKpiStyle = (name, unit) => {
+        const n = name.toLowerCase();
+        const u = (unit || '').toLowerCase();
+        if (u === '$' || n.includes('revenue') || n.includes('price') || n.includes('prix') || n.includes('ca')) {
+          return { border: 'border-l-emerald-500', icon: '💰', iconColor: 'text-emerald-400', label: 'Revenu & Ventes', subColor: 'text-emerald-400/90' };
+        } else if (u === '%' || n.includes('rate') || n.includes('taux') || n.includes('margin') || n.includes('through')) {
+          return { border: 'border-l-cyan-500', icon: '📈', iconColor: 'text-cyan-400', label: 'Taux d\'Efficacité', subColor: 'text-cyan-400/90' };
+        } else if (u.includes('unit') || n.includes('volume') || n.includes('sold') || n.includes('quantity')) {
+          return { border: 'border-l-blue-500', icon: '📦', iconColor: 'text-blue-400', label: 'Volume Produits', subColor: 'text-blue-400/90' };
+        } else if (n.includes('footfall') || n.includes('visiteur') || n.includes('traffic')) {
+          return { border: 'border-l-amber-500', icon: '👥', iconColor: 'text-amber-400', label: 'Fréquentation Quotidienne', subColor: 'text-amber-400/90' };
+        } else if (n.includes('brand') || n.includes('house') || n.includes('maison') || n.includes('client') || n.includes('customer')) {
+          return { border: 'border-l-purple-500', icon: '🏢', iconColor: 'text-purple-400', label: 'Maisons & Marques', subColor: 'text-purple-400/90' };
+        } else if (n.includes('day') || n.includes('lease') || n.includes('durée') || n.includes('dur') || n.includes('temps')) {
+          return { border: 'border-l-indigo-500', icon: '⏱️', iconColor: 'text-indigo-400', label: 'Durée Moyenne de Bail', subColor: 'text-indigo-400/90' };
+        } else if (n.includes('event') || n.includes('activation') || n.includes('order')) {
+          return { border: 'border-l-teal-500', icon: '🎯', iconColor: 'text-teal-400', label: 'Activations Événementielles', subColor: 'text-teal-400/90' };
+        }
+        return { border: 'border-l-slate-500', icon: '📊', iconColor: 'text-slate-400', label: 'Indicateur Clé', subColor: 'text-slate-400' };
+      };
+
+      // Afficher jusqu'à 5 KPIs majeurs + Carte XAI
+      const displayProofs = proofs.slice(0, 5);
+
+      displayProofs.forEach((p, idx) => {
+        const style = getKpiStyle(p.kpi_name || '', p.unit || '');
+        const val = p.value;
+        const fmtVal = val != null ? (typeof val === 'number' ? (Number.isInteger(val) ? val.toLocaleString('fr-FR') : val.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 2 })) : String(val)) : '-';
+        const unit = p.unit || '';
+
+        const card = document.createElement('div');
+        card.className = `panel-card p-4 space-y-1.5 border-l-4 ${style.border} transition hover:border-slate-500 hover:scale-[1.01] cursor-pointer`;
+        card.title = p.exact_sql ? `Requête SQL : ${p.exact_sql}` : p.kpi_name;
+        card.onclick = () => inspectNode('semantic');
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span class="truncate font-semibold text-slate-200" title="${p.kpi_name}">${p.kpi_name}</span>
+            <span class="${style.iconColor} text-sm">${style.icon}</span>
+          </div>
+          <div class="text-xl font-extrabold text-white mono-code truncate">${fmtVal} <span class="text-xs font-normal text-slate-400">${unit}</span></div>
+          <div class="text-[11px] ${style.subColor} font-medium flex items-center justify-between">
+            <span class="truncate">${style.label}</span>
+            <span class="text-[10px] text-slate-500 font-mono">${p.latency_ms ? `${p.latency_ms}ms` : 'DuckDB'}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Dernière Carte : XAI Relevance RAGAS (Toujours présente avec certification)
+      const relCard = document.createElement('div');
+      relCard.className = 'panel-card p-4 space-y-1.5 border-l-4 border-l-amber-500 transition hover:border-slate-500 hover:scale-[1.01] cursor-pointer';
+      relCard.title = 'Score de Pertinence RAGAS & Traçabilité XAI';
+      relCard.onclick = () => inspectNode('xai');
+      relCard.innerHTML = `
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span class="font-semibold text-amber-300">Pertinence XAI (RAGAS)</span>
+          <span class="text-amber-400 text-sm">🛡️</span>
+        </div>
+        <div id="heroRelevanceVal" class="text-xl font-extrabold text-white mono-code">${(relScore * 100).toFixed(1)}%</div>
+        <div class="text-[11px] text-amber-400/90 font-medium flex items-center justify-between">
+          <span>Formule & Audit Certifié</span>
+          <span class="text-[10px] text-slate-500 font-mono">Tier 1</span>
+        </div>
+      `;
+      grid.appendChild(relCard);
+    }
+
     function renderAll(data) {
       // 1. Mise à jour des Nœuds LangGraph
       const trace = data.trace || [];
@@ -1044,33 +1353,9 @@
       document.getElementById('summaryScore').textContent = Number(relScore).toFixed(2);
       document.getElementById('summaryColsCount').textContent = cols.length ? `${cols.length} colonnes` : '16 colonnes';
 
-      // 5. Hero KPI Cards (Mise à jour des grandes métriques exécutives)
+      // 5. Hero KPI Cards Dynamiques (S'adaptent à n'importe quel domaine sans mots statiques !)
       document.getElementById('executiveKpiCount').textContent = `${proofs.length} métriques certifiées`;
-      let foundRev = false, foundProfit = false, foundAov = false, foundUnits = false, foundCust = false;
-
-      proofs.forEach(p => {
-        const name = (p.kpi_name || '').toLowerCase();
-        const val = p.value;
-        const fmt = val != null ? (typeof val === 'number' ? val.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : String(val)) : '-';
-        const unit = p.unit || '';
-
-        if (!foundRev && (name.includes('revenue') || name.includes('chiffre') || name.includes('sales'))) {
-          document.getElementById('heroRevenueVal').textContent = `${fmt} ${unit}`.trim();
-          foundRev = true;
-        } else if (!foundProfit && (name.includes('profit') || name.includes('bénéfice') || name.includes('margin'))) {
-          document.getElementById('heroProfitVal').textContent = `${fmt} ${unit}`.trim();
-          foundProfit = true;
-        } else if (!foundAov && (name.includes('aov') || name.includes('order value') || name.includes('panier'))) {
-          document.getElementById('heroAovVal').textContent = `${fmt} ${unit}`.trim();
-          foundAov = true;
-        } else if (!foundUnits && (name.includes('unit') || name.includes('volume') || name.includes('sold'))) {
-          document.getElementById('heroVolumeVal').textContent = `${fmt} ${unit}`.trim();
-          foundUnits = true;
-        } else if (!foundCust && (name.includes('customer') || name.includes('client'))) {
-          document.getElementById('heroCustomersVal').textContent = `${fmt} ${unit}`.trim();
-          foundCust = true;
-        }
-      });
+      renderDynamicHeroKpis(proofs, relScore);
 
       // 6. Section 1B - Preuves SQL & Catalogue des KPIs DuckDB
       const kpiTbody = document.getElementById('tableKpiBody');

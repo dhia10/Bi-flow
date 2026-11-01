@@ -1,0 +1,237 @@
+{
+  "domain_id": "luxury_retail_events",
+  "domain_name": "Luxury Cosmetics & Pop-Up Retail Activations",
+  "description": "Experiential luxury retail, cosmetics pop-up activations, visitor footfall tracking, inventory sell-through rate, lease duration, and luxury brand performance.",
+  "keywords": [
+    "luxury",
+    "cosmetics",
+    "popups",
+    "popup",
+    "pop-up",
+    "brand",
+    "event_id",
+    "footfall",
+    "avg_daily_footfall",
+    "sell_through_pct",
+    "units_sold",
+    "price_usd",
+    "lease_length_days",
+    "beauty",
+    "activations",
+    "fragrance",
+    "boutique",
+    "duty-free",
+    "high-street",
+    "art_district",
+    "retail"
+  ],
+  "column_mapping_rules": {
+    "unit_price": [
+      "price_usd",
+      "price",
+      "unit_price",
+      "retail_price",
+      "selling_price"
+    ],
+    "units_sold": [
+      "units_sold",
+      "quantity",
+      "units",
+      "items_sold",
+      "volume_sold"
+    ],
+    "footfall": [
+      "avg_daily_footfall",
+      "daily_footfall",
+      "footfall",
+      "visitors",
+      "traffic",
+      "pedestrian_count"
+    ],
+    "sell_through": [
+      "sell_through_pct",
+      "sell_through_rate",
+      "sell_through",
+      "conversion_pct"
+    ],
+    "event_id": [
+      "event_id",
+      "popup_id",
+      "activation_id",
+      "event_code"
+    ],
+    "brand": [
+      "brand",
+      "luxury_brand",
+      "house",
+      "maison",
+      "brand_name"
+    ],
+    "lease_length": [
+      "lease_length_days",
+      "lease_duration",
+      "duration_days",
+      "days"
+    ],
+    "product_name": [
+      "product_name",
+      "product",
+      "sku_name",
+      "cosmetic_name"
+    ],
+    "city": [
+      "city",
+      "location",
+      "ville"
+    ],
+    "region": [
+      "region",
+      "territory",
+      "market"
+    ],
+    "location_type": [
+      "location_type",
+      "venue_type",
+      "placement"
+    ],
+    "event_type": [
+      "event_type",
+      "activation_type",
+      "format"
+    ],
+    "date": [
+      "start_date",
+      "activation_date",
+      "launch_date",
+      "date"
+    ]
+  },
+  "kpi_templates": [
+    {
+      "id": "kpi_luxury_total_revenue",
+      "name": "Total Pop-Up Gross Revenue",
+      "category": "financial",
+      "unit": "$",
+      "description": "Total gross revenue generated across all luxury pop-up activations (Price × Units Sold).",
+      "sql_template": "SELECT ROUND(CAST(SUM({unit_price} * {units_sold}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": [
+        "unit_price",
+        "units_sold"
+      ]
+    },
+    {
+      "id": "kpi_luxury_total_units_sold",
+      "name": "Total Units Sold",
+      "category": "volume",
+      "unit": "units",
+      "description": "Total luxury cosmetics units sold across all pop-up retail events.",
+      "sql_template": "SELECT CAST(SUM({units_sold}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": [
+        "units_sold"
+      ]
+    },
+    {
+      "id": "kpi_luxury_avg_daily_footfall",
+      "name": "Average Daily Footfall",
+      "category": "operational",
+      "unit": "visitors/day",
+      "description": "Mean daily pedestrian visitor footfall per pop-up activation location.",
+      "sql_template": "SELECT ROUND(CAST(AVG({footfall}) AS DOUBLE), 1) AS metric_value FROM df",
+      "required_roles": [
+        "footfall"
+      ]
+    },
+    {
+      "id": "kpi_luxury_avg_sell_through",
+      "name": "Average Sell-Through Rate",
+      "category": "efficiency",
+      "unit": "%",
+      "description": "Average inventory sell-through rate across retail activations.",
+      "sql_template": "SELECT ROUND(CAST(AVG({sell_through}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": [
+        "sell_through"
+      ]
+    },
+    {
+      "id": "kpi_luxury_total_events",
+      "name": "Total Pop-Up Activations",
+      "category": "volume",
+      "unit": "events",
+      "description": "Total count of unique luxury pop-up retail activations.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {event_id}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": [
+        "event_id"
+      ]
+    },
+    {
+      "id": "kpi_luxury_active_brands",
+      "name": "Active Luxury Houses",
+      "category": "operational",
+      "unit": "brands",
+      "description": "Total unique luxury brands running pop-up activations.",
+      "sql_template": "SELECT CAST(COUNT(DISTINCT {brand}) AS BIGINT) AS metric_value FROM df",
+      "required_roles": [
+        "brand"
+      ]
+    },
+    {
+      "id": "kpi_luxury_avg_price",
+      "name": "Average Product Price",
+      "category": "pricing",
+      "unit": "$",
+      "description": "Average unit retail price of luxury cosmetic SKUs.",
+      "sql_template": "SELECT ROUND(CAST(AVG({unit_price}) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": [
+        "unit_price"
+      ]
+    },
+    {
+      "id": "kpi_luxury_avg_lease",
+      "name": "Average Lease Duration",
+      "category": "operational",
+      "unit": "days",
+      "description": "Average pop-up lease duration in days across global locations.",
+      "sql_template": "SELECT ROUND(CAST(AVG({lease_length}) AS DOUBLE), 1) AS metric_value FROM df",
+      "required_roles": [
+        "lease_length"
+      ]
+    },
+    {
+      "id": "kpi_luxury_revenue_per_event",
+      "name": "Average Revenue per Activation",
+      "category": "financial",
+      "unit": "$",
+      "description": "Average gross sales revenue generated per individual pop-up activation.",
+      "sql_template": "SELECT ROUND(CAST(SUM({unit_price} * {units_sold}) / NULLIF(COUNT(DISTINCT {event_id}), 0) AS DOUBLE), 2) AS metric_value FROM df",
+      "required_roles": [
+        "unit_price",
+        "units_sold",
+        "event_id"
+      ]
+    }
+  ],
+  "dimensional_templates": [
+    {
+      "id": "dim_luxury_brands",
+      "dimension_name": "brand",
+      "description": "Revenue and units breakdown by luxury brand maison.",
+      "sql_template": "SELECT CAST({brand} AS VARCHAR) AS entity, ROUND(CAST(SUM({unit_price} * {units_sold}) AS DOUBLE), 2) AS revenue FROM df WHERE {brand} IS NOT NULL GROUP BY {brand} ORDER BY revenue DESC LIMIT 20",
+      "required_roles": [
+        "brand",
+        "unit_price",
+        "units_sold"
+      ]
+    },
+    {
+      "id": "dim_luxury_regions",
+      "dimension_name": "region",
+      "description": "Revenue breakdown across global geographic regions.",
+      "sql_template": "SELECT CAST({region} AS VARCHAR) AS entity, ROUND(CAST(SUM({unit_price} * {units_sold}) AS DOUBLE), 2) AS revenue FROM df WHERE {region} IS NOT NULL GROUP BY {region} ORDER BY revenue DESC LIMIT 15",
+      "required_roles": [
+        "region",
+        "unit_price",
+        "units_sold"
+      ]
+    }
+  ]
+}

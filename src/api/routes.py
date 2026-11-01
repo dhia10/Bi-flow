@@ -1076,6 +1076,16 @@ def run_demo(demo_id: str):
 
         )
 
+    elif demo_id in ("luxury", "cosmetics", "popups"):
+        luxury_csv = pipeline.root_dir / "luxury" / "luxury_cosmetics_popups.csv"
+        df = pd.read_csv(luxury_csv, encoding="latin1")
+        return pipeline.run(
+            df=df,
+            dataset_name="Luxury Cosmetics Pop-Ups",
+            query_intent="luxury cosmetics popups activations footfall revenue sell through",
+            force_refresh=True,
+        )
+
     else:
 
         raise HTTPException(status_code=400, detail=f"Unknown demo_id '{demo_id}'. Expected 'superstore', 'olist', or 'iot'.")
@@ -1277,6 +1287,11 @@ async def run_langgraph_endpoint(
         merged_df.to_csv(dataset_path, index=False)
 
         target_ref = str(dataset_path.resolve())
+
+    elif demo_id in ("luxury", "cosmetics", "popups"):
+        luxury_csv = pipeline.root_dir / "luxury" / "luxury_cosmetics_popups.csv"
+        target_ref = str(luxury_csv.resolve())
+        domain = "luxury"
 
     elif demo_id == "superstore":
 
