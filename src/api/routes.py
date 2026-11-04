@@ -47,6 +47,11 @@ from pydantic import BaseModel, Field
 
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+try:
+    from dotenv import load_dotenv
+    load_dotenv(_REPO_ROOT / '.env')
+except Exception:
+    pass
 
 if str(_REPO_ROOT) not in sys.path:
 
@@ -1881,6 +1886,12 @@ def api_get_tags():
             return json.loads(r.read().decode("utf-8"))
     except Exception:
         return {"models": []}
+
+
+@app.get("/api/agent/gemini-key")
+def api_get_gemini_key():
+    key = os.getenv("GEMINI_API_KEY", "")
+    return {"key": key, "has_key": bool(key)}
 
 
 @app.get("/api/agent/visuals/prompt")

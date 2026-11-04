@@ -2,235 +2,227 @@
 window.BI_DATA_STORE = {
   "summary": {
     "dataset_name": "clean",
-    "total_records": 2133,
-    "table_name": "FACT_EVENTS",
+    "total_records": 66,
+    "table_name": "FACT_ORDERS",
     "anomalies_count": 1,
-    "kpi_fact_events_0_totaleventactifs": 2133,
-    "kpi_fact_events_1_duremoyenneleaselength": 46.8,
-    "kpi_fact_events_2_totalpriceusd": 205673.88,
-    "kpi_fact_events_3_moyennepriceusd": 96.42,
-    "kpi_fact_events_4_moyenneavgdailyfootfal": 1407.1,
-    "kpi_fact_events_5_volumeunitssold": 4132484.0
+    "kpi_fact_orders_0_totalorderactifs": 66,
+    "kpi_fact_orders_1_totalsales": 27850.85,
+    "kpi_fact_orders_2_moyennesales": 421.98,
+    "kpi_fact_orders_3_volumequantity": 210.0,
+    "kpi_fact_orders_4_moyennediscount": 0.16,
+    "kpi_fact_orders_5_moyenneprofit": 77.14
   },
   "primary_dimension": [
     {
-      "brand": "Valentino Beauty",
-      "lease_length_days": 4911.0
+      "customer_name": "Claire Gute",
+      "sales": 4012.75
     },
     {
-      "brand": "Clé de Peau Beauté",
-      "lease_length_days": 4904.0
+      "customer_name": "Kelly Williams",
+      "sales": 3238.47
     },
     {
-      "brand": "Huda Beauty",
-      "lease_length_days": 4859.0
+      "customer_name": "Tracy Blumstein",
+      "sales": 3057.23
     },
     {
-      "brand": "YSL Beauty",
-      "lease_length_days": 4735.0
+      "customer_name": "Ken Brennan",
+      "sales": 2999.95
     },
     {
-      "brand": "Sisley-Paris",
-      "lease_length_days": 4498.0
+      "customer_name": "Andrew Allen",
+      "sales": 2800.98
     },
     {
-      "brand": "Lancôme",
-      "lease_length_days": 4474.0
+      "customer_name": "Sean O'Donnell",
+      "sales": 1419.87
     },
     {
-      "brand": "Chanel",
-      "lease_length_days": 4361.0
+      "customer_name": "Delfina Latchford",
+      "sales": 1405.9
     },
     {
-      "brand": "Rare Beauty",
-      "lease_length_days": 4298.0
+      "customer_name": "Gene Hale",
+      "sales": 1210.86
     },
     {
-      "brand": "Armani Beauty",
-      "lease_length_days": 4259.0
+      "customer_name": "Lena Cacioppo",
+      "sales": 1107.9
     },
     {
-      "brand": "Guerlain",
-      "lease_length_days": 4233.0
+      "customer_name": "Brosina Hoffman",
+      "sales": 1096.6
     }
   ],
   "time_series": [
     {
-      "start_date": "2024-02-18 00:00:00",
-      "lease_length_days": 304.0
+      "order_date": "2023-01-15 00:00:00",
+      "sales": 261.96
     },
     {
-      "start_date": "2024-02-19 00:00:00",
-      "lease_length_days": 424.0
+      "order_date": "2023-01-16 00:00:00",
+      "sales": 731.94
     },
     {
-      "start_date": "2024-02-20 00:00:00",
-      "lease_length_days": 121.0
+      "order_date": "2023-01-28 00:00:00",
+      "sales": 14.62
     },
     {
-      "start_date": "2024-02-21 00:00:00",
-      "lease_length_days": 379.0
+      "order_date": "2023-02-05 00:00:00",
+      "sales": 957.58
     },
     {
-      "start_date": "2024-02-22 00:00:00",
-      "lease_length_days": 116.0
+      "order_date": "2023-02-08 00:00:00",
+      "sales": 22.37
     },
     {
-      "start_date": "2024-02-23 00:00:00",
-      "lease_length_days": 211.0
+      "order_date": "2023-02-19 00:00:00",
+      "sales": 48.86
     },
     {
-      "start_date": "2024-02-24 00:00:00",
-      "lease_length_days": 110.0
+      "order_date": "2023-03-02 00:00:00",
+      "sales": 7.28
     },
     {
-      "start_date": "2024-02-25 00:00:00",
-      "lease_length_days": 84.0
+      "order_date": "2023-03-14 00:00:00",
+      "sales": 907.15
     },
     {
-      "start_date": "2024-02-26 00:00:00",
-      "lease_length_days": 170.0
+      "order_date": "2023-03-22 00:00:00",
+      "sales": 18.5
     },
     {
-      "start_date": "2024-02-27 00:00:00",
-      "lease_length_days": 291.0
+      "order_date": "2023-04-01 00:00:00",
+      "sales": 1706.18
     },
     {
-      "start_date": "2024-02-28 00:00:00",
-      "lease_length_days": 16.0
+      "order_date": "2023-04-12 00:00:00",
+      "sales": 911.42
     },
     {
-      "start_date": "2024-02-29 00:00:00",
-      "lease_length_days": 177.0
+      "order_date": "2023-04-25 00:00:00",
+      "sales": 15.55
     },
     {
-      "start_date": "2024-03-01 00:00:00",
-      "lease_length_days": 136.0
+      "order_date": "2023-05-02 00:00:00",
+      "sales": 81.42
     },
     {
-      "start_date": "2024-03-02 00:00:00",
-      "lease_length_days": 261.0
+      "order_date": "2023-05-18 00:00:00",
+      "sales": 4.08
     },
     {
-      "start_date": "2024-03-03 00:00:00",
-      "lease_length_days": 124.0
+      "order_date": "2023-05-24 00:00:00",
+      "sales": 61.96
     },
     {
-      "start_date": "2024-03-04 00:00:00",
-      "lease_length_days": 503.0
+      "order_date": "2023-06-05 00:00:00",
+      "sales": 55.5
     },
     {
-      "start_date": "2024-03-05 00:00:00",
-      "lease_length_days": 307.0
+      "order_date": "2023-06-16 00:00:00",
+      "sales": 8.56
     },
     {
-      "start_date": "2024-03-06 00:00:00",
-      "lease_length_days": 153.0
+      "order_date": "2023-06-28 00:00:00",
+      "sales": 213.48
     },
     {
-      "start_date": "2024-03-07 00:00:00",
-      "lease_length_days": 375.0
+      "order_date": "2023-07-04 00:00:00",
+      "sales": 2999.95
     },
     {
-      "start_date": "2024-03-08 00:00:00",
-      "lease_length_days": 224.0
+      "order_date": "2023-07-15 00:00:00",
+      "sales": 71.37
     },
     {
-      "start_date": "2024-03-09 00:00:00",
-      "lease_length_days": 38.0
+      "order_date": "2023-07-29 00:00:00",
+      "sales": 4.04
     },
     {
-      "start_date": "2024-03-10 00:00:00",
-      "lease_length_days": 344.0
+      "order_date": "2023-08-05 00:00:00",
+      "sales": 12.96
     },
     {
-      "start_date": "2024-03-11 00:00:00",
-      "lease_length_days": 144.0
+      "order_date": "2023-08-18 00:00:00",
+      "sales": 1044.63
     },
     {
-      "start_date": "2024-03-12 00:00:00",
-      "lease_length_days": 164.0
+      "order_date": "2023-08-27 00:00:00",
+      "sales": 4.38
     },
     {
-      "start_date": "2024-03-13 00:00:00",
-      "lease_length_days": 141.0
+      "order_date": "2023-09-02 00:00:00",
+      "sales": 230.38
     },
     {
-      "start_date": "2024-03-14 00:00:00",
-      "lease_length_days": 336.0
+      "order_date": "2023-09-14 00:00:00",
+      "sales": 10.86
     },
     {
-      "start_date": "2024-03-15 00:00:00",
-      "lease_length_days": 206.0
+      "order_date": "2023-09-21 00:00:00",
+      "sales": 9.98
     },
     {
-      "start_date": "2024-03-16 00:00:00",
-      "lease_length_days": 530.0
+      "order_date": "2023-10-06 00:00:00",
+      "sales": 1097.54
     },
     {
-      "start_date": "2024-03-17 00:00:00",
-      "lease_length_days": 452.0
+      "order_date": "2023-10-18 00:00:00",
+      "sales": 147.16
     },
     {
-      "start_date": "2024-03-18 00:00:00",
-      "lease_length_days": 223.0
+      "order_date": "2023-10-29 00:00:00",
+      "sales": 831.94
     },
     {
-      "start_date": "2024-03-19 00:00:00",
-      "lease_length_days": 254.0
+      "order_date": "2023-11-04 00:00:00",
+      "sales": 1399.98
     },
     {
-      "start_date": "2024-03-20 00:00:00",
-      "lease_length_days": 225.0
+      "order_date": "2023-11-15 00:00:00",
+      "sales": 5.92
     },
     {
-      "start_date": "2024-03-21 00:00:00",
-      "lease_length_days": 68.0
+      "order_date": "2023-11-25 00:00:00",
+      "sales": 85.98
     },
     {
-      "start_date": "2024-03-22 00:00:00",
-      "lease_length_days": 151.0
+      "order_date": "2023-12-08 00:00:00",
+      "sales": 45.98
     },
     {
-      "start_date": "2024-03-23 00:00:00",
-      "lease_length_days": 69.0
+      "order_date": "2023-12-16 00:00:00",
+      "sales": 53.18
     }
   ],
   "distribution": [
     {
-      "region": "Latin America",
-      "lease_length_days": 21220.0
+      "segment": "Consumer",
+      "sales": 22123.29
     },
     {
-      "region": "Asia-Pacific",
-      "lease_length_days": 21155.0
+      "segment": "Corporate",
+      "sales": 4842.35
     },
     {
-      "region": "Europe",
-      "lease_length_days": 19887.0
-    },
-    {
-      "region": "Middle East",
-      "lease_length_days": 19817.0
-    },
-    {
-      "region": "North America",
-      "lease_length_days": 17730.0
+      "segment": "Home Office",
+      "sales": 885.21
     }
   ],
   "anomalies": [
     {
       "dimension": "category",
-      "entity": "YSL Beauty",
-      "metric": "revenue",
-      "observed_value": 20396479.47,
-      "baseline_value": 16944258.69,
-      "z_score": 2.13,
+      "entity": "Furniture",
+      "metric": "profit",
+      "observed_value": -1240.38,
+      "baseline_value": 1699.73,
+      "z_score": -0.89,
       "iqr_distance": null,
-      "deviation_pct": 20.4,
-      "severity": "medium",
-      "proof_rule": "-- Outlier Z-Score on category: |z| >= 2.0",
-      "description": "Divergence de volume à +2.13 écarts-types de la moyenne (16,944,258.69 $)."
+      "deviation_pct": -173.0,
+      "severity": "critical",
+      "proof_rule": "-- Negative margin detected on category 'Furniture'",
+      "description": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
     }
   ]
 };
@@ -238,354 +230,347 @@ window.KPIS_CATALOG = {
   "metadata": {
     "version": "2.0.0",
     "active_dataset": "clean",
-    "table_name": "FACT_EVENTS",
-    "n_rows": 2133,
+    "table_name": "FACT_ORDERS",
+    "n_rows": 66,
     "columns": [
-      "event_id",
-      "brand",
+      "order_id",
+      "order_date",
+      "customer_id",
+      "customer_name",
+      "segment",
       "region",
+      "state",
       "city",
-      "location_type",
-      "event_type",
-      "start_date",
-      "end_date",
-      "lease_length_days",
-      "sku",
+      "category",
+      "sub_category",
+      "product_id",
       "product_name",
-      "price_usd",
-      "avg_daily_footfall",
-      "units_sold",
-      "sell_through_pct"
+      "sales",
+      "quantity",
+      "discount",
+      "profit"
     ],
     "datasets": [
       "clean"
     ],
-    "last_updated": "2026-11-04T20:54:00.961845",
+    "last_updated": "2026-11-04T21:54:22.586645",
     "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
     "dashboard_background": "#0a0e17"
   },
   "kpis": [
     {
-      "id": "KPI_FACT_EVENTS_0_TOTALEVENTACTIFS",
-      "name": "Total Event Actifs",
+      "id": "KPI_FACT_ORDERS_0_TOTALORDERACTIFS",
+      "name": "Total Order Actifs",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Event Actifs (events)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Total Order Actifs (orders)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "event_id",
-      "dimension_column": "brand",
+      "metric_column": "order_id",
+      "dimension_column": "customer_name",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"event_id\") AS BIGINT) AS metric_value FROM df",
-      "raw_value": 2133,
-      "current_value_formatted": "2,133.00 events",
+      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"order_id\") AS BIGINT) AS metric_value FROM df",
+      "raw_value": 66,
+      "current_value_formatted": "66.00 orders",
       "suggested_prompts": [
-        "Total Event Actifs",
-        "Analyse de Total Event Actifs",
-        "Évolution de Total Event Actifs"
+        "Total Order Actifs",
+        "Analyse de Total Order Actifs",
+        "Évolution de Total Order Actifs"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Total Event Actifs = 2133 -- [events]",
+      "dax_measure": "Total Order Actifs = 66 -- [orders]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/0"
       },
       "_data": [
         {
-          "brand": "Valentino Beauty",
-          "lease_length_days": 4911.0
+          "customer_name": "Claire Gute",
+          "sales": 4012.75
         },
         {
-          "brand": "Clé de Peau Beauté",
-          "lease_length_days": 4904.0
+          "customer_name": "Kelly Williams",
+          "sales": 3238.47
         },
         {
-          "brand": "Huda Beauty",
-          "lease_length_days": 4859.0
+          "customer_name": "Tracy Blumstein",
+          "sales": 3057.23
         },
         {
-          "brand": "YSL Beauty",
-          "lease_length_days": 4735.0
+          "customer_name": "Ken Brennan",
+          "sales": 2999.95
         },
         {
-          "brand": "Sisley-Paris",
-          "lease_length_days": 4498.0
+          "customer_name": "Andrew Allen",
+          "sales": 2800.98
         },
         {
-          "brand": "Lancôme",
-          "lease_length_days": 4474.0
+          "customer_name": "Sean O'Donnell",
+          "sales": 1419.87
         },
         {
-          "brand": "Chanel",
-          "lease_length_days": 4361.0
+          "customer_name": "Delfina Latchford",
+          "sales": 1405.9
         },
         {
-          "brand": "Rare Beauty",
-          "lease_length_days": 4298.0
+          "customer_name": "Gene Hale",
+          "sales": 1210.86
         },
         {
-          "brand": "Armani Beauty",
-          "lease_length_days": 4259.0
+          "customer_name": "Lena Cacioppo",
+          "sales": 1107.9
         },
         {
-          "brand": "Guerlain",
-          "lease_length_days": 4233.0
+          "customer_name": "Brosina Hoffman",
+          "sales": 1096.6
         }
       ]
     },
     {
-      "id": "KPI_FACT_EVENTS_1_DUREMOYENNELEASELENGTH",
-      "name": "Durée Moyenne Lease Length Days",
+      "id": "KPI_FACT_ORDERS_1_TOTALSALES",
+      "name": "Total Sales",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Durée Moyenne Lease Length Days (jours)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Total Sales ($)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "lease_length_days",
-      "dimension_column": "brand",
+      "metric_column": "sales",
+      "dimension_column": "customer_name",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"lease_length_days\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"lease_length_days\" IS NOT NULL",
-      "raw_value": 46.8,
-      "current_value_formatted": "46.80 jours",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"sales\" IS NOT NULL",
+      "raw_value": 27850.85,
+      "current_value_formatted": "27,850.85 $",
       "suggested_prompts": [
-        "Durée Moyenne Lease Length Days",
-        "Analyse de Durée Moyenne Lease Length Days",
-        "Évolution de Durée Moyenne Lease Length Days"
+        "Total Sales",
+        "Analyse de Total Sales",
+        "Évolution de Total Sales"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Durée Moyenne Lease Length Days = 46.8 -- [jours]",
+      "dax_measure": "Total Sales = 27850.85 -- [$]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/1"
       },
       "_data": [
         {
-          "start_date": "2024-02-18 00:00:00",
-          "lease_length_days": 304.0
+          "order_date": "2023-01-15 00:00:00",
+          "sales": 261.96
         },
         {
-          "start_date": "2024-02-19 00:00:00",
-          "lease_length_days": 424.0
+          "order_date": "2023-01-16 00:00:00",
+          "sales": 731.94
         },
         {
-          "start_date": "2024-02-20 00:00:00",
-          "lease_length_days": 121.0
+          "order_date": "2023-01-28 00:00:00",
+          "sales": 14.62
         },
         {
-          "start_date": "2024-02-21 00:00:00",
-          "lease_length_days": 379.0
+          "order_date": "2023-02-05 00:00:00",
+          "sales": 957.58
         },
         {
-          "start_date": "2024-02-22 00:00:00",
-          "lease_length_days": 116.0
+          "order_date": "2023-02-08 00:00:00",
+          "sales": 22.37
         },
         {
-          "start_date": "2024-02-23 00:00:00",
-          "lease_length_days": 211.0
+          "order_date": "2023-02-19 00:00:00",
+          "sales": 48.86
         },
         {
-          "start_date": "2024-02-24 00:00:00",
-          "lease_length_days": 110.0
+          "order_date": "2023-03-02 00:00:00",
+          "sales": 7.28
         },
         {
-          "start_date": "2024-02-25 00:00:00",
-          "lease_length_days": 84.0
+          "order_date": "2023-03-14 00:00:00",
+          "sales": 907.15
         },
         {
-          "start_date": "2024-02-26 00:00:00",
-          "lease_length_days": 170.0
+          "order_date": "2023-03-22 00:00:00",
+          "sales": 18.5
         },
         {
-          "start_date": "2024-02-27 00:00:00",
-          "lease_length_days": 291.0
+          "order_date": "2023-04-01 00:00:00",
+          "sales": 1706.18
         },
         {
-          "start_date": "2024-02-28 00:00:00",
-          "lease_length_days": 16.0
+          "order_date": "2023-04-12 00:00:00",
+          "sales": 911.42
         },
         {
-          "start_date": "2024-02-29 00:00:00",
-          "lease_length_days": 177.0
+          "order_date": "2023-04-25 00:00:00",
+          "sales": 15.55
         },
         {
-          "start_date": "2024-03-01 00:00:00",
-          "lease_length_days": 136.0
+          "order_date": "2023-05-02 00:00:00",
+          "sales": 81.42
         },
         {
-          "start_date": "2024-03-02 00:00:00",
-          "lease_length_days": 261.0
+          "order_date": "2023-05-18 00:00:00",
+          "sales": 4.08
         },
         {
-          "start_date": "2024-03-03 00:00:00",
-          "lease_length_days": 124.0
+          "order_date": "2023-05-24 00:00:00",
+          "sales": 61.96
         },
         {
-          "start_date": "2024-03-04 00:00:00",
-          "lease_length_days": 503.0
+          "order_date": "2023-06-05 00:00:00",
+          "sales": 55.5
         },
         {
-          "start_date": "2024-03-05 00:00:00",
-          "lease_length_days": 307.0
+          "order_date": "2023-06-16 00:00:00",
+          "sales": 8.56
         },
         {
-          "start_date": "2024-03-06 00:00:00",
-          "lease_length_days": 153.0
+          "order_date": "2023-06-28 00:00:00",
+          "sales": 213.48
         },
         {
-          "start_date": "2024-03-07 00:00:00",
-          "lease_length_days": 375.0
+          "order_date": "2023-07-04 00:00:00",
+          "sales": 2999.95
         },
         {
-          "start_date": "2024-03-08 00:00:00",
-          "lease_length_days": 224.0
+          "order_date": "2023-07-15 00:00:00",
+          "sales": 71.37
         },
         {
-          "start_date": "2024-03-09 00:00:00",
-          "lease_length_days": 38.0
+          "order_date": "2023-07-29 00:00:00",
+          "sales": 4.04
         },
         {
-          "start_date": "2024-03-10 00:00:00",
-          "lease_length_days": 344.0
+          "order_date": "2023-08-05 00:00:00",
+          "sales": 12.96
         },
         {
-          "start_date": "2024-03-11 00:00:00",
-          "lease_length_days": 144.0
+          "order_date": "2023-08-18 00:00:00",
+          "sales": 1044.63
         },
         {
-          "start_date": "2024-03-12 00:00:00",
-          "lease_length_days": 164.0
+          "order_date": "2023-08-27 00:00:00",
+          "sales": 4.38
         },
         {
-          "start_date": "2024-03-13 00:00:00",
-          "lease_length_days": 141.0
+          "order_date": "2023-09-02 00:00:00",
+          "sales": 230.38
         },
         {
-          "start_date": "2024-03-14 00:00:00",
-          "lease_length_days": 336.0
+          "order_date": "2023-09-14 00:00:00",
+          "sales": 10.86
         },
         {
-          "start_date": "2024-03-15 00:00:00",
-          "lease_length_days": 206.0
+          "order_date": "2023-09-21 00:00:00",
+          "sales": 9.98
         },
         {
-          "start_date": "2024-03-16 00:00:00",
-          "lease_length_days": 530.0
+          "order_date": "2023-10-06 00:00:00",
+          "sales": 1097.54
         },
         {
-          "start_date": "2024-03-17 00:00:00",
-          "lease_length_days": 452.0
+          "order_date": "2023-10-18 00:00:00",
+          "sales": 147.16
         },
         {
-          "start_date": "2024-03-18 00:00:00",
-          "lease_length_days": 223.0
+          "order_date": "2023-10-29 00:00:00",
+          "sales": 831.94
         },
         {
-          "start_date": "2024-03-19 00:00:00",
-          "lease_length_days": 254.0
+          "order_date": "2023-11-04 00:00:00",
+          "sales": 1399.98
         },
         {
-          "start_date": "2024-03-20 00:00:00",
-          "lease_length_days": 225.0
+          "order_date": "2023-11-15 00:00:00",
+          "sales": 5.92
         },
         {
-          "start_date": "2024-03-21 00:00:00",
-          "lease_length_days": 68.0
+          "order_date": "2023-11-25 00:00:00",
+          "sales": 85.98
         },
         {
-          "start_date": "2024-03-22 00:00:00",
-          "lease_length_days": 151.0
+          "order_date": "2023-12-08 00:00:00",
+          "sales": 45.98
         },
         {
-          "start_date": "2024-03-23 00:00:00",
-          "lease_length_days": 69.0
+          "order_date": "2023-12-16 00:00:00",
+          "sales": 53.18
         }
       ]
     },
     {
-      "id": "KPI_FACT_EVENTS_2_TOTALPRICEUSD",
-      "name": "Total Price Usd",
+      "id": "KPI_FACT_ORDERS_2_MOYENNESALES",
+      "name": "Moyenne Sales",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Price Usd ($)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Moyenne Sales ($)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "price_usd",
-      "dimension_column": "brand",
+      "metric_column": "sales",
+      "dimension_column": "customer_name",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"price_usd\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"price_usd\" IS NOT NULL",
-      "raw_value": 205673.88,
-      "current_value_formatted": "205,673.88 $",
+      "sql_superset": "SELECT ROUND(CAST(AVG(\"sales\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"sales\" IS NOT NULL",
+      "raw_value": 421.98,
+      "current_value_formatted": "421.98 $",
       "suggested_prompts": [
-        "Total Price Usd",
-        "Analyse de Total Price Usd",
-        "Évolution de Total Price Usd"
+        "Moyenne Sales",
+        "Analyse de Moyenne Sales",
+        "Évolution de Moyenne Sales"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Total Price Usd = 205673.88 -- [$]",
+      "dax_measure": "Moyenne Sales = 421.98 -- [$]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/2"
       },
       "_data": [
         {
-          "region": "Latin America",
-          "lease_length_days": 21220.0
+          "segment": "Consumer",
+          "sales": 22123.29
         },
         {
-          "region": "Asia-Pacific",
-          "lease_length_days": 21155.0
+          "segment": "Corporate",
+          "sales": 4842.35
         },
         {
-          "region": "Europe",
-          "lease_length_days": 19887.0
-        },
-        {
-          "region": "Middle East",
-          "lease_length_days": 19817.0
-        },
-        {
-          "region": "North America",
-          "lease_length_days": 17730.0
+          "segment": "Home Office",
+          "sales": 885.21
         }
       ]
     },
     {
-      "id": "KPI_FACT_EVENTS_3_MOYENNEPRICEUSD",
-      "name": "Moyenne Price Usd",
+      "id": "KPI_FACT_ORDERS_3_VOLUMEQUANTITY",
+      "name": "Volume Quantity",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Price Usd ($)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Volume Quantity (unités)",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "price_usd",
-      "dimension_column": "brand",
+      "metric_column": "quantity",
+      "dimension_column": "customer_name",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"price_usd\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"price_usd\" IS NOT NULL",
-      "raw_value": 96.42,
-      "current_value_formatted": "96.42 $",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"quantity\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"quantity\" IS NOT NULL",
+      "raw_value": 210.0,
+      "current_value_formatted": "210.00 unités",
       "suggested_prompts": [
-        "Moyenne Price Usd",
-        "Analyse de Moyenne Price Usd",
-        "Évolution de Moyenne Price Usd"
+        "Volume Quantity",
+        "Analyse de Volume Quantity",
+        "Évolution de Volume Quantity"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Moyenne Price Usd = 96.42 -- [$]",
+      "dax_measure": "Volume Quantity = 210.0 -- [unités]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/3"
@@ -593,30 +578,30 @@ window.KPIS_CATALOG = {
       "_data": []
     },
     {
-      "id": "KPI_FACT_EVENTS_4_MOYENNEAVGDAILYFOOTFAL",
-      "name": "Moyenne Avg Daily Footfall",
+      "id": "KPI_FACT_ORDERS_4_MOYENNEDISCOUNT",
+      "name": "Moyenne Discount",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Avg Daily Footfall (visiteurs/j)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Moyenne Discount ()",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "avg_daily_footfall",
-      "dimension_column": "brand",
+      "metric_column": "discount",
+      "dimension_column": "customer_name",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"avg_daily_footfall\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"avg_daily_footfall\" IS NOT NULL",
-      "raw_value": 1407.1,
-      "current_value_formatted": "1,407.10 visiteurs/j",
+      "sql_superset": "SELECT ROUND(CAST(AVG(\"discount\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"discount\" IS NOT NULL",
+      "raw_value": 0.16,
+      "current_value_formatted": "0.16",
       "suggested_prompts": [
-        "Moyenne Avg Daily Footfall",
-        "Analyse de Moyenne Avg Daily Footfall",
-        "Évolution de Moyenne Avg Daily Footfall"
+        "Moyenne Discount",
+        "Analyse de Moyenne Discount",
+        "Évolution de Moyenne Discount"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Moyenne Avg Daily Footfall = 1407.1 -- [visiteurs/j]",
+      "dax_measure": "Moyenne Discount = 0.16 -- []",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/4"
@@ -624,330 +609,291 @@ window.KPIS_CATALOG = {
       "_data": []
     },
     {
-      "id": "KPI_FACT_EVENTS_5_VOLUMEUNITSSOLD",
-      "name": "Volume Units Sold",
+      "id": "KPI_FACT_ORDERS_5_MOYENNEPROFIT",
+      "name": "Moyenne Profit",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Volume Units Sold (unités)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
+      "description": "Métrique calculée DuckDB : Moyenne Profit ()",
+      "source_table": "FACT_ORDERS",
+      "table_name": "FACT_ORDERS",
       "aggregation_type": "CALC",
-      "metric_column": "units_sold",
-      "dimension_column": "brand",
+      "metric_column": "profit",
+      "dimension_column": "customer_name",
       "chart_type": "line",
       "superset_chart_type": "echarts_line",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"units_sold\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"units_sold\" IS NOT NULL",
-      "raw_value": 4132484.0,
-      "current_value_formatted": "4,132,484.00 unités",
+      "sql_superset": "SELECT ROUND(CAST(AVG(\"profit\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"profit\" IS NOT NULL",
+      "raw_value": 77.14,
+      "current_value_formatted": "77.14",
       "suggested_prompts": [
-        "Volume Units Sold",
-        "Analyse de Volume Units Sold",
-        "Évolution de Volume Units Sold"
+        "Moyenne Profit",
+        "Analyse de Moyenne Profit",
+        "Évolution de Moyenne Profit"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Volume Units Sold = 4132484.0 -- [unités]",
+      "dax_measure": "Moyenne Profit = 77.14 -- []",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/5"
-      },
-      "_data": []
-    },
-    {
-      "id": "KPI_FACT_EVENTS_6_TAUXMOYENSELLTHROUGHPC",
-      "name": "Taux Moyen Sell Through Pct",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Taux Moyen Sell Through Pct (%)",
-      "source_table": "FACT_EVENTS",
-      "table_name": "FACT_EVENTS",
-      "aggregation_type": "CALC",
-      "metric_column": "sell_through_pct",
-      "dimension_column": "brand",
-      "chart_type": "bar",
-      "superset_chart_type": "echarts_bar",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"sell_through_pct\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"sell_through_pct\" IS NOT NULL",
-      "raw_value": 73.23,
-      "current_value_formatted": "73.23 %",
-      "suggested_prompts": [
-        "Taux Moyen Sell Through Pct",
-        "Analyse de Taux Moyen Sell Through Pct",
-        "Évolution de Taux Moyen Sell Through Pct"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Taux Moyen Sell Through Pct = 73.23 -- [%]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/6"
       },
       "_data": []
     }
   ],
   "auto_visuals": [
     {
-      "id": "vis-bar-brand",
-      "kpi_id": "KPI_FACT_EVENTS_BAR",
-      "title": "Distribution de Lease Length Days par Brand (Top 10)",
+      "id": "vis-bar-customer_name",
+      "kpi_id": "KPI_FACT_ORDERS_BAR",
+      "title": "Distribution de Sales par Customer Name (Top 10)",
       "subtitle": "Dataset: clean | Apache Superset ECharts Bar",
       "chartType": "bar",
       "domain": "clean",
       "data": [
         {
-          "brand": "Valentino Beauty",
-          "lease_length_days": 4911.0
+          "customer_name": "Claire Gute",
+          "sales": 4012.75
         },
         {
-          "brand": "Clé de Peau Beauté",
-          "lease_length_days": 4904.0
+          "customer_name": "Kelly Williams",
+          "sales": 3238.47
         },
         {
-          "brand": "Huda Beauty",
-          "lease_length_days": 4859.0
+          "customer_name": "Tracy Blumstein",
+          "sales": 3057.23
         },
         {
-          "brand": "YSL Beauty",
-          "lease_length_days": 4735.0
+          "customer_name": "Ken Brennan",
+          "sales": 2999.95
         },
         {
-          "brand": "Sisley-Paris",
-          "lease_length_days": 4498.0
+          "customer_name": "Andrew Allen",
+          "sales": 2800.98
         },
         {
-          "brand": "Lancôme",
-          "lease_length_days": 4474.0
+          "customer_name": "Sean O'Donnell",
+          "sales": 1419.87
         },
         {
-          "brand": "Chanel",
-          "lease_length_days": 4361.0
+          "customer_name": "Delfina Latchford",
+          "sales": 1405.9
         },
         {
-          "brand": "Rare Beauty",
-          "lease_length_days": 4298.0
+          "customer_name": "Gene Hale",
+          "sales": 1210.86
         },
         {
-          "brand": "Armani Beauty",
-          "lease_length_days": 4259.0
+          "customer_name": "Lena Cacioppo",
+          "sales": 1107.9
         },
         {
-          "brand": "Guerlain",
-          "lease_length_days": 4233.0
+          "customer_name": "Brosina Hoffman",
+          "sales": 1096.6
         }
       ],
-      "labelField": "brand",
-      "valueField": "lease_length_days",
-      "metricLabel": "lease_length_days",
-      "sql": "SELECT \"brand\", SUM(\"lease_length_days\") AS \"lease_length_days\" FROM \"FACT_EVENTS\" GROUP BY \"brand\" ORDER BY \"lease_length_days\" DESC LIMIT 10;",
-      "dax": "lease_length_days By brand = CALCULATE(SUM('FACT_EVENTS'[lease_length_days]))",
+      "labelField": "customer_name",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"customer_name\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"customer_name\" ORDER BY \"sales\" DESC LIMIT 10;",
+      "dax": "sales By customer_name = CALCULATE(SUM('FACT_ORDERS'[sales]))",
       "superset": {
         "viz_type": "echarts_timeseries_bar",
-        "metric": "lease_length_days"
+        "metric": "sales"
       },
       "active": true,
       "source_file": "clean",
       "top_n": 10
     },
     {
-      "id": "vis-line-start_date",
-      "kpi_id": "KPI_FACT_EVENTS_LINE",
-      "title": "Tendance Chronologique de Lease Length Days (start_date)",
+      "id": "vis-line-order_date",
+      "kpi_id": "KPI_FACT_ORDERS_LINE",
+      "title": "Tendance Chronologique de Sales (order_date)",
       "subtitle": "Dataset: clean | Apache Superset ECharts Line",
       "chartType": "line",
       "domain": "clean",
       "data": [
         {
-          "start_date": "2024-02-18 00:00:00",
-          "lease_length_days": 304.0
+          "order_date": "2023-01-15 00:00:00",
+          "sales": 261.96
         },
         {
-          "start_date": "2024-02-19 00:00:00",
-          "lease_length_days": 424.0
+          "order_date": "2023-01-16 00:00:00",
+          "sales": 731.94
         },
         {
-          "start_date": "2024-02-20 00:00:00",
-          "lease_length_days": 121.0
+          "order_date": "2023-01-28 00:00:00",
+          "sales": 14.62
         },
         {
-          "start_date": "2024-02-21 00:00:00",
-          "lease_length_days": 379.0
+          "order_date": "2023-02-05 00:00:00",
+          "sales": 957.58
         },
         {
-          "start_date": "2024-02-22 00:00:00",
-          "lease_length_days": 116.0
+          "order_date": "2023-02-08 00:00:00",
+          "sales": 22.37
         },
         {
-          "start_date": "2024-02-23 00:00:00",
-          "lease_length_days": 211.0
+          "order_date": "2023-02-19 00:00:00",
+          "sales": 48.86
         },
         {
-          "start_date": "2024-02-24 00:00:00",
-          "lease_length_days": 110.0
+          "order_date": "2023-03-02 00:00:00",
+          "sales": 7.28
         },
         {
-          "start_date": "2024-02-25 00:00:00",
-          "lease_length_days": 84.0
+          "order_date": "2023-03-14 00:00:00",
+          "sales": 907.15
         },
         {
-          "start_date": "2024-02-26 00:00:00",
-          "lease_length_days": 170.0
+          "order_date": "2023-03-22 00:00:00",
+          "sales": 18.5
         },
         {
-          "start_date": "2024-02-27 00:00:00",
-          "lease_length_days": 291.0
+          "order_date": "2023-04-01 00:00:00",
+          "sales": 1706.18
         },
         {
-          "start_date": "2024-02-28 00:00:00",
-          "lease_length_days": 16.0
+          "order_date": "2023-04-12 00:00:00",
+          "sales": 911.42
         },
         {
-          "start_date": "2024-02-29 00:00:00",
-          "lease_length_days": 177.0
+          "order_date": "2023-04-25 00:00:00",
+          "sales": 15.55
         },
         {
-          "start_date": "2024-03-01 00:00:00",
-          "lease_length_days": 136.0
+          "order_date": "2023-05-02 00:00:00",
+          "sales": 81.42
         },
         {
-          "start_date": "2024-03-02 00:00:00",
-          "lease_length_days": 261.0
+          "order_date": "2023-05-18 00:00:00",
+          "sales": 4.08
         },
         {
-          "start_date": "2024-03-03 00:00:00",
-          "lease_length_days": 124.0
+          "order_date": "2023-05-24 00:00:00",
+          "sales": 61.96
         },
         {
-          "start_date": "2024-03-04 00:00:00",
-          "lease_length_days": 503.0
+          "order_date": "2023-06-05 00:00:00",
+          "sales": 55.5
         },
         {
-          "start_date": "2024-03-05 00:00:00",
-          "lease_length_days": 307.0
+          "order_date": "2023-06-16 00:00:00",
+          "sales": 8.56
         },
         {
-          "start_date": "2024-03-06 00:00:00",
-          "lease_length_days": 153.0
+          "order_date": "2023-06-28 00:00:00",
+          "sales": 213.48
         },
         {
-          "start_date": "2024-03-07 00:00:00",
-          "lease_length_days": 375.0
+          "order_date": "2023-07-04 00:00:00",
+          "sales": 2999.95
         },
         {
-          "start_date": "2024-03-08 00:00:00",
-          "lease_length_days": 224.0
+          "order_date": "2023-07-15 00:00:00",
+          "sales": 71.37
         },
         {
-          "start_date": "2024-03-09 00:00:00",
-          "lease_length_days": 38.0
+          "order_date": "2023-07-29 00:00:00",
+          "sales": 4.04
         },
         {
-          "start_date": "2024-03-10 00:00:00",
-          "lease_length_days": 344.0
+          "order_date": "2023-08-05 00:00:00",
+          "sales": 12.96
         },
         {
-          "start_date": "2024-03-11 00:00:00",
-          "lease_length_days": 144.0
+          "order_date": "2023-08-18 00:00:00",
+          "sales": 1044.63
         },
         {
-          "start_date": "2024-03-12 00:00:00",
-          "lease_length_days": 164.0
+          "order_date": "2023-08-27 00:00:00",
+          "sales": 4.38
         },
         {
-          "start_date": "2024-03-13 00:00:00",
-          "lease_length_days": 141.0
+          "order_date": "2023-09-02 00:00:00",
+          "sales": 230.38
         },
         {
-          "start_date": "2024-03-14 00:00:00",
-          "lease_length_days": 336.0
+          "order_date": "2023-09-14 00:00:00",
+          "sales": 10.86
         },
         {
-          "start_date": "2024-03-15 00:00:00",
-          "lease_length_days": 206.0
+          "order_date": "2023-09-21 00:00:00",
+          "sales": 9.98
         },
         {
-          "start_date": "2024-03-16 00:00:00",
-          "lease_length_days": 530.0
+          "order_date": "2023-10-06 00:00:00",
+          "sales": 1097.54
         },
         {
-          "start_date": "2024-03-17 00:00:00",
-          "lease_length_days": 452.0
+          "order_date": "2023-10-18 00:00:00",
+          "sales": 147.16
         },
         {
-          "start_date": "2024-03-18 00:00:00",
-          "lease_length_days": 223.0
+          "order_date": "2023-10-29 00:00:00",
+          "sales": 831.94
         },
         {
-          "start_date": "2024-03-19 00:00:00",
-          "lease_length_days": 254.0
+          "order_date": "2023-11-04 00:00:00",
+          "sales": 1399.98
         },
         {
-          "start_date": "2024-03-20 00:00:00",
-          "lease_length_days": 225.0
+          "order_date": "2023-11-15 00:00:00",
+          "sales": 5.92
         },
         {
-          "start_date": "2024-03-21 00:00:00",
-          "lease_length_days": 68.0
+          "order_date": "2023-11-25 00:00:00",
+          "sales": 85.98
         },
         {
-          "start_date": "2024-03-22 00:00:00",
-          "lease_length_days": 151.0
+          "order_date": "2023-12-08 00:00:00",
+          "sales": 45.98
         },
         {
-          "start_date": "2024-03-23 00:00:00",
-          "lease_length_days": 69.0
+          "order_date": "2023-12-16 00:00:00",
+          "sales": 53.18
         }
       ],
-      "labelField": "start_date",
-      "valueField": "lease_length_days",
-      "metricLabel": "lease_length_days",
-      "sql": "SELECT \"start_date\", SUM(\"lease_length_days\") AS \"lease_length_days\" FROM \"FACT_EVENTS\" GROUP BY \"start_date\" ORDER BY \"start_date\" ASC;",
-      "dax": "lease_length_days Over Time = CALCULATE(SUM('FACT_EVENTS'[lease_length_days]))",
+      "labelField": "order_date",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"order_date\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"order_date\" ORDER BY \"order_date\" ASC;",
+      "dax": "sales Over Time = CALCULATE(SUM('FACT_ORDERS'[sales]))",
       "superset": {
         "viz_type": "echarts_timeseries_line",
-        "metric": "lease_length_days"
+        "metric": "sales"
       },
       "active": true,
       "source_file": "clean",
       "top_n": 35
     },
     {
-      "id": "vis-pie-region",
-      "kpi_id": "KPI_FACT_EVENTS_PIE",
-      "title": "Part de Marché par Region (Top 6)",
+      "id": "vis-pie-segment",
+      "kpi_id": "KPI_FACT_ORDERS_PIE",
+      "title": "Part de Marché par Segment (Top 6)",
       "subtitle": "Dataset: clean | Apache Superset Donut / Pie",
       "chartType": "pie",
       "domain": "clean",
       "data": [
         {
-          "region": "Latin America",
-          "lease_length_days": 21220.0
+          "segment": "Consumer",
+          "sales": 22123.29
         },
         {
-          "region": "Asia-Pacific",
-          "lease_length_days": 21155.0
+          "segment": "Corporate",
+          "sales": 4842.35
         },
         {
-          "region": "Europe",
-          "lease_length_days": 19887.0
-        },
-        {
-          "region": "Middle East",
-          "lease_length_days": 19817.0
-        },
-        {
-          "region": "North America",
-          "lease_length_days": 17730.0
+          "segment": "Home Office",
+          "sales": 885.21
         }
       ],
-      "labelField": "region",
-      "valueField": "lease_length_days",
-      "metricLabel": "lease_length_days",
-      "sql": "SELECT \"region\", SUM(\"lease_length_days\") AS \"lease_length_days\" FROM \"FACT_EVENTS\" GROUP BY \"region\" ORDER BY \"lease_length_days\" DESC LIMIT 6;",
-      "dax": "lease_length_days Share = DIVIDE(SUM('FACT_EVENTS'[lease_length_days]), CALCULATE(SUM('FACT_EVENTS'[lease_length_days]), ALL('FACT_EVENTS')))",
+      "labelField": "segment",
+      "valueField": "sales",
+      "metricLabel": "sales",
+      "sql": "SELECT \"segment\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"segment\" ORDER BY \"sales\" DESC LIMIT 6;",
+      "dax": "sales Share = DIVIDE(SUM('FACT_ORDERS'[sales]), CALCULATE(SUM('FACT_ORDERS'[sales]), ALL('FACT_ORDERS')))",
       "superset": {
         "viz_type": "pie",
-        "metric": "lease_length_days"
+        "metric": "sales"
       },
       "active": true,
       "source_file": "clean",
@@ -955,32 +901,32 @@ window.KPIS_CATALOG = {
     },
     {
       "id": "vis-card-anomaly-alert",
-      "kpi_id": "KPI_FACT_EVENTS_ANOMALY",
-      "title": "Alerte Statistique COMEX : YSL Beauty",
-      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = 2.13",
+      "kpi_id": "KPI_FACT_ORDERS_ANOMALY",
+      "title": "Alerte Statistique COMEX : Furniture",
+      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = -0.89",
       "chartType": "card",
       "domain": "clean",
       "data": [
         {
-          "entity": "YSL Beauty",
-          "z_score": 2.13,
-          "alert": "Divergence de volume à +2.13 écarts-types de la moyenne (16,944,258.69 $)."
+          "entity": "Furniture",
+          "z_score": -0.89,
+          "alert": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
         }
       ],
       "labelField": "entity",
       "valueField": "z_score",
       "metricLabel": "Z-Score",
       "sql": "-- Détection automatique IQR & Z-score multi-agents",
-      "dax": "ZScore Outlier = 2.13",
+      "dax": "ZScore Outlier = -0.89",
       "superset": {
         "viz_type": "big_number_total",
         "metric": "z_score"
       },
       "active": true,
       "source_file": "clean",
-      "cardValue": 2.13,
-      "cardValueFormatted": "Z = +2.13",
-      "cardBenchmark": "Divergence de volume à +2.13 écarts-types de la moyenne (16,944,258.69 $)."
+      "cardValue": -0.89,
+      "cardValueFormatted": "Z = -0.89",
+      "cardBenchmark": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
     }
   ],
   "prompt_visuals": []

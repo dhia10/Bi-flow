@@ -655,15 +655,17 @@
       const dims = keys.filter(k => typeof sample[k] === 'string' || isTimeName(k));
       const measures = keys.filter(k => typeof sample[k] === 'number' && !isTimeName(k) && !/^(id|index|rank)$/i.test(k));
       if (!dims.length || !measures.length) return;
-      const dim = dims.find(isTimeName) || dims[0];
-      datasets.push({
-        key, rows: v, dim, dimLabel: LABELS[dim] || humanize(dim), dimIsTime: isTimeName(dim),
-        dimTerms: termsFor(dim).concat(custom), dsTerms: termsFor(key).concat(custom),
-        measures: measures.map(m => ({
-          id: key + '.' + m, name: m, label: LABELS[m] || humanize(m), kind: guessKind(m),
-          terms: termsFor(m).concat(m === 'rate_usd' ? ['currency', 'devise', 'usd', 'taux', 'meilleur que usa', 'pire que usa', 'meilleur que', 'pire que'] : []),
-          family: familyOf(m), dax: null, sql: null
-        }))
+      dims.forEach(dim => {
+        const subKey = (dims.length > 1 && dim !== dims[0]) ? `${key}_${dim}` : key;
+        datasets.push({
+          key: subKey, rows: v, dim, dimLabel: LABELS[dim] || humanize(dim), dimIsTime: isTimeName(dim),
+          dimTerms: termsFor(dim).concat(custom), dsTerms: termsFor(key).concat(custom),
+          measures: measures.map(m => ({
+            id: subKey + '.' + m, name: m, label: LABELS[m] || humanize(m), kind: guessKind(m),
+            terms: termsFor(m).concat(m === 'rate_usd' ? ['currency', 'devise', 'usd', 'taux', 'meilleur que usa', 'pire que usa', 'meilleur que', 'pire que'] : []),
+            family: familyOf(m), dax: null, sql: null
+          }))
+        });
       });
     };
     Object.keys(ds || {}).forEach(key => {
@@ -742,7 +744,7 @@
       const dsHits = d.dsTerms.filter(t => has(P, t)).length;
       const measHit = d.measures.filter(m => m.terms.some(t => has(P, t)));
       const measHits = measHit.reduce((a, m) => a + m.terms.filter(t => has(P, t)).length, 0);
-      const base = (dimHits > 0 ? 2 : 0) + dsHits * 1.5 + macroBoost + topCurPenalty;
+      const base = (dimHits > 0 ? 3.5 * dimHits : 0) + dsHits * 1.5 + macroBoost + topCurPenalty;
       let measures = measHit;
       if (measures.length > 1 && measures.some(m => m.name === 'gdp_growth') && measures.some(m => m.name === 'gdp') && /(growth|croissance)/.test(T)) measures = measures.filter(m => m.name !== 'gdp');
       if (!measures.length && base >= 2) measures = [d.measures[0]];
@@ -1508,14 +1510,29 @@
   }
   function resolvePending(text) {
     const p = Memory.state.pending; if (!p) return null;
-    const T = ascii(text).trim(), P = normWords(text);
-    if (/^(annule|laisse tomber|stop|oublie|non merci|non)\b/.test(T)) return { p, cancel: true };
+    const T = ascii(text).trim();
+    // Strict cancel ONLY: "annule", "stop", "annuler", "non merci", or "non" alone
+    if (/^(annule|laisse tomber|stop|oublie|non merci|annuler)\s*$/i.test(T) || /^non\s*$/i.test(T)) {
+      return { p, cancel: true };
+    }
+    // Si l'utilisateur commence par "non", le retirer pour analyser le reste ("non brand par region" -> "brand par region")
+    const cleanText = text.replace(/^non[\s,;:.-]+/i, '').trim();
+    const cleanT = ascii(cleanText).trim();
+    const cleanP = normWords(cleanText);
+
     if (p.type === 'choose_kpi') {
       let idx = -1;
-      const num = T.match(/^(?:le\s+|la\s+|n\s*|option\s*|choix\s*)?(\d+)\b/);
+      const num = cleanT.match(/^(?:le\s+|la\s+|n\s*|option\s*|choix\s*)?(\d+)\b/);
       if (num) idx = parseInt(num[1], 10) - 1;
-      else idx = p.options.findIndex(o => has(P, o.label.replace(/\(.*?\)/g, '')));
+      else {
+        const words = cleanText.split(/[\s,;:.-]+/).filter(w => w.length >= 3);
+        idx = p.options.findIndex(o => {
+          const oNorm = normWords(o.label);
+          return words.some(w => has(oNorm, w)) || has(cleanP, o.label.replace(/\(.*?\)/g, ''));
+        });
+      }
       if (idx >= 0 && p.options[idx]) return { p, choice: p.options[idx] };
+      Memory.clearPending();
       return null;
     }
     if (p.type === 'confirm' && /^(oui|ok|d accord|vas y|go|yes|bien sur|exact|c est ca)\b/.test(T)) return { p, yes: true };
@@ -2413,6 +2430,7 @@
   }
 
   function describeFormat(f) {
+    if (!f) return '';
     const p = [];
     if (f.palette && f.palette.length) p.push('palette ' + f.palette.join(' / '));
     else if (f.barColor) p.push('couleur ' + f.barColor);
@@ -2817,7 +2835,19 @@
         { chartType: cfg.chartType, sid: spec.sid, sql: cfg.sql, superset: cfg.superset, updatedId: id, suggestions: suggestFor(cfg.chartType, built.group) });
     }
 
-    if (intent.action === 'create' && !intent.groups.length) return askWhichKpi(intent);
+    if (intent.action === 'create' && !intent.groups.length) {
+      const cat = ensureCatalog();
+      const P = normWords(intent.text || '');
+      let matchedDs = cat.datasets.find(d => d.dimTerms.some(t => has(P, t)));
+      if (!matchedDs && cat.datasets.length) matchedDs = cat.datasets[0];
+      if (matchedDs) {
+        intent.groups = [{ kind: 'dataset', ds: matchedDs, measures: [matchedDs.measures[0]], score: 4 }];
+        intent.confident = true;
+        notes.push(`Indicateur déduit automatiquement : ${matchedDs.measures[0].label} par ${matchedDs.dimLabel}`);
+      } else {
+        return askWhichKpi(intent);
+      }
+    }
 
     if (intent.action === 'create') {
       const created = [], titles = [], sqls = []; let lastType = null, lastSid = null, lastSuperset = null;
@@ -2940,13 +2970,15 @@
       }
       const confidence = computeIntentConfidence(ctx.intent);
       const needsGemini = CFG.geminiEnabled && CFG.geminiApiKey && !PROTECTED_ACTIONS.includes(ctx.intent.action) &&
-        (confidence < CFG.geminiConfidenceThreshold || ctx.intent.action === 'unknown') &&
-        !ctx.clarify && !ctx.intent.comparison;
+        (confidence < CFG.geminiConfidenceThreshold || ctx.intent.action === 'unknown' || !!ctx.clarify) &&
+        !ctx.intent.comparison;
       if (needsGemini) {
         const t2 = Date.now();
         const geminiIntent = await callGeminiFallback(ctx.prompt, ctx.ragContext);
         if (geminiIntent) {
           ctx.intent = mergeGemini(ctx.intent, geminiIntent);
+          ctx.clarify = null;
+          ctx.intent.confident = true;
           ctx.chain.push({ step: '3c', name: 'GeminiFallback', ms: Date.now() - t2, action: geminiIntent.action });
         } else {
           ctx.chain.push({ step: '3c', name: 'GeminiFallback', ms: Date.now() - t2, failed: true });
