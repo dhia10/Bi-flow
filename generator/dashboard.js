@@ -1300,7 +1300,31 @@ window.Dashboard = (function () {
           window.KPIS_CATALOG = catalog;
         }
       }
-      if (catalog && Array.isArray(catalog.kpis)) {
+      // 1. Auto visuals
+      if (catalog && Array.isArray(catalog.auto_visuals) && catalog.auto_visuals.length > 0) {
+        catalog.auto_visuals.slice(0, 8).forEach(v => {
+          try { addVisual(v); loaded = true; } catch (e) { console.warn("addVisual auto_visual error", e); }
+        });
+      }
+
+      // 2. visuals_state.json fallback
+      if (!loaded) {
+        try {
+          const vsResp = await fetch("visuals_state.json?_t=" + Date.now(), { signal: AbortSignal.timeout(2000) });
+          if (vsResp.ok) {
+            const vsPayload = await vsResp.json();
+            const visuals = vsPayload.visuals || [];
+            if (visuals.length > 0) {
+              visuals.slice(0, 8).forEach(v => {
+                try { addVisual(v); loaded = true; } catch (e) { console.warn("addVisual vs error", e); }
+              });
+            }
+          }
+        } catch (_) { }
+      }
+
+      // 3. nonCardKpis
+      if (!loaded && catalog && Array.isArray(catalog.kpis)) {
         const nonCardKpis = catalog.kpis.filter(k => k.active !== false && k.chart_type !== 'card' && Array.isArray(k._data) && k._data.length > 0);
         if (nonCardKpis.length > 0) {
           nonCardKpis.slice(0, 8).forEach(k => {

@@ -1799,6 +1799,183 @@ def studio_status():
     }
 
 
+
+# ── BI Studio Agent Endpoints for Seamless Visuals & Dynamic Sync ─────────
+
+@app.get("/api/agent/visuals/seed")
+def api_agent_visuals_seed():
+    """Charge les visualisations dynamiques générées par le pipeline."""
+    visuals = []
+    vs_path = _REPO_ROOT / "generator" / "visuals_state.json"
+    if vs_path.exists():
+        try:
+            with open(vs_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                visuals = data.get("visuals", [])
+        except Exception as e:
+            log.warning("Erreur lecture visuals_state.json: %s", e)
+    if not visuals:
+        cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+        if cat_path.exists():
+            try:
+                with open(cat_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    visuals = data.get("auto_visuals", [])
+            except Exception as e:
+                log.warning("Erreur lecture kpis_catalog.json: %s", e)
+    return {"visuals": visuals, "count": len(visuals)}
+
+
+@app.get("/api/agent/dashboard-bg")
+def api_get_dashboard_bg():
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    bg = ""
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                bg = data.get("metadata", {}).get("dashboard_background", "")
+        except Exception:
+            pass
+    return {"background": bg}
+
+
+@app.post("/api/agent/dashboard-bg")
+def api_set_dashboard_bg(payload: Dict[str, Any]):
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    bg = payload.get("background", "")
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data.setdefault("metadata", {})["dashboard_background"] = bg
+            with open(cat_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            log.warning("Erreur sauvegarde dashboard-bg: %s", e)
+    return {"status": "ok", "background": bg}
+
+
+@app.get("/api/list-data-files")
+def api_list_data_files():
+    files = []
+    try:
+        for f in os.listdir(str(_REPO_ROOT)):
+            if os.path.isfile(_REPO_ROOT / f) and f.lower().endswith((".xls", ".xlsx", ".csv")):
+                files.append(f)
+        uploads_dir = _REPO_ROOT / "generator" / "uploads"
+        if uploads_dir.exists():
+            for f in os.listdir(str(uploads_dir)):
+                if os.path.isfile(uploads_dir / f) and f.lower().endswith((".xls", ".xlsx", ".csv")):
+                    files.append(f"uploads/{f}")
+    except Exception as e:
+        log.warning("Erreur list-data-files: %s", e)
+    return {"files": sorted(set(files))}
+
+
+@app.get("/api/tags")
+def api_get_tags():
+    try:
+        import urllib.request
+        with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=1.5) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return {"models": []}
+
+
+@app.get("/api/agent/visuals/prompt")
+def api_get_prompt_visuals():
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                visuals = data.get("prompt_visuals", [])
+                return {"visuals": visuals, "count": len(visuals)}
+        except Exception:
+            pass
+    return {"visuals": [], "count": 0}
+
+
+@app.post("/api/agent/visuals/prompt")
+def api_save_prompt_visual(payload: Dict[str, Any]):
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    entry = payload.get("visual") or payload
+    if not entry:
+        raise HTTPException(status_code=400, detail="Entrée visuel manquante")
+    sid = entry.get("sid") or str(uuid.uuid4())[:8]
+    entry["sid"] = sid
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            prompt_visuals = data.setdefault("prompt_visuals", [])
+            idx = next((i for i, v in enumerate(prompt_visuals) if v.get("sid") == sid), None)
+            if idx is not None:
+                prompt_visuals[idx] = entry
+            else:
+                prompt_visuals.append(entry)
+            with open(cat_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            log.warning("Erreur sauvegarde prompt visual: %s", e)
+    return {"success": True, "sid": sid}
+
+
+@app.post("/api/agent/visuals/prompt/batch")
+def api_save_prompt_visuals_batch(payload: Dict[str, Any]):
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    visuals = payload.get("visuals", [])
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data["prompt_visuals"] = visuals
+            with open(cat_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            log.warning("Erreur sauvegarde batch prompt visuals: %s", e)
+    return {"success": True, "count": len(visuals)}
+
+
+@app.delete("/api/agent/visuals/prompt/{sid}")
+def api_delete_prompt_visual(sid: str):
+    cat_path = _REPO_ROOT / "generator" / "kpis_catalog.json"
+    if cat_path.exists():
+        try:
+            with open(cat_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            prompt_visuals = data.get("prompt_visuals", [])
+            data["prompt_visuals"] = [v for v in prompt_visuals if v.get("sid") != sid]
+            with open(cat_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            return {"success": True, "deleted_sid": sid}
+        except Exception as e:
+            log.warning("Erreur suppression prompt visual: %s", e)
+    return {"success": False, "deleted_sid": sid}
+
+
+@app.post("/api/agent/execute-sql")
+def api_execute_sql(payload: Dict[str, Any]):
+    sql = payload.get("sql", "").strip()
+    if not sql:
+        raise HTTPException(status_code=400, detail="Requête SQL requise")
+    try:
+        con = duckdb.connect()
+        clean_parquet = _REPO_ROOT / "artifacts" / "clean.parquet"
+        if not clean_parquet.exists():
+            parquets = list(_REPO_ROOT.glob("artifacts/*/clean.parquet"))
+            if parquets:
+                clean_parquet = parquets[-1]
+        if clean_parquet.exists():
+            con.execute(f"CREATE OR REPLACE VIEW fact_transactions AS SELECT * FROM '{clean_parquet.as_posix()}'")
+            con.execute(f"CREATE OR REPLACE VIEW clean AS SELECT * FROM '{clean_parquet.as_posix()}'")
+        df = con.execute(sql).df()
+        return {"columns": list(df.columns), "data": df.to_dict(orient="records"), "count": len(df)}
+    except Exception as e:
+        return {"error": str(e), "columns": [], "data": []}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)

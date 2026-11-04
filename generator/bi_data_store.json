@@ -1,56 +1,56 @@
 {
   "summary": {
     "dataset_name": "clean",
-    "total_records": 2097,
+    "total_records": 2133,
     "table_name": "FACT_EVENTS",
     "anomalies_count": 1,
-    "kpi_fact_events_0_totalpopupgrossrevenue": 391071138.29,
-    "kpi_fact_events_1_totalunitssold": 4056012,
-    "kpi_fact_events_2_averagedailyfootfall": 1410.2,
-    "kpi_fact_events_3_averagesellthroughrate": 73.2,
-    "kpi_fact_events_4_totalpopupactivations": 2097,
-    "kpi_fact_events_5_activeluxuryhouses": 24
+    "kpi_fact_events_0_totaleventactifs": 2133,
+    "kpi_fact_events_1_duremoyenneleaselength": 46.8,
+    "kpi_fact_events_2_totalpriceusd": 205673.88,
+    "kpi_fact_events_3_moyennepriceusd": 96.42,
+    "kpi_fact_events_4_moyenneavgdailyfootfal": 1407.1,
+    "kpi_fact_events_5_volumeunitssold": 4132484.0
   },
   "primary_dimension": [
     {
       "brand": "Valentino Beauty",
-      "lease_length_days": 4895.0
+      "lease_length_days": 4911.0
+    },
+    {
+      "brand": "Clé de Peau Beauté",
+      "lease_length_days": 4904.0
     },
     {
       "brand": "Huda Beauty",
-      "lease_length_days": 4790.0
+      "lease_length_days": 4859.0
     },
     {
       "brand": "YSL Beauty",
       "lease_length_days": 4735.0
     },
     {
-      "brand": "Clé de Peau Beauté",
-      "lease_length_days": 4702.0
+      "brand": "Sisley-Paris",
+      "lease_length_days": 4498.0
     },
     {
       "brand": "Lancôme",
       "lease_length_days": 4474.0
     },
     {
-      "brand": "Sisley-Paris",
-      "lease_length_days": 4436.0
-    },
-    {
       "brand": "Chanel",
       "lease_length_days": 4361.0
     },
     {
-      "brand": "Guerlain",
-      "lease_length_days": 4187.0
-    },
-    {
-      "brand": "Shiseido",
-      "lease_length_days": 4163.0
+      "brand": "Rare Beauty",
+      "lease_length_days": 4298.0
     },
     {
       "brand": "Armani Beauty",
-      "lease_length_days": 4147.0
+      "lease_length_days": 4259.0
+    },
+    {
+      "brand": "Guerlain",
+      "lease_length_days": 4233.0
     }
   ],
   "time_series": [
@@ -64,7 +64,7 @@
     },
     {
       "start_date": "2024-02-20 00:00:00",
-      "lease_length_days": 59.0
+      "lease_length_days": 121.0
     },
     {
       "start_date": "2024-02-21 00:00:00",
@@ -95,12 +95,16 @@
       "lease_length_days": 291.0
     },
     {
+      "start_date": "2024-02-28 00:00:00",
+      "lease_length_days": 16.0
+    },
+    {
       "start_date": "2024-02-29 00:00:00",
       "lease_length_days": 177.0
     },
     {
       "start_date": "2024-03-01 00:00:00",
-      "lease_length_days": 50.0
+      "lease_length_days": 136.0
     },
     {
       "start_date": "2024-03-02 00:00:00",
@@ -189,32 +193,28 @@
     {
       "start_date": "2024-03-23 00:00:00",
       "lease_length_days": 69.0
-    },
-    {
-      "start_date": "2024-03-24 00:00:00",
-      "lease_length_days": 124.0
     }
   ],
   "distribution": [
     {
       "region": "Latin America",
-      "lease_length_days": 20849.0
+      "lease_length_days": 21220.0
     },
     {
       "region": "Asia-Pacific",
-      "lease_length_days": 20782.0
-    },
-    {
-      "region": "Middle East",
-      "lease_length_days": 19575.0
+      "lease_length_days": 21155.0
     },
     {
       "region": "Europe",
-      "lease_length_days": 19535.0
+      "lease_length_days": 19887.0
+    },
+    {
+      "region": "Middle East",
+      "lease_length_days": 19817.0
     },
     {
       "region": "North America",
-      "lease_length_days": 17488.0
+      "lease_length_days": 17730.0
     }
   ],
   "anomalies": [
