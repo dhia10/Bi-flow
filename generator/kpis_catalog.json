@@ -2,338 +2,114 @@
   "metadata": {
     "version": "2.0.0",
     "active_dataset": "clean",
-    "table_name": "FACT_ORDERS",
-    "n_rows": 66,
+    "table_name": "FACT_SALES",
+    "n_rows": 535125,
     "columns": [
-      "order_id",
-      "order_date",
-      "customer_id",
-      "customer_name",
-      "segment",
-      "region",
-      "state",
-      "city",
-      "category",
-      "sub_category",
-      "product_id",
-      "product_name",
-      "sales",
-      "quantity",
-      "discount",
-      "profit"
+      "InvoiceNo",
+      "StockCode",
+      "Description",
+      "Quantity",
+      "InvoiceDate",
+      "UnitPrice",
+      "CustomerID",
+      "Country"
     ],
     "datasets": [
       "clean"
     ],
-    "last_updated": "2026-11-04T21:54:22.586645",
+    "last_updated": "2026-11-05T10:35:36.075625",
     "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
     "dashboard_background": "#0a0e17"
   },
   "kpis": [
     {
-      "id": "KPI_FACT_ORDERS_0_TOTALORDERACTIFS",
-      "name": "Total Order Actifs",
+      "id": "KPI_FACT_SALES_0_TOTALSTOCKCODEACTIFS",
+      "name": "Total Stockcode Actifs",
       "domain": "clean",
       "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Order Actifs (orders)",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
+      "description": "Métrique calculée DuckDB : Total Stockcode Actifs (stockcodes)",
+      "source_table": "FACT_SALES",
+      "table_name": "FACT_SALES",
       "aggregation_type": "CALC",
-      "metric_column": "order_id",
-      "dimension_column": "customer_name",
+      "metric_column": "StockCode",
+      "dimension_column": "InvoiceNo",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"order_id\") AS BIGINT) AS metric_value FROM df",
-      "raw_value": 66,
-      "current_value_formatted": "66.00 orders",
+      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"StockCode\") AS BIGINT) AS metric_value FROM df",
+      "raw_value": 3958,
+      "current_value_formatted": "3,958.00 stockcodes",
       "suggested_prompts": [
-        "Total Order Actifs",
-        "Analyse de Total Order Actifs",
-        "Évolution de Total Order Actifs"
+        "Total Stockcode Actifs",
+        "Analyse de Total Stockcode Actifs",
+        "Évolution de Total Stockcode Actifs"
       ],
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Total Order Actifs = 66 -- [orders]",
+      "dax_measure": "Total Stockcode Actifs = 3958 -- [stockcodes]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/0"
       },
       "_data": [
         {
-          "customer_name": "Claire Gute",
-          "sales": 4012.75
+          "InvoiceNo": "556917",
+          "Quantity": 10713.0
         },
         {
-          "customer_name": "Kelly Williams",
-          "sales": 3238.47
+          "InvoiceNo": "563076",
+          "Quantity": 9330.0
         },
         {
-          "customer_name": "Tracy Blumstein",
-          "sales": 3057.23
+          "InvoiceNo": "572035",
+          "Quantity": 9140.0
         },
         {
-          "customer_name": "Ken Brennan",
-          "sales": 2999.95
+          "InvoiceNo": "563614",
+          "Quantity": 7832.0
         },
         {
-          "customer_name": "Andrew Allen",
-          "sales": 2800.98
+          "InvoiceNo": "552883",
+          "Quantity": 7466.0
         },
         {
-          "customer_name": "Sean O'Donnell",
-          "sales": 1419.87
+          "InvoiceNo": "576365",
+          "Quantity": 7458.0
         },
         {
-          "customer_name": "Delfina Latchford",
-          "sales": 1405.9
+          "InvoiceNo": "574941",
+          "Quantity": 7378.0
         },
         {
-          "customer_name": "Gene Hale",
-          "sales": 1210.86
+          "InvoiceNo": "548011",
+          "Quantity": 7292.0
         },
         {
-          "customer_name": "Lena Cacioppo",
-          "sales": 1107.9
+          "InvoiceNo": "545475",
+          "Quantity": 6528.0
         },
         {
-          "customer_name": "Brosina Hoffman",
-          "sales": 1096.6
+          "InvoiceNo": "541206",
+          "Quantity": 6286.0
         }
       ]
     },
     {
-      "id": "KPI_FACT_ORDERS_1_TOTALSALES",
-      "name": "Total Sales",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Sales ($)",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
-      "aggregation_type": "CALC",
-      "metric_column": "sales",
-      "dimension_column": "customer_name",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"sales\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"sales\" IS NOT NULL",
-      "raw_value": 27850.85,
-      "current_value_formatted": "27,850.85 $",
-      "suggested_prompts": [
-        "Total Sales",
-        "Analyse de Total Sales",
-        "Évolution de Total Sales"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Total Sales = 27850.85 -- [$]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/1"
-      },
-      "_data": [
-        {
-          "order_date": "2023-01-15 00:00:00",
-          "sales": 261.96
-        },
-        {
-          "order_date": "2023-01-16 00:00:00",
-          "sales": 731.94
-        },
-        {
-          "order_date": "2023-01-28 00:00:00",
-          "sales": 14.62
-        },
-        {
-          "order_date": "2023-02-05 00:00:00",
-          "sales": 957.58
-        },
-        {
-          "order_date": "2023-02-08 00:00:00",
-          "sales": 22.37
-        },
-        {
-          "order_date": "2023-02-19 00:00:00",
-          "sales": 48.86
-        },
-        {
-          "order_date": "2023-03-02 00:00:00",
-          "sales": 7.28
-        },
-        {
-          "order_date": "2023-03-14 00:00:00",
-          "sales": 907.15
-        },
-        {
-          "order_date": "2023-03-22 00:00:00",
-          "sales": 18.5
-        },
-        {
-          "order_date": "2023-04-01 00:00:00",
-          "sales": 1706.18
-        },
-        {
-          "order_date": "2023-04-12 00:00:00",
-          "sales": 911.42
-        },
-        {
-          "order_date": "2023-04-25 00:00:00",
-          "sales": 15.55
-        },
-        {
-          "order_date": "2023-05-02 00:00:00",
-          "sales": 81.42
-        },
-        {
-          "order_date": "2023-05-18 00:00:00",
-          "sales": 4.08
-        },
-        {
-          "order_date": "2023-05-24 00:00:00",
-          "sales": 61.96
-        },
-        {
-          "order_date": "2023-06-05 00:00:00",
-          "sales": 55.5
-        },
-        {
-          "order_date": "2023-06-16 00:00:00",
-          "sales": 8.56
-        },
-        {
-          "order_date": "2023-06-28 00:00:00",
-          "sales": 213.48
-        },
-        {
-          "order_date": "2023-07-04 00:00:00",
-          "sales": 2999.95
-        },
-        {
-          "order_date": "2023-07-15 00:00:00",
-          "sales": 71.37
-        },
-        {
-          "order_date": "2023-07-29 00:00:00",
-          "sales": 4.04
-        },
-        {
-          "order_date": "2023-08-05 00:00:00",
-          "sales": 12.96
-        },
-        {
-          "order_date": "2023-08-18 00:00:00",
-          "sales": 1044.63
-        },
-        {
-          "order_date": "2023-08-27 00:00:00",
-          "sales": 4.38
-        },
-        {
-          "order_date": "2023-09-02 00:00:00",
-          "sales": 230.38
-        },
-        {
-          "order_date": "2023-09-14 00:00:00",
-          "sales": 10.86
-        },
-        {
-          "order_date": "2023-09-21 00:00:00",
-          "sales": 9.98
-        },
-        {
-          "order_date": "2023-10-06 00:00:00",
-          "sales": 1097.54
-        },
-        {
-          "order_date": "2023-10-18 00:00:00",
-          "sales": 147.16
-        },
-        {
-          "order_date": "2023-10-29 00:00:00",
-          "sales": 831.94
-        },
-        {
-          "order_date": "2023-11-04 00:00:00",
-          "sales": 1399.98
-        },
-        {
-          "order_date": "2023-11-15 00:00:00",
-          "sales": 5.92
-        },
-        {
-          "order_date": "2023-11-25 00:00:00",
-          "sales": 85.98
-        },
-        {
-          "order_date": "2023-12-08 00:00:00",
-          "sales": 45.98
-        },
-        {
-          "order_date": "2023-12-16 00:00:00",
-          "sales": 53.18
-        }
-      ]
-    },
-    {
-      "id": "KPI_FACT_ORDERS_2_MOYENNESALES",
-      "name": "Moyenne Sales",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Sales ($)",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
-      "aggregation_type": "CALC",
-      "metric_column": "sales",
-      "dimension_column": "customer_name",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"sales\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"sales\" IS NOT NULL",
-      "raw_value": 421.98,
-      "current_value_formatted": "421.98 $",
-      "suggested_prompts": [
-        "Moyenne Sales",
-        "Analyse de Moyenne Sales",
-        "Évolution de Moyenne Sales"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Moyenne Sales = 421.98 -- [$]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/2"
-      },
-      "_data": [
-        {
-          "segment": "Consumer",
-          "sales": 22123.29
-        },
-        {
-          "segment": "Corporate",
-          "sales": 4842.35
-        },
-        {
-          "segment": "Home Office",
-          "sales": 885.21
-        }
-      ]
-    },
-    {
-      "id": "KPI_FACT_ORDERS_3_VOLUMEQUANTITY",
+      "id": "KPI_FACT_SALES_1_VOLUMEQUANTITY",
       "name": "Volume Quantity",
       "domain": "clean",
       "category": "Général",
       "description": "Métrique calculée DuckDB : Volume Quantity (unités)",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
+      "source_table": "FACT_SALES",
+      "table_name": "FACT_SALES",
       "aggregation_type": "CALC",
-      "metric_column": "quantity",
-      "dimension_column": "customer_name",
+      "metric_column": "Quantity",
+      "dimension_column": "InvoiceNo",
       "chart_type": "card",
       "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"quantity\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"quantity\" IS NOT NULL",
-      "raw_value": 210.0,
-      "current_value_formatted": "210.00 unités",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"Quantity\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"Quantity\" IS NOT NULL",
+      "raw_value": 4632857.0,
+      "current_value_formatted": "4,632,857.00 unités",
       "suggested_prompts": [
         "Volume Quantity",
         "Analyse de Volume Quantity",
@@ -342,330 +118,508 @@
       "active": true,
       "source_file": "clean",
       "top_n": 10,
-      "dax_measure": "Volume Quantity = 210.0 -- [unités]",
+      "dax_measure": "Volume Quantity = 4632857.0 -- [unités]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/1"
+      },
+      "_data": [
+        {
+          "InvoiceDate": "2010-12-01 08:26:00",
+          "Quantity": 40.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 08:28:00",
+          "Quantity": 12.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 08:34:00",
+          "Quantity": 98.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 08:35:00",
+          "Quantity": 3.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 08:45:00",
+          "Quantity": 449.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:00:00",
+          "Quantity": 80.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:01:00",
+          "Quantity": 12.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:02:00",
+          "Quantity": 88.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:09:00",
+          "Quantity": 32.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:32:00",
+          "Quantity": 200.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:34:00",
+          "Quantity": 12.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:37:00",
+          "Quantity": 434.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:41:00",
+          "Quantity": 221.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:45:00",
+          "Quantity": 134.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:49:00",
+          "Quantity": -1.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:53:00",
+          "Quantity": 190.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:56:00",
+          "Quantity": 53.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:57:00",
+          "Quantity": 236.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:58:00",
+          "Quantity": 500.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 09:59:00",
+          "Quantity": 108.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:03:00",
+          "Quantity": 107.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:19:00",
+          "Quantity": 1292.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:24:00",
+          "Quantity": -14.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:29:00",
+          "Quantity": 103.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:37:00",
+          "Quantity": 8.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:39:00",
+          "Quantity": 544.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:47:00",
+          "Quantity": 260.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:51:00",
+          "Quantity": 162.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:52:00",
+          "Quantity": 162.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 10:53:00",
+          "Quantity": 12.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 11:21:00",
+          "Quantity": 124.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 11:22:00",
+          "Quantity": 116.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 11:27:00",
+          "Quantity": 97.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 11:29:00",
+          "Quantity": 438.0
+        },
+        {
+          "InvoiceDate": "2010-12-01 11:32:00",
+          "Quantity": 100.0
+        }
+      ]
+    },
+    {
+      "id": "KPI_FACT_SALES_2_TOTALUNITPRICE",
+      "name": "Total Unitprice",
+      "domain": "clean",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Total Unitprice ($)",
+      "source_table": "FACT_SALES",
+      "table_name": "FACT_SALES",
+      "aggregation_type": "CALC",
+      "metric_column": "UnitPrice",
+      "dimension_column": "InvoiceNo",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
+      "sql_superset": "SELECT ROUND(CAST(SUM(\"UnitPrice\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"UnitPrice\" IS NOT NULL",
+      "raw_value": 1747581.42,
+      "current_value_formatted": "1,747,581.42 $",
+      "suggested_prompts": [
+        "Total Unitprice",
+        "Analyse de Total Unitprice",
+        "Évolution de Total Unitprice"
+      ],
+      "active": true,
+      "source_file": "clean",
+      "top_n": 10,
+      "dax_measure": "Total Unitprice = 1747581.42 -- [$]",
+      "api_endpoint": {
+        "method": "GET",
+        "path": "/api/v1/kpi/2"
+      },
+      "_data": [
+        {
+          "StockCode": "85099B",
+          "Quantity": 37776.0
+        },
+        {
+          "StockCode": "22197",
+          "Quantity": 32287.0
+        },
+        {
+          "StockCode": "84879",
+          "Quantity": 28361.0
+        },
+        {
+          "StockCode": "85123A",
+          "Quantity": 28076.0
+        },
+        {
+          "StockCode": "84077",
+          "Quantity": 27817.0
+        },
+        {
+          "StockCode": "21212",
+          "Quantity": 26601.0
+        }
+      ]
+    },
+    {
+      "id": "KPI_FACT_SALES_3_MOYENNEUNITPRICE",
+      "name": "Moyenne Unitprice",
+      "domain": "clean",
+      "category": "Général",
+      "description": "Métrique calculée DuckDB : Moyenne Unitprice ($)",
+      "source_table": "FACT_SALES",
+      "table_name": "FACT_SALES",
+      "aggregation_type": "CALC",
+      "metric_column": "UnitPrice",
+      "dimension_column": "InvoiceNo",
+      "chart_type": "card",
+      "superset_chart_type": "big_number_total",
+      "sql_superset": "SELECT ROUND(CAST(AVG(\"UnitPrice\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"UnitPrice\" IS NOT NULL",
+      "raw_value": 3.27,
+      "current_value_formatted": "3.27 $",
+      "suggested_prompts": [
+        "Moyenne Unitprice",
+        "Analyse de Moyenne Unitprice",
+        "Évolution de Moyenne Unitprice"
+      ],
+      "active": true,
+      "source_file": "clean",
+      "top_n": 10,
+      "dax_measure": "Moyenne Unitprice = 3.27 -- [$]",
       "api_endpoint": {
         "method": "GET",
         "path": "/api/v1/kpi/3"
-      },
-      "_data": []
-    },
-    {
-      "id": "KPI_FACT_ORDERS_4_MOYENNEDISCOUNT",
-      "name": "Moyenne Discount",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Discount ()",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
-      "aggregation_type": "CALC",
-      "metric_column": "discount",
-      "dimension_column": "customer_name",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"discount\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"discount\" IS NOT NULL",
-      "raw_value": 0.16,
-      "current_value_formatted": "0.16",
-      "suggested_prompts": [
-        "Moyenne Discount",
-        "Analyse de Moyenne Discount",
-        "Évolution de Moyenne Discount"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Moyenne Discount = 0.16 -- []",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/4"
-      },
-      "_data": []
-    },
-    {
-      "id": "KPI_FACT_ORDERS_5_MOYENNEPROFIT",
-      "name": "Moyenne Profit",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Profit ()",
-      "source_table": "FACT_ORDERS",
-      "table_name": "FACT_ORDERS",
-      "aggregation_type": "CALC",
-      "metric_column": "profit",
-      "dimension_column": "customer_name",
-      "chart_type": "line",
-      "superset_chart_type": "echarts_line",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"profit\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"profit\" IS NOT NULL",
-      "raw_value": 77.14,
-      "current_value_formatted": "77.14",
-      "suggested_prompts": [
-        "Moyenne Profit",
-        "Analyse de Moyenne Profit",
-        "Évolution de Moyenne Profit"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Moyenne Profit = 77.14 -- []",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/5"
       },
       "_data": []
     }
   ],
   "auto_visuals": [
     {
-      "id": "vis-bar-customer_name",
-      "kpi_id": "KPI_FACT_ORDERS_BAR",
-      "title": "Distribution de Sales par Customer Name (Top 10)",
+      "id": "vis-bar-invoiceno",
+      "kpi_id": "KPI_FACT_SALES_BAR",
+      "title": "Distribution de Quantity par Invoiceno (Top 10)",
       "subtitle": "Dataset: clean | Apache Superset ECharts Bar",
       "chartType": "bar",
       "domain": "clean",
       "data": [
         {
-          "customer_name": "Claire Gute",
-          "sales": 4012.75
+          "InvoiceNo": "556917",
+          "Quantity": 10713.0
         },
         {
-          "customer_name": "Kelly Williams",
-          "sales": 3238.47
+          "InvoiceNo": "563076",
+          "Quantity": 9330.0
         },
         {
-          "customer_name": "Tracy Blumstein",
-          "sales": 3057.23
+          "InvoiceNo": "572035",
+          "Quantity": 9140.0
         },
         {
-          "customer_name": "Ken Brennan",
-          "sales": 2999.95
+          "InvoiceNo": "563614",
+          "Quantity": 7832.0
         },
         {
-          "customer_name": "Andrew Allen",
-          "sales": 2800.98
+          "InvoiceNo": "552883",
+          "Quantity": 7466.0
         },
         {
-          "customer_name": "Sean O'Donnell",
-          "sales": 1419.87
+          "InvoiceNo": "576365",
+          "Quantity": 7458.0
         },
         {
-          "customer_name": "Delfina Latchford",
-          "sales": 1405.9
+          "InvoiceNo": "574941",
+          "Quantity": 7378.0
         },
         {
-          "customer_name": "Gene Hale",
-          "sales": 1210.86
+          "InvoiceNo": "548011",
+          "Quantity": 7292.0
         },
         {
-          "customer_name": "Lena Cacioppo",
-          "sales": 1107.9
+          "InvoiceNo": "545475",
+          "Quantity": 6528.0
         },
         {
-          "customer_name": "Brosina Hoffman",
-          "sales": 1096.6
+          "InvoiceNo": "541206",
+          "Quantity": 6286.0
         }
       ],
-      "labelField": "customer_name",
-      "valueField": "sales",
-      "metricLabel": "sales",
-      "sql": "SELECT \"customer_name\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"customer_name\" ORDER BY \"sales\" DESC LIMIT 10;",
-      "dax": "sales By customer_name = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "labelField": "InvoiceNo",
+      "valueField": "Quantity",
+      "metricLabel": "Quantity",
+      "sql": "SELECT \"InvoiceNo\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"InvoiceNo\" ORDER BY \"Quantity\" DESC LIMIT 10;",
+      "dax": "Quantity By InvoiceNo = CALCULATE(SUM('FACT_SALES'[Quantity]))",
       "superset": {
         "viz_type": "echarts_timeseries_bar",
-        "metric": "sales"
+        "metric": "Quantity"
       },
       "active": true,
       "source_file": "clean",
       "top_n": 10
     },
     {
-      "id": "vis-line-order_date",
-      "kpi_id": "KPI_FACT_ORDERS_LINE",
-      "title": "Tendance Chronologique de Sales (order_date)",
+      "id": "vis-line-invoicedate",
+      "kpi_id": "KPI_FACT_SALES_LINE",
+      "title": "Tendance Chronologique de Quantity (InvoiceDate)",
       "subtitle": "Dataset: clean | Apache Superset ECharts Line",
       "chartType": "line",
       "domain": "clean",
       "data": [
         {
-          "order_date": "2023-01-15 00:00:00",
-          "sales": 261.96
+          "InvoiceDate": "2010-12-01 08:26:00",
+          "Quantity": 40.0
         },
         {
-          "order_date": "2023-01-16 00:00:00",
-          "sales": 731.94
+          "InvoiceDate": "2010-12-01 08:28:00",
+          "Quantity": 12.0
         },
         {
-          "order_date": "2023-01-28 00:00:00",
-          "sales": 14.62
+          "InvoiceDate": "2010-12-01 08:34:00",
+          "Quantity": 98.0
         },
         {
-          "order_date": "2023-02-05 00:00:00",
-          "sales": 957.58
+          "InvoiceDate": "2010-12-01 08:35:00",
+          "Quantity": 3.0
         },
         {
-          "order_date": "2023-02-08 00:00:00",
-          "sales": 22.37
+          "InvoiceDate": "2010-12-01 08:45:00",
+          "Quantity": 449.0
         },
         {
-          "order_date": "2023-02-19 00:00:00",
-          "sales": 48.86
+          "InvoiceDate": "2010-12-01 09:00:00",
+          "Quantity": 80.0
         },
         {
-          "order_date": "2023-03-02 00:00:00",
-          "sales": 7.28
+          "InvoiceDate": "2010-12-01 09:01:00",
+          "Quantity": 12.0
         },
         {
-          "order_date": "2023-03-14 00:00:00",
-          "sales": 907.15
+          "InvoiceDate": "2010-12-01 09:02:00",
+          "Quantity": 88.0
         },
         {
-          "order_date": "2023-03-22 00:00:00",
-          "sales": 18.5
+          "InvoiceDate": "2010-12-01 09:09:00",
+          "Quantity": 32.0
         },
         {
-          "order_date": "2023-04-01 00:00:00",
-          "sales": 1706.18
+          "InvoiceDate": "2010-12-01 09:32:00",
+          "Quantity": 200.0
         },
         {
-          "order_date": "2023-04-12 00:00:00",
-          "sales": 911.42
+          "InvoiceDate": "2010-12-01 09:34:00",
+          "Quantity": 12.0
         },
         {
-          "order_date": "2023-04-25 00:00:00",
-          "sales": 15.55
+          "InvoiceDate": "2010-12-01 09:37:00",
+          "Quantity": 434.0
         },
         {
-          "order_date": "2023-05-02 00:00:00",
-          "sales": 81.42
+          "InvoiceDate": "2010-12-01 09:41:00",
+          "Quantity": 221.0
         },
         {
-          "order_date": "2023-05-18 00:00:00",
-          "sales": 4.08
+          "InvoiceDate": "2010-12-01 09:45:00",
+          "Quantity": 134.0
         },
         {
-          "order_date": "2023-05-24 00:00:00",
-          "sales": 61.96
+          "InvoiceDate": "2010-12-01 09:49:00",
+          "Quantity": -1.0
         },
         {
-          "order_date": "2023-06-05 00:00:00",
-          "sales": 55.5
+          "InvoiceDate": "2010-12-01 09:53:00",
+          "Quantity": 190.0
         },
         {
-          "order_date": "2023-06-16 00:00:00",
-          "sales": 8.56
+          "InvoiceDate": "2010-12-01 09:56:00",
+          "Quantity": 53.0
         },
         {
-          "order_date": "2023-06-28 00:00:00",
-          "sales": 213.48
+          "InvoiceDate": "2010-12-01 09:57:00",
+          "Quantity": 236.0
         },
         {
-          "order_date": "2023-07-04 00:00:00",
-          "sales": 2999.95
+          "InvoiceDate": "2010-12-01 09:58:00",
+          "Quantity": 500.0
         },
         {
-          "order_date": "2023-07-15 00:00:00",
-          "sales": 71.37
+          "InvoiceDate": "2010-12-01 09:59:00",
+          "Quantity": 108.0
         },
         {
-          "order_date": "2023-07-29 00:00:00",
-          "sales": 4.04
+          "InvoiceDate": "2010-12-01 10:03:00",
+          "Quantity": 107.0
         },
         {
-          "order_date": "2023-08-05 00:00:00",
-          "sales": 12.96
+          "InvoiceDate": "2010-12-01 10:19:00",
+          "Quantity": 1292.0
         },
         {
-          "order_date": "2023-08-18 00:00:00",
-          "sales": 1044.63
+          "InvoiceDate": "2010-12-01 10:24:00",
+          "Quantity": -14.0
         },
         {
-          "order_date": "2023-08-27 00:00:00",
-          "sales": 4.38
+          "InvoiceDate": "2010-12-01 10:29:00",
+          "Quantity": 103.0
         },
         {
-          "order_date": "2023-09-02 00:00:00",
-          "sales": 230.38
+          "InvoiceDate": "2010-12-01 10:37:00",
+          "Quantity": 8.0
         },
         {
-          "order_date": "2023-09-14 00:00:00",
-          "sales": 10.86
+          "InvoiceDate": "2010-12-01 10:39:00",
+          "Quantity": 544.0
         },
         {
-          "order_date": "2023-09-21 00:00:00",
-          "sales": 9.98
+          "InvoiceDate": "2010-12-01 10:47:00",
+          "Quantity": 260.0
         },
         {
-          "order_date": "2023-10-06 00:00:00",
-          "sales": 1097.54
+          "InvoiceDate": "2010-12-01 10:51:00",
+          "Quantity": 162.0
         },
         {
-          "order_date": "2023-10-18 00:00:00",
-          "sales": 147.16
+          "InvoiceDate": "2010-12-01 10:52:00",
+          "Quantity": 162.0
         },
         {
-          "order_date": "2023-10-29 00:00:00",
-          "sales": 831.94
+          "InvoiceDate": "2010-12-01 10:53:00",
+          "Quantity": 12.0
         },
         {
-          "order_date": "2023-11-04 00:00:00",
-          "sales": 1399.98
+          "InvoiceDate": "2010-12-01 11:21:00",
+          "Quantity": 124.0
         },
         {
-          "order_date": "2023-11-15 00:00:00",
-          "sales": 5.92
+          "InvoiceDate": "2010-12-01 11:22:00",
+          "Quantity": 116.0
         },
         {
-          "order_date": "2023-11-25 00:00:00",
-          "sales": 85.98
+          "InvoiceDate": "2010-12-01 11:27:00",
+          "Quantity": 97.0
         },
         {
-          "order_date": "2023-12-08 00:00:00",
-          "sales": 45.98
+          "InvoiceDate": "2010-12-01 11:29:00",
+          "Quantity": 438.0
         },
         {
-          "order_date": "2023-12-16 00:00:00",
-          "sales": 53.18
+          "InvoiceDate": "2010-12-01 11:32:00",
+          "Quantity": 100.0
         }
       ],
-      "labelField": "order_date",
-      "valueField": "sales",
-      "metricLabel": "sales",
-      "sql": "SELECT \"order_date\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"order_date\" ORDER BY \"order_date\" ASC;",
-      "dax": "sales Over Time = CALCULATE(SUM('FACT_ORDERS'[sales]))",
+      "labelField": "InvoiceDate",
+      "valueField": "Quantity",
+      "metricLabel": "Quantity",
+      "sql": "SELECT \"InvoiceDate\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"InvoiceDate\" ORDER BY \"InvoiceDate\" ASC;",
+      "dax": "Quantity Over Time = CALCULATE(SUM('FACT_SALES'[Quantity]))",
       "superset": {
         "viz_type": "echarts_timeseries_line",
-        "metric": "sales"
+        "metric": "Quantity"
       },
       "active": true,
       "source_file": "clean",
       "top_n": 35
     },
     {
-      "id": "vis-pie-segment",
-      "kpi_id": "KPI_FACT_ORDERS_PIE",
-      "title": "Part de Marché par Segment (Top 6)",
+      "id": "vis-pie-stockcode",
+      "kpi_id": "KPI_FACT_SALES_PIE",
+      "title": "Part de Marché par Stockcode (Top 6)",
       "subtitle": "Dataset: clean | Apache Superset Donut / Pie",
       "chartType": "pie",
       "domain": "clean",
       "data": [
         {
-          "segment": "Consumer",
-          "sales": 22123.29
+          "StockCode": "85099B",
+          "Quantity": 37776.0
         },
         {
-          "segment": "Corporate",
-          "sales": 4842.35
+          "StockCode": "22197",
+          "Quantity": 32287.0
         },
         {
-          "segment": "Home Office",
-          "sales": 885.21
+          "StockCode": "84879",
+          "Quantity": 28361.0
+        },
+        {
+          "StockCode": "85123A",
+          "Quantity": 28076.0
+        },
+        {
+          "StockCode": "84077",
+          "Quantity": 27817.0
+        },
+        {
+          "StockCode": "21212",
+          "Quantity": 26601.0
         }
       ],
-      "labelField": "segment",
-      "valueField": "sales",
-      "metricLabel": "sales",
-      "sql": "SELECT \"segment\", SUM(\"sales\") AS \"sales\" FROM \"FACT_ORDERS\" GROUP BY \"segment\" ORDER BY \"sales\" DESC LIMIT 6;",
-      "dax": "sales Share = DIVIDE(SUM('FACT_ORDERS'[sales]), CALCULATE(SUM('FACT_ORDERS'[sales]), ALL('FACT_ORDERS')))",
+      "labelField": "StockCode",
+      "valueField": "Quantity",
+      "metricLabel": "Quantity",
+      "sql": "SELECT \"StockCode\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"StockCode\" ORDER BY \"Quantity\" DESC LIMIT 6;",
+      "dax": "Quantity Share = DIVIDE(SUM('FACT_SALES'[Quantity]), CALCULATE(SUM('FACT_SALES'[Quantity]), ALL('FACT_SALES')))",
       "superset": {
         "viz_type": "pie",
-        "metric": "sales"
+        "metric": "Quantity"
       },
       "active": true,
       "source_file": "clean",
@@ -673,32 +627,32 @@
     },
     {
       "id": "vis-card-anomaly-alert",
-      "kpi_id": "KPI_FACT_ORDERS_ANOMALY",
-      "title": "Alerte Statistique COMEX : Furniture",
-      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = -0.89",
+      "kpi_id": "KPI_FACT_SALES_ANOMALY",
+      "title": "Alerte Statistique COMEX : regency cakestand 3 tier",
+      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = 3.48",
       "chartType": "card",
       "domain": "clean",
       "data": [
         {
-          "entity": "Furniture",
-          "z_score": -0.89,
-          "alert": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
+          "entity": "regency cakestand 3 tier",
+          "z_score": 3.48,
+          "alert": "Divergence de volume à +3.48 écarts-types de la moyenne (8,802.83 $)."
         }
       ],
       "labelField": "entity",
       "valueField": "z_score",
       "metricLabel": "Z-Score",
       "sql": "-- Détection automatique IQR & Z-score multi-agents",
-      "dax": "ZScore Outlier = -0.89",
+      "dax": "ZScore Outlier = 3.48",
       "superset": {
         "viz_type": "big_number_total",
         "metric": "z_score"
       },
       "active": true,
       "source_file": "clean",
-      "cardValue": -0.89,
-      "cardValueFormatted": "Z = -0.89",
-      "cardBenchmark": "Perte opérationnelle active (-1,240.38 $). Érosion directe de la rentabilité."
+      "cardValue": 3.48,
+      "cardValueFormatted": "Z = +3.48",
+      "cardBenchmark": "Divergence de volume à +3.48 écarts-types de la moyenne (8,802.83 $)."
     }
   ],
   "prompt_visuals": []
