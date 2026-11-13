@@ -460,7 +460,13 @@ def semantic_node(state: BIFlowState) -> dict:
         domain = "luxury"
     
     col_keywords = " ".join([c.replace("_", " ") for c in df.columns[:8]])
-    query_intent = f"{domain} {col_keywords} performance kpis"
+    b_ctx = state.get("business_context", "")
+    few_shots = state.get("few_shot_examples", [])
+    fs_str = ""
+    if few_shots and isinstance(few_shots, list):
+        fs_str = " ".join([f"{ex.get('question', '')} {ex.get('sql', '')}" for ex in few_shots if isinstance(ex, dict)])
+    
+    query_intent = f"{domain} {col_keywords} {b_ctx} {fs_str} performance kpis".strip()
 
     payload = pipeline.run(
         df=df,

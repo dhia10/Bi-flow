@@ -57,7 +57,9 @@ class BIFlowState(TypedDict, total=False):
     # --- Entrée ---
     run_id: str
     dataset_ref: str             # chemin CSV / chaîne de connexion / URL d'API
-    domain: str                  # "retail", "banking", "telecom", ...
+    domain: str                  # "retail", "luxury", "banking", "telecom", ...
+    business_context: str        # Contexte métier injecté via le formulaire
+    few_shot_examples: list      # Exemples Few-Shot (In-Context Learning)
 
     # --- Sorties des agents (chaque agent écrit SES champs) ---
     profile_report: dict         # Data Profiler
@@ -82,16 +84,23 @@ class BIFlowState(TypedDict, total=False):
 
 
 # Champs qu'un agent n'a pas le droit d'écrire
-INPUT_KEYS = frozenset({"run_id", "dataset_ref", "domain"})
+INPUT_KEYS = frozenset({"run_id", "dataset_ref", "domain", "business_context", "few_shot_examples"})
 ORCHESTRATOR_KEYS = frozenset({"control", "trace", "agent_payloads", "json_transitions"})
 STATE_KEYS = frozenset(BIFlowState.__annotations__)
 
 
-def initial_state(dataset_ref: str, domain: str = "generic") -> BIFlowState:
+def initial_state(
+    dataset_ref: str,
+    domain: str = "generic",
+    business_context: str = "",
+    few_shot_examples: list | None = None
+) -> BIFlowState:
     return BIFlowState(
         run_id=uuid.uuid4().hex[:8],
         dataset_ref=dataset_ref,
         domain=domain,
+        business_context=business_context,
+        few_shot_examples=few_shot_examples or [],
         decision_log=[],
         trace=[],
         control=ControlSignals(),

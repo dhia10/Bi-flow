@@ -15,7 +15,7 @@ echo =========================================================================
 echo  BI-Flow - Plateforme Multi-Agents LangGraph et Visualisation Executive
 echo =========================================================================
 echo  [1/2] Demarrage du serveur LangGraph Studio Dev (Port 2024)...
-start "LangGraph Dev" /B "C:\Users\DELL\AppData\Local\Programs\Python\Python311\Scripts\langgraph.exe" dev --port 2024 --no-browser
+start "LangGraph Dev" /B "C:\Users\DELL\AppData\Local\Programs\Python\Python311\Scripts\langgraph.exe" dev --port 2024 --host 127.0.0.1 --no-browser
 
 echo  [2/2] Demarrage du serveur Web et API FastAPI (Port 8000)...
 echo -------------------------------------------------------------------------

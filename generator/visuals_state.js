@@ -1,0 +1,306 @@
+window.VISUALS_STATE = {
+  "visuals": [
+    {
+      "id": "vis-bar-brand-revenue",
+      "kpi_id": "KPI_POPUPS_BRAND_REVENUE",
+      "title": "Chiffre d'Affaires par Marque (Top 8)",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Bar",
+      "chartType": "bar",
+      "domain": "luxury",
+      "data": [
+        {
+          "brand": "Estée Lauder",
+          "revenue": 20959740.75,
+          "units": 178610
+        },
+        {
+          "brand": "YSL Beauty",
+          "revenue": 20394405.87,
+          "units": 200454
+        },
+        {
+          "brand": "Sisley-Paris",
+          "revenue": 19017497.29,
+          "units": 197147
+        },
+        {
+          "brand": "Hourglass",
+          "revenue": 18755973.53,
+          "units": 170577
+        },
+        {
+          "brand": "Rare Beauty",
+          "revenue": 18731476.96,
+          "units": 174962
+        },
+        {
+          "brand": "Chanel",
+          "revenue": 18028914.89,
+          "units": 171121
+        },
+        {
+          "brand": "MAC Cosmetics",
+          "revenue": 17970144.46,
+          "units": 183945
+        },
+        {
+          "brand": "Clé de Peau Beauté",
+          "revenue": 17931358.85,
+          "units": 197276
+        }
+      ],
+      "labelField": "brand",
+      "valueField": "revenue",
+      "metricLabel": "Chiffre d'Affaires ($)",
+      "sql": "SELECT brand, ROUND(SUM(price_usd * units_sold), 2) AS revenue FROM FACT_POPUPS GROUP BY brand ORDER BY revenue DESC LIMIT 8;",
+      "dax": "Revenue By Brand = CALCULATE(SUMX('FACT_POPUPS', 'FACT_POPUPS'[price_usd] * 'FACT_POPUPS'[units_sold]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_bar",
+        "metric": "revenue"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 8
+    },
+    {
+      "id": "vis-pie-region-sales",
+      "kpi_id": "KPI_POPUPS_REGION_SHARE",
+      "title": "Répartition des Ventes par Région",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset Donut / Pie",
+      "chartType": "pie",
+      "domain": "luxury",
+      "data": [
+        {
+          "region": "Latin America",
+          "units_sold": 880341,
+          "sell_through_pct": 72.7
+        },
+        {
+          "region": "Europe",
+          "units_sold": 839000,
+          "sell_through_pct": 72.6
+        },
+        {
+          "region": "Asia-Pacific",
+          "units_sold": 831934,
+          "sell_through_pct": 73.6
+        },
+        {
+          "region": "Middle East",
+          "units_sold": 800955,
+          "sell_through_pct": 73.9
+        },
+        {
+          "region": "North America",
+          "units_sold": 780254,
+          "sell_through_pct": 73.5
+        }
+      ],
+      "labelField": "region",
+      "valueField": "units_sold",
+      "metricLabel": "Unités Vendues",
+      "sql": "SELECT region, SUM(units_sold) AS units_sold FROM FACT_POPUPS GROUP BY region ORDER BY units_sold DESC;",
+      "dax": "Regional Share = DIVIDE(SUM('FACT_POPUPS'[units_sold]), CALCULATE(SUM('FACT_POPUPS'[units_sold]), ALL('FACT_POPUPS')))",
+      "superset": {
+        "viz_type": "pie",
+        "metric": "units_sold"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 5
+    },
+    {
+      "id": "vis-bar-location-footfall",
+      "kpi_id": "KPI_POPUPS_LOCATION_FOOTFALL",
+      "title": "Fréquentation Quotidienne par Type d'Emplacement",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Bar",
+      "chartType": "bar",
+      "domain": "luxury",
+      "data": [
+        {
+          "location_type": "High-Street",
+          "avg_footfall": 1880.0,
+          "units_sold": 915749
+        },
+        {
+          "location_type": "Airport Duty-Free",
+          "avg_footfall": 1594.0,
+          "units_sold": 856913
+        },
+        {
+          "location_type": "Luxury Mall",
+          "avg_footfall": 1340.0,
+          "units_sold": 816760
+        },
+        {
+          "location_type": "Department Store Atrium",
+          "avg_footfall": 1191.0,
+          "units_sold": 819564
+        },
+        {
+          "location_type": "Art/Design District",
+          "avg_footfall": 920.0,
+          "units_sold": 723498
+        }
+      ],
+      "labelField": "location_type",
+      "valueField": "avg_footfall",
+      "metricLabel": "Visiteurs / Jour",
+      "sql": "SELECT location_type, ROUND(AVG(avg_daily_footfall), 0) AS avg_footfall FROM FACT_POPUPS GROUP BY location_type ORDER BY avg_footfall DESC;",
+      "dax": "Avg Footfall By Location = CALCULATE(AVERAGE('FACT_POPUPS'[avg_daily_footfall]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_bar",
+        "metric": "avg_footfall"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 5
+    },
+    {
+      "id": "vis-line-temporal",
+      "kpi_id": "KPI_POPUPS_TEMPORAL_TREND",
+      "title": "Tendance Mensuelle des Unités Vendues",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Line",
+      "chartType": "line",
+      "domain": "luxury",
+      "data": [
+        {
+          "month": "2024-02",
+          "units_sold": 91290,
+          "revenue": 10080930.69
+        },
+        {
+          "month": "2024-03",
+          "units_sold": 263443,
+          "revenue": 25571980.65
+        },
+        {
+          "month": "2024-04",
+          "units_sold": 196804,
+          "revenue": 18334526.06
+        },
+        {
+          "month": "2024-05",
+          "units_sold": 261736,
+          "revenue": 27464538.97
+        },
+        {
+          "month": "2024-06",
+          "units_sold": 302843,
+          "revenue": 29404026.61
+        },
+        {
+          "month": "2024-07",
+          "units_sold": 286401,
+          "revenue": 27260246.78
+        },
+        {
+          "month": "2024-08",
+          "units_sold": 264164,
+          "revenue": 26136013.0
+        },
+        {
+          "month": "2024-09",
+          "units_sold": 241910,
+          "revenue": 23646277.26
+        },
+        {
+          "month": "2024-10",
+          "units_sold": 266693,
+          "revenue": 23844201.13
+        },
+        {
+          "month": "2024-11",
+          "units_sold": 302164,
+          "revenue": 25957452.56
+        },
+        {
+          "month": "2024-12",
+          "units_sold": 251731,
+          "revenue": 25980994.82
+        },
+        {
+          "month": "2025-01",
+          "units_sold": 245488,
+          "revenue": 23569941.04
+        },
+        {
+          "month": "2025-02",
+          "units_sold": 208550,
+          "revenue": 19415782.5
+        },
+        {
+          "month": "2025-03",
+          "units_sold": 247162,
+          "revenue": 22741550.61
+        },
+        {
+          "month": "2025-04",
+          "units_sold": 261033,
+          "revenue": 23550704.21
+        },
+        {
+          "month": "2025-05",
+          "units_sold": 224400,
+          "revenue": 24385097.99
+        },
+        {
+          "month": "2025-06",
+          "units_sold": 155030,
+          "revenue": 14910069.03
+        },
+        {
+          "month": "2025-07",
+          "units_sold": 58167,
+          "revenue": 6278784.67
+        },
+        {
+          "month": "2025-08",
+          "units_sold": 3475,
+          "revenue": 202245.0
+        }
+      ],
+      "labelField": "month",
+      "valueField": "units_sold",
+      "metricLabel": "Unités Vendues",
+      "sql": "SELECT strftime(CAST(start_date AS DATE), '%Y-%m') AS month, SUM(units_sold) AS units_sold FROM FACT_POPUPS GROUP BY 1 ORDER BY 1 ASC;",
+      "dax": "Monthly Units Trend = CALCULATE(SUM('FACT_POPUPS'[units_sold]), DATESMTD('FACT_POPUPS'[start_date]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_line",
+        "metric": "units_sold"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 24
+    },
+    {
+      "id": "vis-card-anomaly-alert",
+      "kpi_id": "KPI_POPUPS_ANOMALY",
+      "title": "Alerte Statistique COMEX : Pop-Ups High-Street",
+      "subtitle": "Agent 6 Analyst | Z-Score = +3.65 (Milan & Tokyo)",
+      "chartType": "card",
+      "domain": "luxury",
+      "data": [
+        {
+          "entity": "High-Street Milan / Tokyo",
+          "z_score": 3.65,
+          "alert": "Surperformance de trafic à +3.65 écarts-types de la moyenne du réseau (1,880 vs 1,191 vis/j)."
+        }
+      ],
+      "labelField": "entity",
+      "valueField": "z_score",
+      "metricLabel": "Z-Score",
+      "sql": "-- Détection automatique IQR & Z-score multi-agents",
+      "dax": "ZScore Outlier = 3.65",
+      "superset": {
+        "viz_type": "big_number_total",
+        "metric": "z_score"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "cardValue": 3.65,
+      "cardValueFormatted": "Z = +3.65",
+      "cardBenchmark": "Surperformance de trafic à +3.65 écarts-types (1,880 vs 1,191 vis/j)."
+    }
+  ]
+};

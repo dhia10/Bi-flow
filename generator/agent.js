@@ -124,6 +124,17 @@
 
   /* ═══════════════════════ DICTIONNAIRES ═══════════════════════ */
   const SYN = {
+    brand: ['brand', 'marque', 'marques', 'maison', 'maisons', 'label', 'labels'],
+    region: ['region', 'regions', 'zone', 'zones', 'pays', 'continent', 'territoire', 'geo'],
+    location_type: ['location', 'location type', 'emplacement', 'emplacements', 'lieu', 'lieux', 'format', 'formats'],
+    footfall: ['footfall', 'trafic', 'frequentation', 'affluence', 'visiteurs', 'visiteur', 'visite', 'visites', 'passage'],
+    avg_daily_footfall: ['footfall', 'trafic', 'frequentation', 'affluence', 'visiteurs', 'visiteur', 'visite', 'visites', 'passage'],
+    avg_footfall: ['footfall', 'trafic', 'frequentation', 'affluence', 'visiteurs', 'visiteur', 'visite', 'visites', 'passage'],
+    units_sold: ['units', 'unites', 'pieces', 'produits', 'volume', 'ventes', 'quantite'],
+    units: ['units', 'unites', 'pieces', 'produits', 'volume', 'ventes', 'quantite'],
+    sell_through_pct: ['sell through', 'ecoulement', 'taux d ecoulement', 'taux de vente', 'conversion'],
+    lease_length_days: ['lease', 'bail', 'duree de bail', 'duree', 'jours', 'activation', 'ephemere'],
+
     revenue: ["chiffre d'affaires", "chiffre d affaires", "chiffre d'affaire", 'revenu', 'revenus', 'revenue', 'recette', 'recettes', 'ventes', 'turnover'],
     market_cap: ['market cap', 'capitalisation', 'capitalisation boursiere', 'valorisation'],
     ebitda: ['ebitda', 'excedent brut d exploitation', 'marge operationnelle'],
@@ -163,6 +174,17 @@
   const synFor = tok => SYN[tok] || SYN[tok.replace(/ies$/, 'y')] || SYN[tok.replace(/s$/, '')] || [];
 
   const LABELS = {
+    brand: 'Marque',
+    region: 'Région',
+    location_type: "Type d'Emplacement",
+    avg_footfall: 'Fréquentation Journalière',
+    avg_daily_footfall: 'Fréquentation Quotidienne',
+    units_sold: 'Unités Vendues',
+    units: 'Unités Vendues',
+    sell_through_pct: "Taux d'Écoulement (%)",
+    lease_length_days: 'Durée du Bail (Jours)',
+    revenue: "Chiffre d'Affaires ($)",
+
     revenue: "Chiffre d'affaires", market_cap: 'Market Cap', ebitda: 'EBITDA', net_income: 'Résultat net', count: 'Nombre',
     total_revenue: "Chiffre d'Affaires Global", total_market_cap: 'Market Cap Cumulé', total_ebitda: 'EBITDA Total',
     total_events: 'Événements & Veille', avg_pe_ratio: 'P/E Ratio Moyen', avg_roe: 'ROE Moyen',
@@ -2368,7 +2390,7 @@
       }
       done.push(`comparaison ${intent.comparison.betterLabel} (${intent.comparison.colorBetter}) / ${intent.comparison.worseLabel} (${intent.comparison.colorWorse})`);
       if (intent.comparison.fallback === 'gdp') {
-        notes.push(`⚠️ Pas de taux de change pour "${intent.comparison.baseline}" → comparaison sur le PIB.`);
+        notes.push(`[Avertissement] Pas de taux de change pour "${intent.comparison.baseline}" → comparaison sur le PIB.`);
       }
     }
 
@@ -2540,7 +2562,7 @@
     if (Object.keys(meta).length || Object.keys(style).length) D.updateVisual(id, meta, style);
     const d = describeFormat(intent.format); if (d) done.push(d);
     if (intent.topN !== null) notes.push("Ce visuel n'a pas été créé par l'agent : le top N ne peut pas être recalculé.");
-    return out(done.length ? '🎨 Visuel mis à jour : ' + done.join(' · ') + '.' : "Je n'ai rien compris à modifier — essaie : « mets en rouge » ou « filtre sur France, Italy ».", { chartType: t });
+    return out(done.length ? '[Mise à jour] Visuel mis à jour : ' + done.join(' · ') + '.' : "Je n'ai rien compris à modifier — essaie : « mets en rouge » ou « filtre sur France, Italy ».", { chartType: t });
   }
 
   function dataSignature(c) {
@@ -2724,7 +2746,7 @@
   function execute(intent) {
     const D = root.Dashboard;
     const notes = intent.notes ? intent.notes.slice() : [];
-    const out = (reply, extra) => Object.assign({ reply: reply + (notes.length ? '\n\nℹ️ ' + notes.join('\nℹ️ ') : ''), created: [], suggestions: [] }, extra || {});
+    const out = (reply, extra) => Object.assign({ reply: reply + (notes.length ? '\n\n[Note] ' + notes.join('\n[Note] ') : ''), created: [], suggestions: [] }, extra || {});
     if (!D) throw new Error("L'objet Dashboard n'est pas initialisé sur window.");
 
     if (intent.action === 'dashboard_bg') {
@@ -2734,7 +2756,7 @@
       }
       Memory.state.lastAction = 'dashboard_bg';
       Memory.save();
-      return out(`🎨 Arrière-plan de tout le tableau de bord mis à jour : \`${bg}\`.\n\nLa couleur a été appliquée à l'ensemble du dashboard et enregistrée dans le catalogue pour persister après rechargement.`);
+      return out(`[Mise à jour] Arrière-plan mis à jour : \`${bg}\`.\n\nLa couleur a été appliquée à l'ensemble du dashboard et enregistrée dans le catalogue pour persister après rechargement.`);
     }
 
     if (intent.action === 'global_filter') {
@@ -2742,21 +2764,21 @@
       const { meta, style } = formatToMeta(f);
       if (Object.keys(meta).length || Object.keys(style).length) {
         const n = applyGlobalFormat(D, f);
-        replies.push(`✨ **Appliqué à ${n} visuel(s)** : ${describeFormat(f) || 'mise en forme'}.`);
+        replies.push(`[OK] **Appliqué à ${n} visuel(s)** : ${describeFormat(f) || 'mise en forme'}.`);
       }
-      if (intent.clearFilter) { clearGlobalFilter(); replies.push('🔍 Filtres globaux supprimés, données restaurées.'); }
+      if (intent.clearFilter) { clearGlobalFilter(); replies.push('[Filtres] Filtres globaux supprimés, données restaurées.'); }
       else if (intent.globalDataFilter || intent.topN) replies.push(applyGlobalDataFilter(D, intent).message);
       if (!replies.length) replies.push("Je n'ai rien trouvé à appliquer. Ex : « bordure 4px bleue sur tous les visuels » ou « filtre tous les visuels sur statut = Actif ».");
       return out(replies.join('\n\n'));
     }
 
-    if (intent.action === 'chat') return out(intent.chatReply || "Je t'écoute 🙂", { suggestions: ['Quels KPI sont disponibles ?'] });
+    if (intent.action === 'chat') return out(intent.chatReply || "Je t'écoute ", { suggestions: ['Quels KPI sont disponibles ?'] });
 
     if (intent.action === 'list') {
       const cat = ensureCatalog(), lines = [];
       cat.summary.forEach(s => lines.push(`- **${s.label}** (indicateur global)`));
       cat.datasets.forEach(d => lines.push(`- **${d.measures.map(m => m.label).join(', ')}** par ${d.dimLabel}`));
-      return out("📊 **KPIs & Dimensions disponibles :**\n" + lines.join('\n') + "\n\n💡 Exemple : *« Top 5 secteurs par CA en barres vertes »*.");
+      return out("[Catalogue] **KPIs & Dimensions disponibles :**\n" + lines.join('\n') + "\n\nExemple : *« Top 5 secteurs par CA en barres vertes »*.");
     }
 
     if (intent.action === 'undo') {
@@ -2767,7 +2789,7 @@
         if (it) {
           const id = recreate(D, it, last.prev.cfg, last.prev.style);
           Visuals.update(last.sid, { id, spec: last.prev.spec, cfg: last.prev.cfg, style: last.prev.style });
-          return out('↩️ Dernière modification annulée.');
+          return out('[Annuler] Dernière modification annulée.');
         }
       }
       let sid = last && last.type === 'create' ? last.sid : (Visuals.count() ? Visuals.items[Visuals.count() - 1].sid : null);
@@ -2775,31 +2797,31 @@
       const it = Visuals.bySid(sid);
       if (it) { try { D.removeVisual(it.id); } catch (e) { } Visuals.remove(sid); }
       Memory.state.activeSid = Visuals.count() ? Visuals.items[Visuals.count() - 1].sid : null;
-      return out('↩️ Dernier visuel annulé.');
+      return out('[Annuler] Dernier visuel annulé.');
     }
 
     if (intent.action === 'explain') {
       const it = activeItem(intent); const reg = it && D.getRegistry ? D.getRegistry()[it.id] : null;
       const c = (it && it.cfg) || (reg && reg.config);
       if (!c) return out("Je n'ai pas de visuel à expliquer.");
-      return out(`🔎 **${c.title}**\nType : ${c.chartType} · ${c.subtitle || ''}\nMesure : ${c.metricLabel || 'n/a'}` + (c.data ? ` · ${c.data.length} points` : '') +
+      return out(`[Détail] **${c.title}**\nType : ${c.chartType} · ${c.subtitle || ''}\nMesure : ${c.metricLabel || 'n/a'}` + (c.data ? ` · ${c.data.length} points` : '') +
         `\n\n\`\`\`sql\n${c.sql || ''}\n\`\`\`\n\`\`\`\n${c.dax || ''}\n\`\`\`` + (c.superset ? `\n**Superset :**\n\`\`\`json\n${JSON.stringify(c.superset, null, 2)}\n\`\`\`` : ''));
     }
 
     if (intent.action === 'delete') {
-      const it = activeItem(intent); if (!it) return out("⚠️ Aucun visuel actif à supprimer.");
+      const it = activeItem(intent); if (!it) return out("[Avertissement] Aucun visuel actif à supprimer.");
       const title = (D.list ? (D.list().find(v => v.id === it.id) || {}).title : '') || (it.cfg && it.cfg.title) || it.id;
       D.removeVisual(it.id); if (it.sid) Visuals.remove(it.sid);
       if (it.sid) deleteVisualFromBackend(it.sid);
       Memory.state.activeSid = Visuals.count() ? Visuals.items[Visuals.count() - 1].sid : null;
-      return out(`🗑️ Visuel supprimé : « ${title} ».`);
+      return out(`[Supprimé] Visuel supprimé : « ${title} ».`);
     }
 
     if (intent.action === 'show') {
-      const id = activeVisualId(intent); if (!id) return out("⚠️ Aucun visuel n'est affiché.");
+      const id = activeVisualId(intent); if (!id) return out("[Avertissement] Aucun visuel n'est affiché.");
       const card = (typeof document !== 'undefined') ? document.getElementById(id) : null;
       if (card && card.scrollIntoView) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-      return out(`🎯 Visuel mis en évidence.`);
+      return out(`[Focus] Visuel mis en évidence.`);
     }
 
     if (intent.action === 'update') {
@@ -2831,7 +2853,7 @@
       Visuals.update(spec.sid, { id, spec, cfg, style });
       Memory.state.log.push({ type: 'update', sid: spec.sid, prev });
       syncVisualToBackend({ sid: spec.sid, spec, cfg, style });
-      return out('🎨 Visuel mis à jour : ' + (done.length ? done.join(' · ') : 'données rafraîchies') + '.' + sqlBlock([cfg.sql]),
+      return out('[Mise à jour] Visuel mis à jour : ' + (done.length ? done.join(' · ') : 'données rafraîchies') + '.' + sqlBlock([cfg.sql]),
         { chartType: cfg.chartType, sid: spec.sid, sql: cfg.sql, superset: cfg.superset, updatedId: id, suggestions: suggestFor(cfg.chartType, built.group) });
     }
 
@@ -2905,7 +2927,7 @@
       const D = root.Dashboard; if (!CFG.errorVisualEnabled || !D || !D.addVisual) return null;
       const meta = ERROR_CODES[errType] || ERROR_CODES.RENDER_EXCEPTION;
       const id = D.addVisual({
-        title: `⚠️ [${meta.code}] ${meta.title}`, subtitle: `Auto-Diagnostic · ${new Date().toLocaleTimeString('fr-FR')}`, chartType: 'card', domain: 'DIAGNOSTIC',
+        title: `[Avertissement] [${meta.code}] ${meta.title}`, subtitle: `Auto-Diagnostic · ${new Date().toLocaleTimeString('fr-FR')}`, chartType: 'card', domain: 'DIAGNOSTIC',
         cardValue: null, cardValueFormatted: meta.code, metricLabel: details ? String(details).slice(0, 90) : meta.title, cardBenchmark: `Requête : "${(prompt || '').slice(0, 60)}"`, _isDiagnosticCard: true
       });
       if (id && D.updateVisual) D.updateVisual(id, {}, { borderLeft: `4px solid ${meta.color}`, boxShadow: `0 0 20px ${meta.color}40` });
@@ -2988,7 +3010,19 @@
     }
     async function step4(ctx) {
       const t0 = Date.now(); let result = null, err = null, ok = true;
-      if (ctx.clarify) { result = askWhichKpi(ctx.intent, ctx.clarify); }
+      if (ctx.clarify && !ctx.intent.chartExplicit && !ctx.intent.groups.length) {
+        result = askWhichKpi(ctx.intent, ctx.clarify);
+      } else if (ctx.clarify && (ctx.intent.chartExplicit || !ctx.intent.groups.length)) {
+        // Déduction automatique sans bloquer l'utilisateur
+        const cat = ensureCatalog();
+        const P = normWords(ctx.prompt || '');
+        let matched = cat.datasets.find(d => d.dimTerms.some(t => has(P, t))) || cat.datasets[0];
+        if (matched) {
+          ctx.intent.groups = [{ kind: 'dataset', ds: matched, measures: [matched.measures[0]], score: 5 }];
+          ctx.intent.confident = true;
+          ctx.clarify = null;
+        }
+      }
       if (!result && ctx.intent.action === 'unknown' && !ctx.intent.groups.length) {
         let txt = null;
         if (CFG.useLLM) { try { txt = await callLLMChat(ctx.prompt); } catch (e) { } }
@@ -3008,7 +3042,7 @@
           if (err) {
             ok = false;
             VisualErrorHandler.renderErrorVisualCard(detectErrorType(err), err.message, ctx.prompt);
-            result = { reply: `⚠️ Je n'ai pas pu afficher : ${err.message}. Carte de diagnostic ajoutée.`, created: [], suggestions: ['Quels KPI sont disponibles ?'] };
+            result = { reply: `[Avertissement] Je n'ai pas pu afficher : ${err.message}. Carte de diagnostic ajoutée.`, created: [], suggestions: ['Quels KPI sont disponibles ?'] };
           }
         }
       }
@@ -3139,7 +3173,7 @@
       Memory.addTurn('assistant', reply, { created: res.created });
       return Object.assign({ reply, created: res.created || [], suggestions: res.suggestions || [], needsInput: !!res.needsInput, sql: res.sql || null, superset: res.superset || null, totalTimeMs: Date.now() - started }, extra || {});
     };
-    if (!prompt) return finish({ reply: 'Dis-moi ce que tu veux voir 🙂' });
+    if (!prompt) return finish({ reply: 'Dis-moi ce que tu veux voir ' });
 
     const pend = resolvePending(prompt);
     if (pend) {
@@ -3150,14 +3184,14 @@
         const intent = Object.assign({}, base, { groups: groupsFromIds([pend.choice.id]), notes: [`Choix : ${pend.choice.label}`], action: base.action === 'unknown' || base.action === 'update' ? 'create' : base.action, confident: true });
         const ctx = { prompt, intent, chain: [], result: null };
         try { ctx.result = execute(intent); Memory.commit(intent, ctx.result); LocalLoRA.record(base.text, intent, true); }
-        catch (e) { ctx.result = { reply: '⚠️ ' + e.message, created: [] }; }
+        catch (e) { ctx.result = { reply: '[Avertissement] ' + e.message, created: [] }; }
         return finish(ctx.result, { intent, chain: ctx.chain });
       }
     } else if (Memory.state.pending) Memory.clearPending();
 
     const ctx = { prompt, chainId: uid('chain_'), chain: [], intent: null, ragChunks: [], ragContext: '', result: null, crag: null, clarify: null };
     try { await PromptChain.run(ctx); }
-    catch (e) { ctx.result = ctx.result || { reply: '⚠️ ' + e.message, created: [] }; }
+    catch (e) { ctx.result = ctx.result || { reply: '[Avertissement] ' + e.message, created: [] }; }
     return finish(ctx.result || { reply: 'Traitement terminé.' }, { intent: ctx.intent, chainId: ctx.chainId, chain: ctx.chain });
   }
 

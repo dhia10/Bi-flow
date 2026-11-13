@@ -72,7 +72,7 @@
 
         title="Parcourir et charger un fichier CSV, XLS ou XLSX depuis votre ordinateur pour construire les KPIs et afficher la dashboard">
 
-        <span>📂</span>
+        <span></span>
 
         <span>Parcourir Dataset (Excel / CSV)</span>
 
@@ -84,7 +84,7 @@
 
         title="Configurer la clé API Gemini (fallback sémantique)">
 
-        <span>🔑</span>
+        
 
         <span id="gemini-key-label">Clé Gemini</span>
 
@@ -100,7 +100,7 @@
 
       <button class="btn-header" onclick="openSupersetModal()">
 
-        <span>⚡</span>
+        
 
         <span>Guide Apache Superset</span>
 
@@ -166,7 +166,7 @@
 
         <div class="visuals-grid-header">
 
-          <span class="visuals-count" id="visuals-count-badge">3 Visuels Actifs</span>
+          <span class="visuals-count" id="visuals-count-badge">5 Visuels Actifs</span>
 
           <span style="font-size: 12px; color: var(--text-muted);">Glissez ou demandez à l'Agent pour ajouter de
 
@@ -196,7 +196,7 @@
 
         <div class="agent-title-box">
 
-          <div class="agent-avatar">🤖</div>
+          <div class="agent-avatar"></div>
 
           <div class="agent-status-text">
 
@@ -234,7 +234,7 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Affiche le Top 10 des entreprises par capitalisation boursière')">🏆 Top 10
+          onclick="Agent.submitPrompt('Affiche le Top 10 des entreprises par capitalisation boursière')"> Top 10
 
           Market Cap</button>
 
@@ -252,7 +252,7 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Change la couleur des barres en vert émeraude avec étiquettes de données')">🎨
+          onclick="Agent.submitPrompt('Change la couleur des barres en vert émeraude avec étiquettes de données')">
 
           Barres Vert Émeraude</button>
 
@@ -270,13 +270,13 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Applique un arrière-plan noir avec degré de flou 20px et coins arrondis à 24px')">✨
+          onclick="Agent.submitPrompt('Applique un arrière-plan noir avec degré de flou 20px et coins arrondis à 24px')">
 
           Flou 20px & Coins 24px</button>
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Ajoute une ombre bleu néon lumineuse avec coins arrondis')">💡 Ombre Néon
+          onclick="Agent.submitPrompt('Ajoute une ombre bleu néon lumineuse avec coins arrondis')"> Ombre Néon
 
           Bleue</button>
 
@@ -322,7 +322,7 @@
 
                 ombres portées ou néon, fond personnalisé.</li>
 
-              <li><strong>Bouton 🎨 Formater</strong> : volet interactif manuel disponible sur chaque visuel !</li>
+              <li><strong>Bouton  Formater</strong> : volet interactif manuel disponible sur chaque visuel !</li>
 
             </ul>
 
@@ -330,11 +330,11 @@
 
               ci-dessus !</p>
 
-            <p style="color: var(--text-muted); font-size: 11px; margin-top: 6px;">💡 <em>Astuce</em> : pour les
+            <p style="color: var(--text-muted); font-size: 11px; margin-top: 6px;"> <em>Astuce</em> : pour les
 
               demandes complexes (comparaisons "meilleur/pire que USA", filtres sémantiques…), l'agent bascule
 
-              automatiquement sur <strong>Gemini</strong> si la clé est configurée (bouton 🔑 en haut).</p>
+              automatiquement sur <strong>Gemini</strong> si la clé est configurée (bouton  en haut).</p>
 
           </div>
 
@@ -394,7 +394,7 @@
 
       <h3>
 
-        <span>🎨</span>
+        
 
         <span>Format du Visuel</span>
 
@@ -444,7 +444,7 @@
 
         <div class="format-section-title">
 
-          <span>✨</span>
+          
 
           <span>Effets & Arrière-plan (Power BI)</span>
 
@@ -565,6 +565,7 @@
   <!-- Data and Application Scripts -->
 
   <script src="data_store.js"></script>
+  <script src="visuals_state.js"></script>
 
   <script>
 
@@ -874,7 +875,7 @@
 
           .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:11px">$1</code>')
 
-          .replace(/✅|🎨|🗑️|ℹ️|⚠️|●|•|🔑|🌍|🏷️|💡|📊|⚡|🚀|✓/g, m => `<span>${m}</span>`)
+          .replace(/✅||🗑️|ℹ️|⚠️|●|•||🌍|🏷️||📊||🚀|✓/g, m => `<span>${m}</span>`)
 
           .replace(/\n/g, '<br/>');
 

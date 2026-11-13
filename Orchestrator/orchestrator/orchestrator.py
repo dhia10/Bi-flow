@@ -316,11 +316,18 @@ def _recursion_limit() -> int:
 
 
 def run_pipeline(agents: dict[str, Agent], dataset_ref: str,
-                 domain: str = "generic") -> BIFlowState:
+                 domain: str = "generic",
+                 business_context: str = "",
+                 few_shot_examples: list | None = None) -> BIFlowState:
     """Point d'entrée : construit le graphe et exécute le pipeline complet."""
     g = build_graph(agents)
-    res = g.invoke(initial_state(dataset_ref, domain),
-                   {"recursion_limit": _recursion_limit()})
+    init_st = initial_state(
+        dataset_ref=dataset_ref,
+        domain=domain,
+        business_context=business_context,
+        few_shot_examples=few_shot_examples or []
+    )
+    res = g.invoke(init_st, {"recursion_limit": _recursion_limit()})
     runs_dir = Path("runs")
     runs_dir.mkdir(parents=True, exist_ok=True)
     try:

@@ -34,7 +34,7 @@ import numpy as np
 
 import pandas as pd
 
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -1234,7 +1234,8 @@ async def run_langgraph_endpoint(
     demo_id: Optional[str] = None,
 
     domain: str = "retail",
-
+    business_context: Optional[str] = Form(None),
+    few_shot_examples: Optional[str] = Form(None),
 ):
 
     """Exécute l'orchestrateur LangGraph complet (7 agents) et renvoie la télémétrie des nœuds et des JSON."""
@@ -1330,7 +1331,19 @@ async def run_langgraph_endpoint(
 
     agents = get_production_agents()
 
-    result = run_pipeline(agents, dataset_ref=target_ref, domain=domain)
+    parsed_fs = []
+    if few_shot_examples:
+        try:
+            parsed_fs = json.loads(few_shot_examples) if isinstance(few_shot_examples, str) else few_shot_examples
+        except Exception:
+            parsed_fs = []
+    result = run_pipeline(
+        agents,
+        dataset_ref=target_ref,
+        domain=domain,
+        business_context=business_context or "",
+        few_shot_examples=parsed_fs
+    )
 
 
 
@@ -1990,3 +2003,53 @@ def api_execute_sql(payload: Dict[str, Any]):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+
+# ── Business Context & Few-Shot In-Context Learning Endpoints ───────────────
+_ACTIVE_CONTEXT = {
+    "domain": "luxury",
+    "business_context": "Pop-ups éphémères de cosmétiques et parfumerie sélective. Analyser la rentabilité par emplacement (High-Street vs Mall), l'attractivité des marques et le ratio footfall / durée de bail.",
+    "glossary": {
+        "sell_through_pct": "Taux d'écoulement du stock boutique (%)",
+        "avg_daily_footfall": "Fréquentation journalière moyenne (visiteurs/jour)",
+        "lease_length_days": "Durée d'activation du bail éphémère (jours)",
+        "price_usd": "Prix unitaire moyen du panier produit ($)",
+        "units_sold": "Volume total d'unités vendues"
+    },
+    "few_shot_examples": [
+        {
+            "question": "Quelles marques réalisent les meilleurs volumes de vente en pop-up ?",
+            "sql": "SELECT brand, SUM(units_sold) AS total_units FROM FACT_POPUPS GROUP BY brand ORDER BY total_units DESC LIMIT 5",
+            "description": "Agrégation du volume de vente par marque avec classement décroissant"
+        },
+        {
+            "question": "Quel type d'emplacement génère le plus fort trafic piéton moyen ?",
+            "sql": "SELECT location_type, ROUND(AVG(avg_daily_footfall), 0) AS footfall_moyen FROM FACT_POPUPS GROUP BY location_type ORDER BY footfall_moyen DESC",
+            "description": "Calcul du trafic journalier moyen par catégorie d'implantation"
+        },
+        {
+            "question": "Quelle est la part des ventes par grande région géographique ?",
+            "sql": "SELECT region, ROUND(SUM(units_sold) * 100.0 / (SELECT SUM(units_sold) FROM FACT_POPUPS), 1) AS part_pct FROM FACT_POPUPS GROUP BY region ORDER BY part_pct DESC",
+            "description": "Distribution relative en pourcentage par zone géographique"
+        }
+    ]
+}
+
+@app.get("/api/v1/context")
+def get_business_context():
+    """Renvoie le contexte métier actif et les exemples few-shot."""
+    return _ACTIVE_CONTEXT
+
+@app.post("/api/v1/context/update")
+def update_business_context(payload: Dict[str, Any]):
+    """Met à jour le contexte métier et les exemples few-shot en mémoire."""
+    global _ACTIVE_CONTEXT
+    if "business_context" in payload:
+        _ACTIVE_CONTEXT["business_context"] = str(payload["business_context"])
+    if "domain" in payload:
+        _ACTIVE_CONTEXT["domain"] = str(payload["domain"])
+    if "few_shot_examples" in payload and isinstance(payload["few_shot_examples"], list):
+        _ACTIVE_CONTEXT["few_shot_examples"] = payload["few_shot_examples"]
+    if "glossary" in payload and isinstance(payload["glossary"], dict):
+        _ACTIVE_CONTEXT["glossary"] = payload["glossary"]
+    return {"status": "success", "context": _ACTIVE_CONTEXT}

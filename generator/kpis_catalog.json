@@ -1,659 +1,395 @@
 {
   "metadata": {
-    "version": "2.0.0",
-    "active_dataset": "clean",
-    "table_name": "FACT_SALES",
-    "n_rows": 535125,
+    "version": "2.5.0",
+    "active_dataset": "luxury_cosmetics_popups",
+    "table_name": "FACT_POPUPS",
+    "n_rows": 2133,
     "columns": [
-      "InvoiceNo",
-      "StockCode",
-      "Description",
-      "Quantity",
-      "InvoiceDate",
-      "UnitPrice",
-      "CustomerID",
-      "Country"
+      "event_id",
+      "brand",
+      "region",
+      "city",
+      "location_type",
+      "event_type",
+      "start_date",
+      "end_date",
+      "lease_length_days",
+      "sku",
+      "product_name",
+      "price_usd",
+      "avg_daily_footfall",
+      "units_sold",
+      "sell_through_pct"
     ],
     "datasets": [
-      "clean"
+      "luxury_cosmetics_popups"
     ],
-    "last_updated": "2026-11-05T10:35:36.075625",
-    "generated_by": "Bi-Flow LangGraph Pipeline (DuckDB + Analyst Agents)",
-    "dashboard_background": "#0a0e17"
+    "last_updated": "2026-11-13T16:08:30.370933"
   },
   "kpis": [
     {
-      "id": "KPI_FACT_SALES_0_TOTALSTOCKCODEACTIFS",
-      "name": "Total Stockcode Actifs",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Stockcode Actifs (stockcodes)",
-      "source_table": "FACT_SALES",
-      "table_name": "FACT_SALES",
-      "aggregation_type": "CALC",
-      "metric_column": "StockCode",
-      "dimension_column": "InvoiceNo",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT CAST(COUNT(DISTINCT \"StockCode\") AS BIGINT) AS metric_value FROM df",
-      "raw_value": 3958,
-      "current_value_formatted": "3,958.00 stockcodes",
-      "suggested_prompts": [
-        "Total Stockcode Actifs",
-        "Analyse de Total Stockcode Actifs",
-        "Évolution de Total Stockcode Actifs"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Total Stockcode Actifs = 3958 -- [stockcodes]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/0"
-      },
-      "_data": [
-        {
-          "InvoiceNo": "556917",
-          "Quantity": 10713.0
-        },
-        {
-          "InvoiceNo": "563076",
-          "Quantity": 9330.0
-        },
-        {
-          "InvoiceNo": "572035",
-          "Quantity": 9140.0
-        },
-        {
-          "InvoiceNo": "563614",
-          "Quantity": 7832.0
-        },
-        {
-          "InvoiceNo": "552883",
-          "Quantity": 7466.0
-        },
-        {
-          "InvoiceNo": "576365",
-          "Quantity": 7458.0
-        },
-        {
-          "InvoiceNo": "574941",
-          "Quantity": 7378.0
-        },
-        {
-          "InvoiceNo": "548011",
-          "Quantity": 7292.0
-        },
-        {
-          "InvoiceNo": "545475",
-          "Quantity": 6528.0
-        },
-        {
-          "InvoiceNo": "541206",
-          "Quantity": 6286.0
-        }
-      ]
+      "id": "kpi_total_events",
+      "name": "Total Pop-Up Events",
+      "raw_value": 2133,
+      "formatted_value": "2,133 events",
+      "unit": "events",
+      "domain": "luxury",
+      "sql": "SELECT COUNT(*) FROM FACT_POPUPS;",
+      "dax": "Total Events = COUNTROWS('FACT_POPUPS')"
     },
     {
-      "id": "KPI_FACT_SALES_1_VOLUMEQUANTITY",
-      "name": "Volume Quantity",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Volume Quantity (unités)",
-      "source_table": "FACT_SALES",
-      "table_name": "FACT_SALES",
-      "aggregation_type": "CALC",
-      "metric_column": "Quantity",
-      "dimension_column": "InvoiceNo",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"Quantity\") AS DOUBLE), 1) AS metric_value FROM df WHERE \"Quantity\" IS NOT NULL",
-      "raw_value": 4632857.0,
-      "current_value_formatted": "4,632,857.00 unités",
-      "suggested_prompts": [
-        "Volume Quantity",
-        "Analyse de Volume Quantity",
-        "Évolution de Volume Quantity"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Volume Quantity = 4632857.0 -- [unités]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/1"
-      },
-      "_data": [
-        {
-          "InvoiceDate": "2010-12-01 08:26:00",
-          "Quantity": 40.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:28:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:34:00",
-          "Quantity": 98.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:35:00",
-          "Quantity": 3.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:45:00",
-          "Quantity": 449.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:00:00",
-          "Quantity": 80.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:01:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:02:00",
-          "Quantity": 88.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:09:00",
-          "Quantity": 32.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:32:00",
-          "Quantity": 200.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:34:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:37:00",
-          "Quantity": 434.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:41:00",
-          "Quantity": 221.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:45:00",
-          "Quantity": 134.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:49:00",
-          "Quantity": -1.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:53:00",
-          "Quantity": 190.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:56:00",
-          "Quantity": 53.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:57:00",
-          "Quantity": 236.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:58:00",
-          "Quantity": 500.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:59:00",
-          "Quantity": 108.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:03:00",
-          "Quantity": 107.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:19:00",
-          "Quantity": 1292.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:24:00",
-          "Quantity": -14.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:29:00",
-          "Quantity": 103.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:37:00",
-          "Quantity": 8.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:39:00",
-          "Quantity": 544.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:47:00",
-          "Quantity": 260.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:51:00",
-          "Quantity": 162.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:52:00",
-          "Quantity": 162.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:53:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:21:00",
-          "Quantity": 124.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:22:00",
-          "Quantity": 116.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:27:00",
-          "Quantity": 97.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:29:00",
-          "Quantity": 438.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:32:00",
-          "Quantity": 100.0
-        }
-      ]
+      "id": "kpi_total_revenue",
+      "name": "Chiffre d'Affaires Total",
+      "raw_value": 398735363.58,
+      "formatted_value": "398,735,363.58 $",
+      "unit": "$",
+      "domain": "luxury",
+      "sql": "SELECT ROUND(SUM(price_usd * units_sold), 2) FROM FACT_POPUPS;",
+      "dax": "Total Revenue = SUMX('FACT_POPUPS', 'FACT_POPUPS'[price_usd] * 'FACT_POPUPS'[units_sold])"
     },
     {
-      "id": "KPI_FACT_SALES_2_TOTALUNITPRICE",
-      "name": "Total Unitprice",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Total Unitprice ($)",
-      "source_table": "FACT_SALES",
-      "table_name": "FACT_SALES",
-      "aggregation_type": "CALC",
-      "metric_column": "UnitPrice",
-      "dimension_column": "InvoiceNo",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(SUM(\"UnitPrice\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"UnitPrice\" IS NOT NULL",
-      "raw_value": 1747581.42,
-      "current_value_formatted": "1,747,581.42 $",
-      "suggested_prompts": [
-        "Total Unitprice",
-        "Analyse de Total Unitprice",
-        "Évolution de Total Unitprice"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Total Unitprice = 1747581.42 -- [$]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/2"
-      },
-      "_data": [
-        {
-          "StockCode": "85099B",
-          "Quantity": 37776.0
-        },
-        {
-          "StockCode": "22197",
-          "Quantity": 32287.0
-        },
-        {
-          "StockCode": "84879",
-          "Quantity": 28361.0
-        },
-        {
-          "StockCode": "85123A",
-          "Quantity": 28076.0
-        },
-        {
-          "StockCode": "84077",
-          "Quantity": 27817.0
-        },
-        {
-          "StockCode": "21212",
-          "Quantity": 26601.0
-        }
-      ]
+      "id": "kpi_total_units_sold",
+      "name": "Unités Vendues Totales",
+      "raw_value": 4132484,
+      "formatted_value": "4,132,484 unités",
+      "unit": "unités",
+      "domain": "luxury",
+      "sql": "SELECT SUM(units_sold) FROM FACT_POPUPS;",
+      "dax": "Total Units Sold = SUM('FACT_POPUPS'[units_sold])"
     },
     {
-      "id": "KPI_FACT_SALES_3_MOYENNEUNITPRICE",
-      "name": "Moyenne Unitprice",
-      "domain": "clean",
-      "category": "Général",
-      "description": "Métrique calculée DuckDB : Moyenne Unitprice ($)",
-      "source_table": "FACT_SALES",
-      "table_name": "FACT_SALES",
-      "aggregation_type": "CALC",
-      "metric_column": "UnitPrice",
-      "dimension_column": "InvoiceNo",
-      "chart_type": "card",
-      "superset_chart_type": "big_number_total",
-      "sql_superset": "SELECT ROUND(CAST(AVG(\"UnitPrice\") AS DOUBLE), 2) AS metric_value FROM df WHERE \"UnitPrice\" IS NOT NULL",
-      "raw_value": 3.27,
-      "current_value_formatted": "3.27 $",
-      "suggested_prompts": [
-        "Moyenne Unitprice",
-        "Analyse de Moyenne Unitprice",
-        "Évolution de Moyenne Unitprice"
-      ],
-      "active": true,
-      "source_file": "clean",
-      "top_n": 10,
-      "dax_measure": "Moyenne Unitprice = 3.27 -- [$]",
-      "api_endpoint": {
-        "method": "GET",
-        "path": "/api/v1/kpi/3"
-      },
-      "_data": []
+      "id": "kpi_avg_daily_footfall",
+      "name": "Fréquentation Quotidienne Moyenne",
+      "raw_value": 1407.1,
+      "formatted_value": "1,407.1 visiteurs/j",
+      "unit": "visiteurs/j",
+      "domain": "luxury",
+      "sql": "SELECT ROUND(AVG(avg_daily_footfall), 1) FROM FACT_POPUPS;",
+      "dax": "Avg Daily Footfall = AVERAGE('FACT_POPUPS'[avg_daily_footfall])"
+    },
+    {
+      "id": "kpi_avg_sell_through_pct",
+      "name": "Taux d'Écoulement Moyen",
+      "raw_value": 73.2,
+      "formatted_value": "73.2 %",
+      "unit": "%",
+      "domain": "luxury",
+      "sql": "SELECT ROUND(AVG(sell_through_pct), 1) FROM FACT_POPUPS;",
+      "dax": "Avg Sell Through = AVERAGE('FACT_POPUPS'[sell_through_pct])"
+    },
+    {
+      "id": "kpi_avg_lease_length_days",
+      "name": "Durée Moyenne de Bail",
+      "raw_value": 46.8,
+      "formatted_value": "46.8 jours",
+      "unit": "jours",
+      "domain": "luxury",
+      "sql": "SELECT ROUND(AVG(lease_length_days), 1) FROM FACT_POPUPS;",
+      "dax": "Avg Lease Length = AVERAGE('FACT_POPUPS'[lease_length_days])"
     }
   ],
   "auto_visuals": [
     {
-      "id": "vis-bar-invoiceno",
-      "kpi_id": "KPI_FACT_SALES_BAR",
-      "title": "Distribution de Quantity par Invoiceno (Top 10)",
-      "subtitle": "Dataset: clean | Apache Superset ECharts Bar",
+      "id": "vis-bar-brand-revenue",
+      "kpi_id": "KPI_POPUPS_BRAND_REVENUE",
+      "title": "Chiffre d'Affaires par Marque (Top 8)",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Bar",
       "chartType": "bar",
-      "domain": "clean",
+      "domain": "luxury",
       "data": [
         {
-          "InvoiceNo": "556917",
-          "Quantity": 10713.0
+          "brand": "Estée Lauder",
+          "revenue": 20959740.75,
+          "units": 178610
         },
         {
-          "InvoiceNo": "563076",
-          "Quantity": 9330.0
+          "brand": "YSL Beauty",
+          "revenue": 20394405.87,
+          "units": 200454
         },
         {
-          "InvoiceNo": "572035",
-          "Quantity": 9140.0
+          "brand": "Sisley-Paris",
+          "revenue": 19017497.29,
+          "units": 197147
         },
         {
-          "InvoiceNo": "563614",
-          "Quantity": 7832.0
+          "brand": "Hourglass",
+          "revenue": 18755973.53,
+          "units": 170577
         },
         {
-          "InvoiceNo": "552883",
-          "Quantity": 7466.0
+          "brand": "Rare Beauty",
+          "revenue": 18731476.96,
+          "units": 174962
         },
         {
-          "InvoiceNo": "576365",
-          "Quantity": 7458.0
+          "brand": "Chanel",
+          "revenue": 18028914.89,
+          "units": 171121
         },
         {
-          "InvoiceNo": "574941",
-          "Quantity": 7378.0
+          "brand": "MAC Cosmetics",
+          "revenue": 17970144.46,
+          "units": 183945
         },
         {
-          "InvoiceNo": "548011",
-          "Quantity": 7292.0
-        },
-        {
-          "InvoiceNo": "545475",
-          "Quantity": 6528.0
-        },
-        {
-          "InvoiceNo": "541206",
-          "Quantity": 6286.0
+          "brand": "Clé de Peau Beauté",
+          "revenue": 17931358.85,
+          "units": 197276
         }
       ],
-      "labelField": "InvoiceNo",
-      "valueField": "Quantity",
-      "metricLabel": "Quantity",
-      "sql": "SELECT \"InvoiceNo\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"InvoiceNo\" ORDER BY \"Quantity\" DESC LIMIT 10;",
-      "dax": "Quantity By InvoiceNo = CALCULATE(SUM('FACT_SALES'[Quantity]))",
+      "labelField": "brand",
+      "valueField": "revenue",
+      "metricLabel": "Chiffre d'Affaires ($)",
+      "sql": "SELECT brand, ROUND(SUM(price_usd * units_sold), 2) AS revenue FROM FACT_POPUPS GROUP BY brand ORDER BY revenue DESC LIMIT 8;",
+      "dax": "Revenue By Brand = CALCULATE(SUMX('FACT_POPUPS', 'FACT_POPUPS'[price_usd] * 'FACT_POPUPS'[units_sold]))",
       "superset": {
         "viz_type": "echarts_timeseries_bar",
-        "metric": "Quantity"
+        "metric": "revenue"
       },
       "active": true,
-      "source_file": "clean",
-      "top_n": 10
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 8
     },
     {
-      "id": "vis-line-invoicedate",
-      "kpi_id": "KPI_FACT_SALES_LINE",
-      "title": "Tendance Chronologique de Quantity (InvoiceDate)",
-      "subtitle": "Dataset: clean | Apache Superset ECharts Line",
-      "chartType": "line",
-      "domain": "clean",
-      "data": [
-        {
-          "InvoiceDate": "2010-12-01 08:26:00",
-          "Quantity": 40.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:28:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:34:00",
-          "Quantity": 98.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:35:00",
-          "Quantity": 3.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 08:45:00",
-          "Quantity": 449.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:00:00",
-          "Quantity": 80.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:01:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:02:00",
-          "Quantity": 88.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:09:00",
-          "Quantity": 32.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:32:00",
-          "Quantity": 200.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:34:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:37:00",
-          "Quantity": 434.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:41:00",
-          "Quantity": 221.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:45:00",
-          "Quantity": 134.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:49:00",
-          "Quantity": -1.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:53:00",
-          "Quantity": 190.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:56:00",
-          "Quantity": 53.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:57:00",
-          "Quantity": 236.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:58:00",
-          "Quantity": 500.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 09:59:00",
-          "Quantity": 108.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:03:00",
-          "Quantity": 107.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:19:00",
-          "Quantity": 1292.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:24:00",
-          "Quantity": -14.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:29:00",
-          "Quantity": 103.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:37:00",
-          "Quantity": 8.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:39:00",
-          "Quantity": 544.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:47:00",
-          "Quantity": 260.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:51:00",
-          "Quantity": 162.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:52:00",
-          "Quantity": 162.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 10:53:00",
-          "Quantity": 12.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:21:00",
-          "Quantity": 124.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:22:00",
-          "Quantity": 116.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:27:00",
-          "Quantity": 97.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:29:00",
-          "Quantity": 438.0
-        },
-        {
-          "InvoiceDate": "2010-12-01 11:32:00",
-          "Quantity": 100.0
-        }
-      ],
-      "labelField": "InvoiceDate",
-      "valueField": "Quantity",
-      "metricLabel": "Quantity",
-      "sql": "SELECT \"InvoiceDate\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"InvoiceDate\" ORDER BY \"InvoiceDate\" ASC;",
-      "dax": "Quantity Over Time = CALCULATE(SUM('FACT_SALES'[Quantity]))",
-      "superset": {
-        "viz_type": "echarts_timeseries_line",
-        "metric": "Quantity"
-      },
-      "active": true,
-      "source_file": "clean",
-      "top_n": 35
-    },
-    {
-      "id": "vis-pie-stockcode",
-      "kpi_id": "KPI_FACT_SALES_PIE",
-      "title": "Part de Marché par Stockcode (Top 6)",
-      "subtitle": "Dataset: clean | Apache Superset Donut / Pie",
+      "id": "vis-pie-region-sales",
+      "kpi_id": "KPI_POPUPS_REGION_SHARE",
+      "title": "Répartition des Ventes par Région",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset Donut / Pie",
       "chartType": "pie",
-      "domain": "clean",
+      "domain": "luxury",
       "data": [
         {
-          "StockCode": "85099B",
-          "Quantity": 37776.0
+          "region": "Latin America",
+          "units_sold": 880341,
+          "sell_through_pct": 72.7
         },
         {
-          "StockCode": "22197",
-          "Quantity": 32287.0
+          "region": "Europe",
+          "units_sold": 839000,
+          "sell_through_pct": 72.6
         },
         {
-          "StockCode": "84879",
-          "Quantity": 28361.0
+          "region": "Asia-Pacific",
+          "units_sold": 831934,
+          "sell_through_pct": 73.6
         },
         {
-          "StockCode": "85123A",
-          "Quantity": 28076.0
+          "region": "Middle East",
+          "units_sold": 800955,
+          "sell_through_pct": 73.9
         },
         {
-          "StockCode": "84077",
-          "Quantity": 27817.0
-        },
-        {
-          "StockCode": "21212",
-          "Quantity": 26601.0
+          "region": "North America",
+          "units_sold": 780254,
+          "sell_through_pct": 73.5
         }
       ],
-      "labelField": "StockCode",
-      "valueField": "Quantity",
-      "metricLabel": "Quantity",
-      "sql": "SELECT \"StockCode\", SUM(\"Quantity\") AS \"Quantity\" FROM \"FACT_SALES\" GROUP BY \"StockCode\" ORDER BY \"Quantity\" DESC LIMIT 6;",
-      "dax": "Quantity Share = DIVIDE(SUM('FACT_SALES'[Quantity]), CALCULATE(SUM('FACT_SALES'[Quantity]), ALL('FACT_SALES')))",
+      "labelField": "region",
+      "valueField": "units_sold",
+      "metricLabel": "Unités Vendues",
+      "sql": "SELECT region, SUM(units_sold) AS units_sold FROM FACT_POPUPS GROUP BY region ORDER BY units_sold DESC;",
+      "dax": "Regional Share = DIVIDE(SUM('FACT_POPUPS'[units_sold]), CALCULATE(SUM('FACT_POPUPS'[units_sold]), ALL('FACT_POPUPS')))",
       "superset": {
         "viz_type": "pie",
-        "metric": "Quantity"
+        "metric": "units_sold"
       },
       "active": true,
-      "source_file": "clean",
-      "top_n": 6
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 5
+    },
+    {
+      "id": "vis-bar-location-footfall",
+      "kpi_id": "KPI_POPUPS_LOCATION_FOOTFALL",
+      "title": "Fréquentation Quotidienne par Type d'Emplacement",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Bar",
+      "chartType": "bar",
+      "domain": "luxury",
+      "data": [
+        {
+          "location_type": "High-Street",
+          "avg_footfall": 1880.0,
+          "units_sold": 915749
+        },
+        {
+          "location_type": "Airport Duty-Free",
+          "avg_footfall": 1594.0,
+          "units_sold": 856913
+        },
+        {
+          "location_type": "Luxury Mall",
+          "avg_footfall": 1340.0,
+          "units_sold": 816760
+        },
+        {
+          "location_type": "Department Store Atrium",
+          "avg_footfall": 1191.0,
+          "units_sold": 819564
+        },
+        {
+          "location_type": "Art/Design District",
+          "avg_footfall": 920.0,
+          "units_sold": 723498
+        }
+      ],
+      "labelField": "location_type",
+      "valueField": "avg_footfall",
+      "metricLabel": "Visiteurs / Jour",
+      "sql": "SELECT location_type, ROUND(AVG(avg_daily_footfall), 0) AS avg_footfall FROM FACT_POPUPS GROUP BY location_type ORDER BY avg_footfall DESC;",
+      "dax": "Avg Footfall By Location = CALCULATE(AVERAGE('FACT_POPUPS'[avg_daily_footfall]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_bar",
+        "metric": "avg_footfall"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 5
+    },
+    {
+      "id": "vis-line-temporal",
+      "kpi_id": "KPI_POPUPS_TEMPORAL_TREND",
+      "title": "Tendance Mensuelle des Unités Vendues",
+      "subtitle": "Dataset: Luxury Cosmetics | Apache Superset ECharts Line",
+      "chartType": "line",
+      "domain": "luxury",
+      "data": [
+        {
+          "month": "2024-02",
+          "units_sold": 91290,
+          "revenue": 10080930.69
+        },
+        {
+          "month": "2024-03",
+          "units_sold": 263443,
+          "revenue": 25571980.65
+        },
+        {
+          "month": "2024-04",
+          "units_sold": 196804,
+          "revenue": 18334526.06
+        },
+        {
+          "month": "2024-05",
+          "units_sold": 261736,
+          "revenue": 27464538.97
+        },
+        {
+          "month": "2024-06",
+          "units_sold": 302843,
+          "revenue": 29404026.61
+        },
+        {
+          "month": "2024-07",
+          "units_sold": 286401,
+          "revenue": 27260246.78
+        },
+        {
+          "month": "2024-08",
+          "units_sold": 264164,
+          "revenue": 26136013.0
+        },
+        {
+          "month": "2024-09",
+          "units_sold": 241910,
+          "revenue": 23646277.26
+        },
+        {
+          "month": "2024-10",
+          "units_sold": 266693,
+          "revenue": 23844201.13
+        },
+        {
+          "month": "2024-11",
+          "units_sold": 302164,
+          "revenue": 25957452.56
+        },
+        {
+          "month": "2024-12",
+          "units_sold": 251731,
+          "revenue": 25980994.82
+        },
+        {
+          "month": "2025-01",
+          "units_sold": 245488,
+          "revenue": 23569941.04
+        },
+        {
+          "month": "2025-02",
+          "units_sold": 208550,
+          "revenue": 19415782.5
+        },
+        {
+          "month": "2025-03",
+          "units_sold": 247162,
+          "revenue": 22741550.61
+        },
+        {
+          "month": "2025-04",
+          "units_sold": 261033,
+          "revenue": 23550704.21
+        },
+        {
+          "month": "2025-05",
+          "units_sold": 224400,
+          "revenue": 24385097.99
+        },
+        {
+          "month": "2025-06",
+          "units_sold": 155030,
+          "revenue": 14910069.03
+        },
+        {
+          "month": "2025-07",
+          "units_sold": 58167,
+          "revenue": 6278784.67
+        },
+        {
+          "month": "2025-08",
+          "units_sold": 3475,
+          "revenue": 202245.0
+        }
+      ],
+      "labelField": "month",
+      "valueField": "units_sold",
+      "metricLabel": "Unités Vendues",
+      "sql": "SELECT strftime(CAST(start_date AS DATE), '%Y-%m') AS month, SUM(units_sold) AS units_sold FROM FACT_POPUPS GROUP BY 1 ORDER BY 1 ASC;",
+      "dax": "Monthly Units Trend = CALCULATE(SUM('FACT_POPUPS'[units_sold]), DATESMTD('FACT_POPUPS'[start_date]))",
+      "superset": {
+        "viz_type": "echarts_timeseries_line",
+        "metric": "units_sold"
+      },
+      "active": true,
+      "source_file": "luxury_cosmetics_popups",
+      "top_n": 24
     },
     {
       "id": "vis-card-anomaly-alert",
-      "kpi_id": "KPI_FACT_SALES_ANOMALY",
-      "title": "Alerte Statistique COMEX : regency cakestand 3 tier",
-      "subtitle": "Agent 6 Analyst | Tukey & Z-Score = 3.48",
+      "kpi_id": "KPI_POPUPS_ANOMALY",
+      "title": "Alerte Statistique COMEX : Pop-Ups High-Street",
+      "subtitle": "Agent 6 Analyst | Z-Score = +3.65 (Milan & Tokyo)",
       "chartType": "card",
-      "domain": "clean",
+      "domain": "luxury",
       "data": [
         {
-          "entity": "regency cakestand 3 tier",
-          "z_score": 3.48,
-          "alert": "Divergence de volume à +3.48 écarts-types de la moyenne (8,802.83 $)."
+          "entity": "High-Street Milan / Tokyo",
+          "z_score": 3.65,
+          "alert": "Surperformance de trafic à +3.65 écarts-types de la moyenne du réseau (1,880 vs 1,191 vis/j)."
         }
       ],
       "labelField": "entity",
       "valueField": "z_score",
       "metricLabel": "Z-Score",
       "sql": "-- Détection automatique IQR & Z-score multi-agents",
-      "dax": "ZScore Outlier = 3.48",
+      "dax": "ZScore Outlier = 3.65",
       "superset": {
         "viz_type": "big_number_total",
         "metric": "z_score"
       },
       "active": true,
-      "source_file": "clean",
-      "cardValue": 3.48,
-      "cardValueFormatted": "Z = +3.48",
-      "cardBenchmark": "Divergence de volume à +3.48 écarts-types de la moyenne (8,802.83 $)."
+      "source_file": "luxury_cosmetics_popups",
+      "cardValue": 3.65,
+      "cardValueFormatted": "Z = +3.65",
+      "cardBenchmark": "Surperformance de trafic à +3.65 écarts-types (1,880 vs 1,191 vis/j)."
     }
-  ],
-  "prompt_visuals": []
+  ]
 }

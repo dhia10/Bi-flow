@@ -691,6 +691,10 @@ window.Dashboard = (function () {
       throw new Error('[Dashboard.addVisual] config invalide');
     }
 
+    // Supprime l'état vide si présent
+    const emptyCard = grid.querySelector('.empty-dataset-card');
+    if (emptyCard) emptyCard.remove();
+
     visualCounter++;
     const cardId = `visual-card-${visualCounter}`;
     activeCardId = cardId;
@@ -730,11 +734,11 @@ window.Dashboard = (function () {
         </div>
         <div class="visual-card-footer">
           <div class="footer-btn-group">
-            <button class="btn-card-action" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>🎨 Formater</span></button>
-            <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>⚡ DAX</span></button>
+            <button class="btn-card-action" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>Formater</span></button>
+            <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>DAX</span></button>
             <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span>⚙ SQL Superset</span></button>
           </div>
-          <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>✕ Supprimer</span></button>
+          <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>Supprimer</span></button>
         </div>
       `;
     } else {
@@ -752,12 +756,12 @@ window.Dashboard = (function () {
         <div id="${chartBoxId}" class="visual-chart-box"></div>
         <div class="visual-card-footer">
           <div class="footer-btn-group">
-            <button class="btn-card-action format-btn" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>🎨 Formater</span></button>
-            <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>⚡ DAX</span></button>
+            <button class="btn-card-action format-btn" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>Formater</span></button>
+            <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>DAX</span></button>
             <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span>⚙ SQL Superset</span></button>
-            <button class="btn-card-action" onclick="Dashboard.exportChart('${cardId}')"><span>📥 Image</span></button>
+            <button class="btn-card-action" onclick="Dashboard.exportChart('${cardId}')"><span>Exporter Image</span></button>
           </div>
-          <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>✕ Supprimer</span></button>
+          <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>Supprimer</span></button>
         </div>
       `;
     }
@@ -1276,6 +1280,29 @@ window.Dashboard = (function () {
   // ── Chargement dynamique des visuels du Dataset actif (Catalogue JSON / API) ──
   async function seedDefaultCharts() {
     let loaded = false;
+    const grid = document.getElementById('visuals-grid');
+
+    // 0. Chargement synchrone immédiat depuis les scripts injectés (visuals_state.js ou data_store.js)
+    const syncVisuals = (window.VISUALS_STATE && Array.isArray(window.VISUALS_STATE.visuals) && window.VISUALS_STATE.visuals.length > 0)
+      ? window.VISUALS_STATE.visuals
+      : (window.KPIS_CATALOG && Array.isArray(window.KPIS_CATALOG.auto_visuals) && window.KPIS_CATALOG.auto_visuals.length > 0)
+        ? window.KPIS_CATALOG.auto_visuals
+        : null;
+
+    if (syncVisuals && syncVisuals.length > 0) {
+      if (grid) {
+        const empty = grid.querySelector('.empty-dataset-card');
+        if (empty) empty.remove();
+      }
+      syncVisuals.forEach(v => {
+        try { addVisual(v); loaded = true; } catch (e) { console.warn('addVisual sync error', e); }
+      });
+      if (loaded) {
+        updateVisualCount();
+        return;
+      }
+    }
+
     try {
       const resp = await fetch('/api/agent/visuals/seed', { signal: AbortSignal.timeout(2500) });
       if (resp.ok) {
