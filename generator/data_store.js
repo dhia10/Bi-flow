@@ -239,7 +239,7 @@ window.KPIS_CATALOG = {
     "datasets": [
       "luxury_cosmetics_popups"
     ],
-    "last_updated": "2026-11-13T16:21:38.735246"
+    "last_updated": "2026-11-13T21:51:38.850825"
   },
   "kpis": [
     {

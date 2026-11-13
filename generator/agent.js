@@ -962,8 +962,8 @@
   }
 
   function smallTalk(T) {
-    if (/^(bonjour|salut|hello|hey|bonsoir|coucou)\b/.test(T)) return "Bonjour ! 👋 Je suis ton assistant BI. Dis-moi quel indicateur tu veux voir (ex. « top 5 pays par PIB en barres ») et on construit le tableau de bord ensemble, étape par étape.";
-    if (/\b(merci|thanks)\b/.test(T) && !/\d/.test(T)) return "Avec plaisir ! 😊 Tu veux ajuster ce visuel (couleur, top N, type de graphique) ou en créer un autre ?";
+    if (/^(bonjour|salut|hello|hey|bonsoir|coucou)\b/.test(T)) return "Bonjour !  Je suis ton assistant BI. Dis-moi quel indicateur tu veux voir (ex. « top 5 pays par PIB en barres ») et on construit le tableau de bord ensemble, étape par étape.";
+    if (/\b(merci|thanks)\b/.test(T) && !/\d/.test(T)) return "Avec plaisir !  Tu veux ajuster ce visuel (couleur, top N, type de graphique) ou en créer un autre ?";
     if (/(qui es tu|tu es qui|que sais tu faire|tu peux faire quoi|comment ca marche|aide moi|\bhelp\b)/.test(T)) return "Je transforme ta demande en SQL Apache Superset et je crée le visuel : barres, camembert, courbe… Je peux le modifier (« top 7 au lieu de top 5 », « en rouge », « légende : France, Tunisie »), expliquer le SQL, annuler, et je me souviens de toute la conversation. Demande « quels KPI sont disponibles ? » pour la liste.";
     return null;
   }
@@ -1158,6 +1158,44 @@
     if (match.ambiguous) intent.notes.push("Plusieurs datasets contiennent ce KPI — précise « par secteur » ou « par année ».");
     if ((/(^|\s)(?:un|dans un|ce|le)\s+(?:visuel|graphique|chart|pie|donut|carte)\b/.test(T) || intent.chartType === 'pie') && intent.groups.length > 1) intent.groups = intent.groups.slice(0, 1);
 
+    // Deduction intelligente pour les demandes categoriques (ex: pie brand, brand par region, repartition region)
+    if (!intent.groups.length || intent.ambiguous || !intent.confident) {
+      const hasBrand = /\b(brand|marque|marques|maison|maisons)\b/i.test(T);
+      const hasRegion = /\b(region|regions|zone|zones|geo)\b/i.test(T);
+      const hasLoc = /\b(location|emplacement|emplacements|format|formats)\b/i.test(T);
+      const hasPieOrCreate = intent.chartType === 'pie' || intent.chartType === 'donut' || /\b(creer|nouveau|affiche|montre|ajoute|visuel|graphique)\b/i.test(T);
+
+      if (hasBrand || hasRegion || hasLoc) {
+        const cat = ensureCatalog();
+        let targetDs = null;
+        if (hasBrand) {
+          targetDs = cat.datasets.find(d => d.dim === 'brand' || d.key.includes('brand') || d.key === 'primary_dimension');
+        } else if (hasRegion) {
+          targetDs = cat.datasets.find(d => d.dim === 'region' || d.key.includes('region') || d.key === 'distribution');
+        } else if (hasLoc) {
+          targetDs = cat.datasets.find(d => d.dim === 'location_type' || d.key.includes('location'));
+        }
+        if (!targetDs && cat.datasets.length) targetDs = cat.datasets[0];
+
+        if (targetDs && targetDs.measures.length) {
+          let chosenMeasure = targetDs.measures[0];
+          if (/\b(vente|ventes|unite|unites|pieces|volume)\b/i.test(T)) {
+            const mUnits = targetDs.measures.find(m => /unit/i.test(m.name));
+            if (mUnits) chosenMeasure = mUnits;
+          } else if (/\b(ca|chiffre|revenue|argent|usd|prix)\b/i.test(T)) {
+            const mRev = targetDs.measures.find(m => /revenue|price/i.test(m.name));
+            if (mRev) chosenMeasure = mRev;
+          }
+          intent.groups = [{ kind: 'dataset', ds: targetDs, measures: [chosenMeasure], score: 6 }];
+          if (!intent.chartType) intent.chartType = (hasPieOrCreate && /pie|donut|repartition|camembert/i.test(T)) ? 'pie' : 'bar';
+          intent.action = 'create';
+          intent.confident = true;
+          intent.ambiguous = false;
+        }
+      }
+    }
+
+
     // ── Changement d'arrière-plan de TOUT le dashboard ──
     const isDashboardMention = /(?:toute?\s+(?:la\s+|le\s+)?dashboard|tableau\s+de\s+bord|de\s+la\s+dashboard|du\s+dashboard|le\s+dashboard|la\s+dashboard|dashboard\s+en\s+entier|l[' ]ensemble\s+du\s+dashboard|de\s+la\s+page|du\s+site)\b/i.test(T);
     const isFollowUpBg = Memory && Memory.state && Memory.state.lastAction === 'dashboard_bg' &&
@@ -1243,8 +1281,8 @@
     if (confirmCue) {
       intent.action = 'chat';
       intent.chatReply = Memory.hasContext()
-        ? "Parfait ! 😊 Le visuel est à jour. Tu veux ajuster autre chose (couleur, top N, type de graphique) ou en créer un nouveau ?"
-        : "Compris ! 😊 Dis-moi ce que tu veux afficher — KPI, dimension, type de graphique — et je m'en occupe.";
+        ? "Parfait !  Le visuel est à jour. Tu veux ajuster autre chose (couleur, top N, type de graphique) ou en créer un nouveau ?"
+        : "Compris !  Dis-moi ce que tu veux afficher — KPI, dimension, type de graphique — et je m'en occupe.";
     } else if (undoCue) intent.action = 'undo';
     else if (explainCue) intent.action = 'explain';
     else if (showCue) intent.action = 'show';
@@ -2483,7 +2521,7 @@
     s.push('Explique ce visuel');
     return s.slice(0, 4);
   }
-  const sqlBlock = sqls => '\n\n🧾 **SQL Apache Superset :**\n```sql\n' + sqls.join('\n\n') + '\n```';
+  const sqlBlock = sqls => '\n\n**SQL Apache Superset :**\n```sql\n' + sqls.join('\n\n') + '\n```';
 
   /* ═══════════════════════ EXÉCUTION ═══════════════════════ */
   class NoActiveVisual extends Error { }
@@ -2687,7 +2725,7 @@
     });
     // 2) visuels automatiques : asynchrone (SQL serveur)
     filterAutoVisuals(D, intent, fs);
-    return { message: `🔍 ${ok} visuel(s) créé(s) par prompt mis à jour (${skipped} ignoré(s), ${empty} sans résultat). Les visuels automatiques sont filtrés côté serveur…` };
+    return { message: ` ${ok} visuel(s) créé(s) par prompt mis à jour (${skipped} ignoré(s), ${empty} sans résultat). Les visuels automatiques sont filtrés côté serveur…` };
   }
 
   async function filterAutoVisuals(D, intent, fsClient) {
@@ -2702,7 +2740,7 @@
     fs = fs || fsClient;
     const topN = intent.topN || null;
     if (!fs && !topN) {
-      if (root.Agent && root.Agent._appendMessage) root.Agent._appendMessage('agent', "🔍 Aucune valeur de filtre reconnue. Ex : « filtre tous les visuels sur France ».");
+      if (root.Agent && root.Agent._appendMessage) root.Agent._appendMessage('agent', " Aucune valeur de filtre reconnue. Ex : « filtre tous les visuels sur France ».");
       return;
     }
     let n = 0;
@@ -2728,7 +2766,7 @@
     }));
     if (fs && D.renderGlobalFilterPill) D.renderGlobalFilterPill({ filterValues: fs.values.map(v => fs.col + ' = ' + v) });
     if (root.Agent && root.Agent._appendMessage)
-      root.Agent._appendMessage('agent', `🔍 Filtre appliqué à ${n} visuel(s) automatique(s)${fs ? ` : ${fs.col} = ${fs.values.join(', ')}` : ''}.`);
+      root.Agent._appendMessage('agent', ` Filtre appliqué à ${n} visuel(s) automatique(s)${fs ? ` : ${fs.col} = ${fs.values.join(', ')}` : ''}.`);
   }
 
   function clearGlobalFilter() {
@@ -2897,7 +2935,7 @@
         lastType = built.cfg.chartType; lastSid = spec.sid; lastSuperset = built.cfg.superset;
       });
       const f = describeFormat(intent.format);
-      return out('✅ ' + (titles.length > 1 ? titles.length + ' visuels créés : ' : 'Visuel créé : ') + titles.join(' · ') + (f ? ' · ' + f : '') + '.' + sqlBlock(sqls),
+      return out((titles.length > 1 ? titles.length + ' visuels créés : ' : 'Visuel créé : ') + titles.join(' · ') + (f ? ' · ' + f : '') + '.' + sqlBlock(sqls),
         { created, chartType: lastType, sid: lastSid, sql: sqls.join('\n\n'), superset: lastSuperset, suggestions: suggestFor(lastType, intent.groups[0]) });
     }
     return askWhichKpi(intent);

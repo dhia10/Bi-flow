@@ -18,17 +18,13 @@
 
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Google Fonts: Inter -->
+  
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link
-
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
-
-    rel="stylesheet">
+  
 
   <!-- Local ECharts library with CDN fallback -->
 
@@ -36,6 +32,7 @@
 
   <script>window.echarts || document.write('<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"><\/script>')</script>
 
+  <style>button:focus-visible, input:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }</style>
 </head>
 
 
@@ -60,7 +57,7 @@
 
       </div>
 
-      <div class="dataset-pill" id="dataset-status-pill">● Aucun dataset actif · Parcourez un fichier Excel/CSV</div>
+      <div class="dataset-pill" id="dataset-status-pill">• Aucun dataset actif · Parcourez un fichier Excel/CSV</div>
 
     </div>
 
@@ -92,7 +89,7 @@
 
       <button class="btn-header" onclick="openKpiModal()">
 
-        <span>📋</span>
+        <span></span>
 
         <span>Catalogue KPIs (JSON)</span>
 
@@ -108,7 +105,7 @@
 
       <button class="btn-header primary" onclick="downloadKpiJson()">
 
-        <span>💾</span>
+        <span></span>
 
         <span>Exporter kpis_catalog.json</span>
 
@@ -142,7 +139,7 @@
 
         <div class="superset-badge">
 
-          <span>⚙</span> Moteur Superset ECharts Actif
+          <span></span> Moteur Superset ECharts Actif
 
         </div>
 
@@ -228,7 +225,7 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('donne moi les top 8 pays avec currency la plus fort dans un histogramme groupé')">💱
+          onclick="Agent.submitPrompt('donne moi les top 8 pays avec currency la plus fort dans un histogramme groupé')">
 
           Top 8 Devises (Currencies)</button>
 
@@ -240,13 +237,13 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Montre-moi la répartition du chiffre d\'affaires par secteur d\'activité')">📊 CA
+          onclick="Agent.submitPrompt('Montre-moi la répartition du chiffre d\'affaires par secteur d\'activité')"> CA
 
           par Secteur</button>
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Affiche les valeurs et le pourcentage à l\'extérieur du graphique en secteur')">🏷️
+          onclick="Agent.submitPrompt('Affiche les valeurs et le pourcentage à l\'extérieur du graphique en secteur')">️
 
           Étiquettes à l'extérieur (%)</button>
 
@@ -258,13 +255,13 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Mets le saut de valeur dans l\'axe Y avec un pas de 500B et max de 4000B')">📏
+          onclick="Agent.submitPrompt('Mets le saut de valeur dans l\'axe Y avec un pas de 500B et max de 4000B')">
 
           Axe Y : pas de 500B</button>
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('Crée un visuel card pour la capitalisation boursière totale')">💳 Visuel Card
+          onclick="Agent.submitPrompt('Crée un visuel card pour la capitalisation boursière totale')"> Visuel Card
 
           Market Cap</button>
 
@@ -282,7 +279,7 @@
 
         <button class="prompt-chip"
 
-          onclick="Agent.submitPrompt('donne moi un visuel pie qui contient la pourcentage des pays qui ont meilleur currency que usa. pays meilleur que usa en rouge, pays pire que usa en jaune, avec valeur et pourcentage')">🌍
+          onclick="Agent.submitPrompt('donne moi un visuel pie qui contient la pourcentage des pays qui ont meilleur currency que usa. pays meilleur que usa en rouge, pays pire que usa en jaune, avec valeur et pourcentage')">
 
           Meilleur vs Pire que USA</button>
 
@@ -422,7 +419,7 @@
 
         <div class="format-section-title">
 
-          <span>📊</span>
+          <span></span>
 
           <span>Paramètres du Graphique</span>
 
@@ -589,7 +586,7 @@
 
         if (activeDs) localStorage.setItem('bi_active_dataset_tag', activeDs);
 
-        console.log('🧹 [BI Studio] Cache local purgé : affichage exclusif du nouveau run', activeDs);
+        console.log(' [BI Studio] Cache local purgé : affichage exclusif du nouveau run', activeDs);
 
       }
 
@@ -715,11 +712,11 @@
 
         const enabled = !!(window.BIAgent && window.BIAgent.CFG && window.BIAgent.CFG.geminiApiKey);
 
-        lbl.textContent = enabled ? 'Clé Gemini ✓' : 'Clé Gemini';
+        lbl.textContent = enabled ? 'Clé Gemini ' : 'Clé Gemini';
 
-        btn.style.borderColor = enabled ? 'rgba(16, 185, 129, 0.55)' : '';
+        btn.style.borderColor = enabled ? 'rgba(22, 163, 74, 0.55)' : '';
 
-        btn.style.color = enabled ? '#10b981' : '';
+        btn.style.color = enabled ? '#16a34a' : '';
 
       },
 
@@ -765,7 +762,7 @@
 
         this._appendMessage('user', this._md(text));
 
-        const thinking = this._appendMessage('agent', '<span class="thinking-dots">⏳ Analyse & Génération du visuel en cours…</span>');
+        const thinking = this._appendMessage('agent', '<span class="thinking-dots"> Analyse & Génération du visuel en cours…</span>');
 
 
 
@@ -789,7 +786,7 @@
 
           thinking.remove();
 
-          this._appendMessage('agent', '⚠️ Erreur : ' + (e && e.message ? e.message : String(e)));
+          this._appendMessage('agent', '️ Erreur : ' + (e && e.message ? e.message : String(e)));
 
         }
 
@@ -875,7 +872,7 @@
 
           .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:11px">$1</code>')
 
-          .replace(/✅||🗑️|ℹ️|⚠️|●|•||🌍|🏷️||📊||🚀|✓/g, m => `<span>${m}</span>`)
+          .replace(/||️|ℹ️|️|•|•|||️|||||/g, m => `<span>${m}</span>`)
 
           .replace(/\n/g, '<br/>');
 
@@ -921,11 +918,11 @@
 
       if (trimmed) {
 
-        alert('✅ Clé Gemini activée !\n\nLe fallback sémantique est désormais disponible pour les prompts complexes (comparaisons, filtres).');
+        alert(' Clé Gemini activée !\n\nLe fallback sémantique est désormais disponible pour les prompts complexes (comparaisons, filtres).');
 
       } else {
 
-        alert('❌ Clé Gemini supprimée. L\'agent utilisera uniquement ruleParse + Ollama.');
+        alert(' Clé Gemini supprimée. L\'agent utilisera uniquement ruleParse + Ollama.');
 
       }
 
@@ -1030,9 +1027,9 @@
 
       const geminiSuffix = geminiOn
 
-        ? ' <span style="color:#8b5cf6">· Gemini ✓</span>'
+        ? ' <span style="color:#8b5cf6">· Gemini </span>'
 
-        : ' <span style="color:var(--text-muted);font-size:10px">· Gemini ✗</span>';
+        : ' <span style="color:var(--text-muted);font-size:10px">· Gemini </span>';
 
       try {
 
@@ -1062,13 +1059,13 @@
 
           el.innerHTML = `<span class="pulse-dot"></span> Ollama connecté · ${names.length} modèle(s) · Actif : <b>${modelName}</b>`
 
-            + (hasConfigModel ? '' : ` <span style="color:#f59e0b">⚠ '${modelName}' non trouvé</span>`)
+            + (hasConfigModel ? '' : ` <span style="color:#f59e0b"> '${modelName}' non trouvé</span>`)
 
             + geminiSuffix;
 
         } else {
 
-          el.innerHTML = '<span style="color:#f59e0b">⚠ Aucun modèle Ollama installé</span>' + geminiSuffix;
+          el.innerHTML = '<span style="color:#f59e0b"> Aucun modèle Ollama installé</span>' + geminiSuffix;
 
         }
 
@@ -1076,7 +1073,7 @@
 
         if (window.BIAgent && window.BIAgent.CFG) window.BIAgent.CFG.useLLM = false;
 
-        el.innerHTML = '<span style="color:#10b981">● Mode règles déterministe actif</span> <span style="color:var(--text-muted);font-size:10px;">(Ollama hors ligne)</span>' + geminiSuffix;
+        el.innerHTML = '<span style="color:#16a34a">• Mode règles déterministe actif</span> <span style="color:var(--text-muted);font-size:10px;">(Ollama hors ligne)</span>' + geminiSuffix;
 
       }
 

@@ -1,3 +1,4 @@
+const ecGlobal = typeof window !== 'undefined' ? window.echarts : null;
 /**
  * Graphiques ECharts GÉNÉRIQUES (line / scatter / treemap)
  * Complément de dashboard.js — appelé à l'exécution par Dashboard.buildEChartsOption().
@@ -127,6 +128,20 @@ window.Dashboard = (function () {
     if (kind === 'count') return formatNumber(v);
     return typeof v === 'number' ? formatNumber(v) : String(v);
   }
+  
+  function makeGradient(c1, c2) {
+    try {
+      const ec = (typeof window !== 'undefined' && window.echarts) ? window.echarts : (typeof echarts !== 'undefined' ? echarts : null);
+      if (ec && ec.graphic && ec.graphic.LinearGradient) {
+        return new ec.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: c1 },
+          { offset: 1, color: c2 }
+        ]);
+      }
+    } catch (_) {}
+    return c1;
+  }
+
   function adjustBrightness(col, percent) {
     if (!col || !col.startsWith('#')) return '#1e40af';
     let num = parseInt(col.slice(1), 16);
@@ -146,7 +161,7 @@ window.Dashboard = (function () {
 
     const catalog = customCatalog || window.KPIS_CATALOG;
     const colors = ['blue', 'purple', 'emerald', 'amber', 'cyan'];
-    const icons = ['↗', '⚡', '✦', '●', '★'];
+    const icons = ['', '', '', '•', ''];
 
     // 1. Essai de charger les KPI Cards depuis kpis_catalog.json
     if (catalog && Array.isArray(catalog.kpis)) {
@@ -186,27 +201,27 @@ window.Dashboard = (function () {
       <div class="kpi-card blue" style="opacity: 0.85;">
         <div class="kpi-label">Dataset Actif</div>
         <div class="kpi-value" style="font-size: 20px;">En attente</div>
-        <div class="kpi-subtext"><span>📂</span> Parcourez un fichier Excel / CSV</div>
+        <div class="kpi-subtext"><span></span> Parcourez un fichier Excel / CSV</div>
       </div>
       <div class="kpi-card purple" style="opacity: 0.85;">
         <div class="kpi-label">Volume de Données</div>
         <div class="kpi-value" style="font-size: 20px;">0 ligne</div>
-        <div class="kpi-subtext"><span>⚡</span> Détection automatique</div>
+        <div class="kpi-subtext"><span></span> Détection automatique</div>
       </div>
       <div class="kpi-card emerald" style="opacity: 0.85;">
         <div class="kpi-label">Catalogue KPIs</div>
         <div class="kpi-value" style="font-size: 20px;">0 KPI</div>
-        <div class="kpi-subtext"><span>✦</span> kpis_catalog.json</div>
+        <div class="kpi-subtext"><span></span> kpis_catalog.json</div>
       </div>
       <div class="kpi-card amber" style="opacity: 0.85;">
         <div class="kpi-label">Moteur SQL</div>
         <div class="kpi-value" style="font-size: 20px;">Apache Superset</div>
-        <div class="kpi-subtext"><span>●</span> Agrégations automatiques</div>
+        <div class="kpi-subtext"><span>•</span> Agrégations automatiques</div>
       </div>
       <div class="kpi-card cyan" style="opacity: 0.85;">
         <div class="kpi-label">IA Copilot</div>
         <div class="kpi-value" style="font-size: 20px;">Prêt</div>
-        <div class="kpi-subtext"><span>★</span> Requetage par prompt</div>
+        <div class="kpi-subtext"><span></span> Requetage par prompt</div>
       </div>
     `;
   }
@@ -258,10 +273,7 @@ window.Dashboard = (function () {
               return typeof v === 'number' ? v : (parseFloat(v) || 0);
             }),
             itemStyle: {
-              color: seriesType === 'bar' ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: sColor },
-                { offset: 1, color: adjustBrightness(sColor, -30) }
-              ]) : sColor,
+              color: seriesType === 'bar' ? makeGradient(sColor, adjustBrightness(sColor, -30)) : sColor,
               borderRadius: seriesType === 'bar' ? (meta.horizontal ? [0, 6, 6, 0] : [6, 6, 0, 0]) : 0
             },
             lineStyle: seriesType === 'line' ? { width: 3, color: sColor } : undefined,
@@ -295,10 +307,7 @@ window.Dashboard = (function () {
           }
           if (catColor) {
             const barItemColor = (typeof catColor === 'string' && (catColor.startsWith('#') || catColor.startsWith('rgb')))
-              ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: catColor },
-                { offset: 1, color: adjustBrightness(catColor, -30) }
-              ])
+              ? makeGradient(catColor, adjustBrightness(catColor, -30))
               : catColor;
             return {
               value: num,
@@ -310,10 +319,7 @@ window.Dashboard = (function () {
 
         const barColor = meta.barColor || palette[0];
         const itemStyleColor = (typeof barColor === 'string' && (barColor.startsWith('#') || barColor.startsWith('rgb')))
-          ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: barColor },
-            { offset: 1, color: adjustBrightness(barColor, -30) }
-          ])
+          ? makeGradient(barColor, adjustBrightness(barColor, -30))
           : barColor;
 
         seriesList = [{
@@ -733,14 +739,14 @@ window.Dashboard = (function () {
           <div class="kpi-card-inner">
             <div class="kpi-card-number">${config.cardValueFormatted || config.cardValue || '$0'}</div>
             <div class="kpi-card-metric-name">${config.metricLabel || config.title}</div>
-            <div class="kpi-card-benchmark">${config.cardBenchmark || '● Mesure calculée en direct'}</div>
+            <div class="kpi-card-benchmark">${config.cardBenchmark || '• Mesure calculée en direct'}</div>
           </div>
         </div>
         <div class="visual-card-footer">
           <div class="footer-btn-group">
             <button class="btn-card-action" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>Formater</span></button>
             <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>DAX</span></button>
-            <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span>⚙ SQL Superset</span></button>
+            <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span> SQL Superset</span></button>
           </div>
           <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>Supprimer</span></button>
         </div>
@@ -762,7 +768,7 @@ window.Dashboard = (function () {
           <div class="footer-btn-group">
             <button class="btn-card-action format-btn" onclick="Dashboard.openFormatDrawer('${cardId}')"><span>Formater</span></button>
             <button class="btn-card-action" onclick="Dashboard.showDaxModal('${cardId}')"><span>DAX</span></button>
-            <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span>⚙ SQL Superset</span></button>
+            <button class="btn-card-action" onclick="Dashboard.showSqlModal('${cardId}')"><span> SQL Superset</span></button>
             <button class="btn-card-action" onclick="Dashboard.exportChart('${cardId}')"><span>Exporter Image</span></button>
           </div>
           <button class="btn-card-action danger" onclick="Dashboard.removeVisual('${cardId}')"><span>Supprimer</span></button>
@@ -792,7 +798,7 @@ window.Dashboard = (function () {
           try {
             // Libère l'ancienne instance si elle existe
             if (chartInstances[cardId]) { try { chartInstances[cardId].dispose(); } catch (e) { } }
-            const myChart = echarts.init(chartDom, null, { renderer: 'canvas' });
+            const myChart = (window.echarts || echarts).init(chartDom, null, { renderer: 'canvas' });
             const option = buildEChartsOption(config.chartType, config.data, config);
             myChart.setOption(option);
             chartInstances[cardId] = myChart;
@@ -871,7 +877,7 @@ window.Dashboard = (function () {
         const bench = box.querySelector('.kpi-card-benchmark');
         if (num) num.textContent = reg.config.cardValueFormatted || reg.config.cardValue || '$0';
         if (mname) mname.textContent = reg.config.metricLabel || reg.config.title || '';
-        if (bench) bench.textContent = reg.config.cardBenchmark || '● Mesure calculée en direct';
+        if (bench) bench.textContent = reg.config.cardBenchmark || '• Mesure calculée en direct';
       }
     } else {
       const chart = chartInstances[cardId];
@@ -889,7 +895,7 @@ window.Dashboard = (function () {
           const chartDom = document.getElementById(reg.chartBoxId);
           if (chartDom && window.echarts && !chartInstances[cardId]) {
             try {
-              const myChart = echarts.init(chartDom, null, { renderer: 'canvas' });
+              const myChart = (window.echarts || echarts).init(chartDom, null, { renderer: 'canvas' });
               myChart.setOption(buildEChartsOption(reg.config.chartType, reg.config.data, reg.config), true);
               chartInstances[cardId] = myChart;
               reg.chartInstance = myChart;
@@ -971,7 +977,7 @@ window.Dashboard = (function () {
     modalTitle.textContent = `Requête SQL Apache Superset : ${title}`;
     modalBody.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:12px; color:var(--accent-cyan); font-weight:600;">⚡ Apache Superset Engine (SQL Lab / Virtual Dataset)</span>
+        <span style="font-size:12px; color:var(--accent-cyan); font-weight:600;"> Apache Superset Engine (SQL Lab / Virtual Dataset)</span>
         <span class="tag-badge domain">SQL STANDARDIZED</span>
       </div>
       <p style="margin-bottom: 10px; color: var(--text-secondary); font-size:12px;">
@@ -1000,7 +1006,7 @@ window.Dashboard = (function () {
     const sql = card.dataset.sql;
     const resBox = document.getElementById(`sql-execution-result-${cardId}`);
     if (!resBox) return;
-    resBox.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:8px 0;"><span class="thinking-dots">⏳ Exécution de la requête SQL via le moteur SQLite / Superset…</span></div>';
+    resBox.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:8px 0;"><span class="thinking-dots"> Exécution de la requête SQL via le moteur SQLite / Superset…</span></div>';
     try {
       const t0 = performance.now();
       const r = await fetch('/api/agent/execute-sql', {
@@ -1017,11 +1023,11 @@ window.Dashboard = (function () {
       const data = await r.json();
       const rows = data.rows || [];
       if (!rows.length) {
-        resBox.innerHTML = `<div style="padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; color:#f59e0b; font-size:12px;">✓ Requête valide (${duration}ms) — 0 ligne retournée.</div>`;
+        resBox.innerHTML = `<div style="padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; color:#f59e0b; font-size:12px;"> Requête valide (${duration}ms) — 0 ligne retournée.</div>`;
         return;
       }
       const cols = Object.keys(rows[0]);
-      let tableHtml = `<div style="margin-top:8px; font-size:11px; color:#10b981; margin-bottom:6px;">✓ Requête exécutée avec succès : <b>${rows.length}</b> lignes retournées (${duration}ms)</div>`;
+      let tableHtml = `<div style="margin-top:8px; font-size:11px; color:#10b981; margin-bottom:6px;"> Requête exécutée avec succès : <b>${rows.length}</b> lignes retournées (${duration}ms)</div>`;
       tableHtml += `<div style="max-height:220px; overflow:auto; border:1px solid rgba(255,255,255,0.1); border-radius:6px;">`;
       tableHtml += `<table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">`;
       tableHtml += `<thead><tr style="background:rgba(255,255,255,0.08); color:#e2e8f0;">`;
@@ -1267,14 +1273,14 @@ window.Dashboard = (function () {
     if (!grid || Object.keys(visualRegistry).length > 0) return;
     grid.innerHTML = `
       <div class="empty-dataset-card" style="grid-column: 1 / -1; padding: 56px 24px; text-align: center; background: rgba(17, 24, 39, 0.65); border: 2px dashed rgba(56, 189, 248, 0.35); border-radius: 18px; backdrop-filter: blur(14px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
-        <div style="font-size: 52px; line-height: 1;">📂</div>
+        <div style="font-size: 52px; line-height: 1;"></div>
         <h3 style="font-size: 22px; font-weight: 600; color: #f3f4f6; margin: 0;">Aucun Dataset Actif Sélectionné</h3>
         <p style="max-width: 560px; color: #94a3b8; font-size: 14px; margin: 0; line-height: 1.6;">
           Parcourez et sélectionnez votre fichier <strong>Excel (.xlsx, .xls)</strong> ou <strong>CSV</strong> depuis votre ordinateur.<br/>
           L'agent déterminera automatiquement la structure des données, générera vos KPIs dans <code>kpis_catalog.json</code> et affichera votre tableau de bord interactif !
         </p>
         <button class="btn-primary" style="padding: 12px 28px; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45); transition: transform 0.15s ease;" onclick="document.getElementById('bi-dataset-upload-input').click()">
-          <span style="font-size: 18px;">📂</span>
+          <span style="font-size: 18px;"></span>
           <span>Parcourir un Fichier (Excel / CSV)</span>
         </button>
       </div>
@@ -1388,7 +1394,7 @@ window.Dashboard = (function () {
     if (grid) {
       grid.innerHTML = `
         <div class="empty-dataset-card" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; background: rgba(17, 24, 39, 0.65); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 16px; backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
-          <div class="thinking-dots" style="font-size: 32px;">⏳</div>
+          <div class="thinking-dots" style="font-size: 32px;"></div>
           <h3 style="font-size: 19px; font-weight: 600; color: #f3f4f6; margin: 0;">Analyse et Ingestion du Dataset…</h3>
           <p style="color: #94a3b8; font-size: 14px; margin: 0;">Extraction du schéma, calcul des KPIs et mise à jour de <code>kpis_catalog.json</code> pour <strong>${escapeHtml(file.name)}</strong>.</p>
         </div>
@@ -1396,8 +1402,8 @@ window.Dashboard = (function () {
     }
 
     if (window.Agent && window.Agent._appendMessage) {
-      window.Agent._appendMessage('user', `📂 Importer le dataset : <b>${escapeHtml(file.name)}</b>`);
-      window.Agent._appendMessage('agent', `<span class="thinking-dots">⏳ Analyse, ingestion et extraction des KPIs & requêtes SQL pour <b>${escapeHtml(file.name)}</b>…</span>`);
+      window.Agent._appendMessage('user', ` Importer le dataset : <b>${escapeHtml(file.name)}</b>`);
+      window.Agent._appendMessage('agent', `<span class="thinking-dots"> Analyse, ingestion et extraction des KPIs & requêtes SQL pour <b>${escapeHtml(file.name)}</b>…</span>`);
     }
 
     const formData = new FormData();
@@ -1445,7 +1451,7 @@ window.Dashboard = (function () {
       // Mettre à jour la pastille du header avec le nom du dataset actif
       const pill = document.querySelector('.dataset-pill') || document.getElementById('dataset-status-pill');
       if (pill) {
-        pill.innerHTML = `● Dataset actif : <strong>${escapeHtml(data.filename)}</strong> (${data.n_rows} lignes, ${data.n_kpis} KPIs)`;
+        pill.innerHTML = `• Dataset actif : <strong>${escapeHtml(data.filename)}</strong> (${data.n_rows} lignes, ${data.n_kpis} KPIs)`;
       }
 
       // Alimenter dynamiquement BI_DATA_STORE avec les lignes du fichier pour l'agent conversationnel
@@ -1479,7 +1485,7 @@ window.Dashboard = (function () {
     } catch (err) {
       if (grid && Object.keys(visualRegistry).length === 0) showEmptyDatasetState();
       if (window.Agent && window.Agent._appendMessage) {
-        window.Agent._appendMessage('agent', `⚠️ <strong>Échec de l'ingestion :</strong> ${escapeHtml(err.message)}`);
+        window.Agent._appendMessage('agent', `[Attention] <strong>Échec de l'ingestion :</strong> ${escapeHtml(err.message)}`);
       } else {
         alert("Erreur lors de l'ingestion du fichier : " + err.message);
       }
@@ -1639,7 +1645,7 @@ window.Dashboard = (function () {
       if (chartDom && window.echarts) {
         try {
           if (chartInstances[cardId]) { try { chartInstances[cardId].dispose(); } catch (e) { } }
-          const myChart = echarts.init(chartDom, null, { renderer: 'canvas' });
+          const myChart = (window.echarts || echarts).init(chartDom, null, { renderer: 'canvas' });
           myChart.setOption(buildEChartsOption(newType, reg.config.data, reg.config), true);
           chartInstances[cardId] = myChart;
           reg.chartInstance = myChart;
@@ -1689,7 +1695,7 @@ window.Dashboard = (function () {
         const cat = window.KPIS_CATALOG;
         const pill = document.querySelector('.dataset-pill') || document.getElementById('dataset-status-pill');
         if (pill && cat && cat.metadata && cat.metadata.active_dataset) {
-          pill.innerHTML = `● Dataset actif : <strong>${escapeHtml(cat.metadata.active_dataset)}</strong> (${cat.metadata.n_rows || (cat.kpis && cat.kpis.length) || 0} lignes)`;
+          pill.innerHTML = `• Dataset actif : <strong>${escapeHtml(cat.metadata.active_dataset)}</strong> (${cat.metadata.n_rows || (cat.kpis && cat.kpis.length) || 0} lignes)`;
         }
       } catch (e) { }
 

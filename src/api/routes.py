@@ -1983,7 +1983,7 @@ def api_delete_prompt_visual(sid: str):
 def api_execute_sql(payload: Dict[str, Any]):
     sql = payload.get("sql", "").strip()
     if not sql:
-        raise HTTPException(status_code=400, detail="Requête SQL requise")
+        raise HTTPException(status_code=400, detail="Requete SQL requise")
     try:
         con = duckdb.connect()
         clean_parquet = _REPO_ROOT / "artifacts" / "clean.parquet"
@@ -1991,15 +1991,20 @@ def api_execute_sql(payload: Dict[str, Any]):
             parquets = list(_REPO_ROOT.glob("artifacts/*/clean.parquet"))
             if parquets:
                 clean_parquet = parquets[-1]
-        if clean_parquet.exists():
-            con.execute(f"CREATE OR REPLACE VIEW fact_transactions AS SELECT * FROM '{clean_parquet.as_posix()}'")
-            con.execute(f"CREATE OR REPLACE VIEW clean AS SELECT * FROM '{clean_parquet.as_posix()}'")
+        target_path = None
+        if clean_parquet and clean_parquet.exists():
+            target_path = clean_parquet.as_posix()
+        else:
+            lux_csv = _REPO_ROOT / "luxury" / "luxury_cosmetics_popups.csv"
+            if lux_csv.exists():
+                target_path = lux_csv.as_posix()
+        if target_path:
+            for view_name in ["fact_transactions", "clean", "fact_popups", "FACT_POPUPS", "df", "DATASET"]:
+                con.execute(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM '{target_path}'")
         df = con.execute(sql).df()
         return {"columns": list(df.columns), "data": df.to_dict(orient="records"), "count": len(df)}
     except Exception as e:
         return {"error": str(e), "columns": [], "data": []}
-
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
