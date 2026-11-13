@@ -129,7 +129,7 @@
             <div id="kpi-badge-revenue" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Cible : <strong id="kpi-target-revenue" class="text-slate-300">350.0M $</strong></span>
+            <span>Cible : <strong id="kpi-target-revenue" class="text-slate-300">—</strong></span>
           </div>
         </div>
 
@@ -141,7 +141,7 @@
             <div id="kpi-badge-units" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Cible : <strong id="kpi-target-units" class="text-slate-300">4.0M</strong></span>
+            <span>Cible : <strong id="kpi-target-units" class="text-slate-300">—</strong></span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@
             <div id="kpi-badge-sellthrough" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Seuil min : <strong id="kpi-target-sellthrough" class="text-slate-300">70.0%</strong></span>
+            <span>Seuil min : <strong id="kpi-target-sellthrough" class="text-slate-300">—</strong></span>
           </div>
         </div>
 
@@ -165,7 +165,7 @@
             <div id="kpi-badge-footfall" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Seuil : <strong id="kpi-target-footfall" class="text-slate-300">1 200 vis/j</strong></span>
+            <span>Seuil : <strong id="kpi-target-footfall" class="text-slate-300">—</strong></span>
           </div>
         </div>
 
@@ -177,7 +177,7 @@
             <div id="kpi-badge-lease" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Plafond : <strong id="kpi-target-lease" class="text-slate-300">60 jours</strong></span>
+            <span>Plafond : <strong id="kpi-target-lease" class="text-slate-300">—</strong></span>
           </div>
         </div>
 
@@ -189,7 +189,7 @@
             <div id="kpi-badge-events" class="text-xs font-medium text-slate-400 mt-1">En attente</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
-            <span>Objectif : <strong id="kpi-target-events" class="text-slate-300">2 000</strong></span>
+            <span>Objectif : <strong id="kpi-target-events" class="text-slate-300">—</strong></span>
           </div>
         </div>
       </div>
@@ -323,8 +323,13 @@
             <span class="text-xs text-slate-400">Modèle dimensionnel ETL</span>
           </div>
 
-          <div class="rounded bg-slate-900 border border-slate-700 p-2 min-h-[220px] flex items-center justify-center">
-            <img id="starSchemaImg" src="/artifacts/schema/star_schema.png" alt="Schéma dimensionnel" class="max-h-[240px] w-auto object-contain rounded hidden">
+          <div class="rounded bg-slate-900 border border-slate-700 p-2 min-h-[220px] flex items-center justify-center relative">
+            <div id="starSchemaWrap" class="cursor-pointer group relative flex items-center justify-center hidden" onclick="openSchemaModal()">
+              <img id="starSchemaImg" src="/artifacts/schema/star_schema.png" alt="Schéma dimensionnel" class="max-h-[240px] w-auto object-contain rounded group-hover:opacity-90 transition">
+              <div class="absolute bottom-2 right-2 bg-slate-900/90 text-slate-300 text-[11px] px-2 py-0.5 rounded border border-slate-700 group-hover:text-white transition">
+                Cliquer pour agrandir
+              </div>
+            </div>
             <div id="starSchemaPlaceholder" class="text-xs text-slate-400 text-center p-6">
               Le schéma dimensionnel sera généré à l'étape 3 (ETL).
             </div>
@@ -568,10 +573,17 @@
       document.getElementById('kpi-badge-lease').className = 'text-xs font-medium text-slate-400 mt-1';
 
       document.getElementById('kpi-val-events').textContent = '—';
+      document.getElementById('kpi-target-revenue').textContent = '—';
+      document.getElementById('kpi-target-units').textContent = '—';
+      document.getElementById('kpi-target-sellthrough').textContent = '—';
+      document.getElementById('kpi-target-footfall').textContent = '—';
+      document.getElementById('kpi-target-lease').textContent = '—';
+      document.getElementById('kpi-target-events').textContent = '—';
+
       document.getElementById('kpi-badge-events').textContent = 'En attente';
       document.getElementById('kpi-badge-events').className = 'text-xs font-medium text-slate-400 mt-1';
 
-      document.getElementById('starSchemaImg').classList.add('hidden');
+      document.getElementById('starSchemaWrap') && document.getElementById('starSchemaWrap').classList.add('hidden'); document.getElementById('starSchemaImg').classList.add('hidden');
       document.getElementById('starSchemaPlaceholder').classList.remove('hidden');
 
       document.getElementById('narrativeContainer').innerHTML = '<p class="text-slate-400 italic">Le rapport de synthèse et la détection d\'anomalies s\'afficheront ici après le chargement des données.</p>';
@@ -741,7 +753,7 @@
       // 8. Schéma en étoile
       document.getElementById('starSchemaPlaceholder').classList.add('hidden');
       const img = document.getElementById('starSchemaImg');
-      img.classList.remove('hidden');
+      img.classList.remove('hidden'); document.getElementById('starSchemaWrap') && document.getElementById('starSchemaWrap').classList.remove('hidden');
       img.src = '/artifacts/schema/star_schema.png?_t=' + Date.now();
 
       // 9. Visualisations dans Studio BI
@@ -834,6 +846,24 @@
       } catch (e) { }
       window.open('/studio?fresh=1', '_blank');
     }
+
+    
+    function openSchemaModal() {
+      const wrap = document.getElementById('starSchemaWrap');
+      const img = document.getElementById('starSchemaImg');
+      if (wrap && !wrap.classList.contains('hidden') && img && img.src) {
+        document.getElementById('schemaModalImg').src = img.src;
+        document.getElementById('schemaModal').classList.remove('hidden');
+      }
+    }
+
+    function closeSchemaModal() {
+      document.getElementById('schemaModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSchemaModal();
+    });
 
     function escapeHtml(str) {
       if (!str) return '';
