@@ -265,6 +265,32 @@ body {
   gap: 4px;
 }
 
+.kpi-variance {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+}
+.kpi-variance.positive {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.kpi-variance.negative {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.kpi-variance.neutral {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
 /* Visuals Grid */
 .visuals-container {
   display: flex;

@@ -239,7 +239,7 @@ window.KPIS_CATALOG = {
     "datasets": [
       "luxury_cosmetics_popups"
     ],
-    "last_updated": "2026-11-13T16:08:30.370933"
+    "last_updated": "2026-11-13T16:21:38.735246"
   },
   "kpis": [
     {
@@ -249,6 +249,11 @@ window.KPIS_CATALOG = {
       "formatted_value": "2,133 events",
       "unit": "events",
       "domain": "luxury",
+      "target_value": 2000,
+      "target_formatted": "2,000 events",
+      "delta_pct": 6.7,
+      "variance_label": "+6.7% vs Objectif (2,000)",
+      "status": "above_target",
       "sql": "SELECT COUNT(*) FROM FACT_POPUPS;",
       "dax": "Total Events = COUNTROWS('FACT_POPUPS')"
     },
@@ -259,6 +264,11 @@ window.KPIS_CATALOG = {
       "formatted_value": "398,735,363.58 $",
       "unit": "$",
       "domain": "luxury",
+      "target_value": 350000000.0,
+      "target_formatted": "350,000,000.00 $",
+      "delta_pct": 13.9,
+      "variance_label": "+13.9% vs Cible (350.0M $)",
+      "status": "above_target",
       "sql": "SELECT ROUND(SUM(price_usd * units_sold), 2) FROM FACT_POPUPS;",
       "dax": "Total Revenue = SUMX('FACT_POPUPS', 'FACT_POPUPS'[price_usd] * 'FACT_POPUPS'[units_sold])"
     },
@@ -269,16 +279,26 @@ window.KPIS_CATALOG = {
       "formatted_value": "4,132,484 unités",
       "unit": "unités",
       "domain": "luxury",
+      "target_value": 4000000,
+      "target_formatted": "4,000,000 unités",
+      "delta_pct": 3.3,
+      "variance_label": "+3.3% vs Cible (4.0M)",
+      "status": "above_target",
       "sql": "SELECT SUM(units_sold) FROM FACT_POPUPS;",
       "dax": "Total Units Sold = SUM('FACT_POPUPS'[units_sold])"
     },
     {
       "id": "kpi_avg_daily_footfall",
-      "name": "Fréquentation Quotidienne Moyenne",
+      "name": "Fréquentation Quotidienne",
       "raw_value": 1407.1,
-      "formatted_value": "1,407.1 visiteurs/j",
-      "unit": "visiteurs/j",
+      "formatted_value": "1,407.1 vis/j",
+      "unit": "vis/j",
       "domain": "luxury",
+      "target_value": 1200.0,
+      "target_formatted": "1,200.0 vis/j",
+      "delta_pct": 17.3,
+      "variance_label": "+17.3% vs Seuil (1,200 vis/j)",
+      "status": "above_target",
       "sql": "SELECT ROUND(AVG(avg_daily_footfall), 1) FROM FACT_POPUPS;",
       "dax": "Avg Daily Footfall = AVERAGE('FACT_POPUPS'[avg_daily_footfall])"
     },
@@ -289,6 +309,11 @@ window.KPIS_CATALOG = {
       "formatted_value": "73.2 %",
       "unit": "%",
       "domain": "luxury",
+      "target_value": 70.0,
+      "target_formatted": "70.0 %",
+      "delta_pct": 3.2,
+      "variance_label": "+3.2 pts vs Seuil Min (70.0%)",
+      "status": "above_target",
       "sql": "SELECT ROUND(AVG(sell_through_pct), 1) FROM FACT_POPUPS;",
       "dax": "Avg Sell Through = AVERAGE('FACT_POPUPS'[sell_through_pct])"
     },
@@ -299,6 +324,11 @@ window.KPIS_CATALOG = {
       "formatted_value": "46.8 jours",
       "unit": "jours",
       "domain": "luxury",
+      "target_value": 60.0,
+      "target_formatted": "60.0 jours",
+      "delta_pct": -22.0,
+      "variance_label": "-22.0% vs Plafond (60j)",
+      "status": "optimal",
       "sql": "SELECT ROUND(AVG(lease_length_days), 1) FROM FACT_POPUPS;",
       "dax": "Avg Lease Length = AVERAGE('FACT_POPUPS'[lease_length_days])"
     }

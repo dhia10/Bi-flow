@@ -160,15 +160,19 @@ window.Dashboard = (function () {
       );
 
       if (cardKpis.length >= 1) {
-        container.innerHTML = cardKpis.slice(0, 5).map((k, idx) => {
+                container.innerHTML = cardKpis.slice(0, 6).map((k, idx) => {
           const col = colors[idx % colors.length];
           const ico = icons[idx % icons.length];
-          const val = k.current_value_formatted || (k.raw_value != null ? formatMoney(k.raw_value) : '–');
-          const sub = k.domain || k.source_table || k.category || 'Métrique calculée';
+          const val = k.formatted_value || k.current_value_formatted || (k.raw_value != null ? formatMoney(k.raw_value) : '-');
+          const variancePill = k.variance_label
+            ? `<div class="kpi-variance ${k.status === 'below_target' ? 'negative' : (k.status === 'optimal' ? 'neutral' : 'positive')}">${escapeHtml(k.variance_label)}</div>`
+            : '';
+          const sub = k.target_formatted ? `Seuil Métier : ${escapeHtml(k.target_formatted)}` : (k.domain || k.source_table || 'Métrique certifiée');
           return `
             <div class="kpi-card ${col}">
               <div class="kpi-label">${escapeHtml(k.name)}</div>
               <div class="kpi-value">${escapeHtml(String(val))}</div>
+              ${variancePill}
               <div class="kpi-subtext"><span>${ico}</span> ${escapeHtml(String(sub))}</div>
             </div>
           `;

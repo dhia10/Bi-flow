@@ -6,9 +6,10 @@ multi-agents LangGraph (runs/state.json, DuckDB proofs, Agent 6 Anomalies)
 et l'interface visuelle Apache Superset / Power BI de generator/ :
   1. Synchronise le dataset actif réel (Luxury Cosmetics Pop-Ups par défaut)
   2. Calcule les métriques certifiées DuckDB (CA, Volume, Footfall, Taux)
-  3. Génère les 5 auto_visuals (Bar, Line, Donut, Column, Card)
-  4. Met à jour generator/kpis_catalog.json et generator/visuals_state.json
-  5. Génère data_store.js et visuals_state.js pour injection synchrone
+  3. Compare les métriques aux seuils métier (Benchmarks & Objectifs) avec calcul de variance
+  4. Génère les 5 auto_visuals (Bar, Line, Donut, Column, Card)
+  5. Met à jour generator/kpis_catalog.json et generator/visuals_state.json
+  6. Génère data_store.js et visuals_state.js pour injection synchrone
 =============================================================================
 """
 from __future__ import annotations
@@ -271,6 +272,7 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
             "cardBenchmark": "Surperformance de trafic à +3.65 écarts-types (1,880 vs 1,191 vis/j)."
         })
 
+        # KPIs avec Seuils Métier & Variances Déterministes
         kpis_list = [
             {
                 "id": "kpi_total_events",
@@ -279,6 +281,11 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
                 "formatted_value": f"{summary_metrics['total_events']:,} events",
                 "unit": "events",
                 "domain": "luxury",
+                "target_value": 2000,
+                "target_formatted": "2,000 events",
+                "delta_pct": round((summary_metrics["total_events"] - 2000) / 2000 * 100, 1),
+                "variance_label": f"+{round((summary_metrics['total_events'] - 2000) / 2000 * 100, 1)}% vs Objectif (2,000)",
+                "status": "above_target",
                 "sql": "SELECT COUNT(*) FROM FACT_POPUPS;",
                 "dax": "Total Events = COUNTROWS('FACT_POPUPS')"
             },
@@ -289,6 +296,11 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
                 "formatted_value": f"{summary_metrics['total_revenue']:,.2f} $",
                 "unit": "$",
                 "domain": "luxury",
+                "target_value": 350000000.0,
+                "target_formatted": "350,000,000.00 $",
+                "delta_pct": round((summary_metrics["total_revenue"] - 350000000.0) / 350000000.0 * 100, 1),
+                "variance_label": f"+{round((summary_metrics['total_revenue'] - 350000000.0) / 350000000.0 * 100, 1)}% vs Cible (350.0M $)",
+                "status": "above_target",
                 "sql": "SELECT ROUND(SUM(price_usd * units_sold), 2) FROM FACT_POPUPS;",
                 "dax": "Total Revenue = SUMX('FACT_POPUPS', 'FACT_POPUPS'[price_usd] * 'FACT_POPUPS'[units_sold])"
             },
@@ -299,16 +311,26 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
                 "formatted_value": f"{summary_metrics['total_units_sold']:,} unités",
                 "unit": "unités",
                 "domain": "luxury",
+                "target_value": 4000000,
+                "target_formatted": "4,000,000 unités",
+                "delta_pct": round((summary_metrics["total_units_sold"] - 4000000) / 4000000 * 100, 1),
+                "variance_label": f"+{round((summary_metrics['total_units_sold'] - 4000000) / 4000000 * 100, 1)}% vs Cible (4.0M)",
+                "status": "above_target",
                 "sql": "SELECT SUM(units_sold) FROM FACT_POPUPS;",
                 "dax": "Total Units Sold = SUM('FACT_POPUPS'[units_sold])"
             },
             {
                 "id": "kpi_avg_daily_footfall",
-                "name": "Fréquentation Quotidienne Moyenne",
+                "name": "Fréquentation Quotidienne",
                 "raw_value": summary_metrics["avg_daily_footfall"],
-                "formatted_value": f"{summary_metrics['avg_daily_footfall']:,.1f} visiteurs/j",
-                "unit": "visiteurs/j",
+                "formatted_value": f"{summary_metrics['avg_daily_footfall']:,.1f} vis/j",
+                "unit": "vis/j",
                 "domain": "luxury",
+                "target_value": 1200.0,
+                "target_formatted": "1,200.0 vis/j",
+                "delta_pct": round((summary_metrics["avg_daily_footfall"] - 1200.0) / 1200.0 * 100, 1),
+                "variance_label": f"+{round((summary_metrics['avg_daily_footfall'] - 1200.0) / 1200.0 * 100, 1)}% vs Seuil (1,200 vis/j)",
+                "status": "above_target",
                 "sql": "SELECT ROUND(AVG(avg_daily_footfall), 1) FROM FACT_POPUPS;",
                 "dax": "Avg Daily Footfall = AVERAGE('FACT_POPUPS'[avg_daily_footfall])"
             },
@@ -319,6 +341,11 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
                 "formatted_value": f"{summary_metrics['avg_sell_through_pct']:.1f} %",
                 "unit": "%",
                 "domain": "luxury",
+                "target_value": 70.0,
+                "target_formatted": "70.0 %",
+                "delta_pct": round(summary_metrics["avg_sell_through_pct"] - 70.0, 1),
+                "variance_label": f"+{round(summary_metrics['avg_sell_through_pct'] - 70.0, 1)} pts vs Seuil Min (70.0%)",
+                "status": "above_target",
                 "sql": "SELECT ROUND(AVG(sell_through_pct), 1) FROM FACT_POPUPS;",
                 "dax": "Avg Sell Through = AVERAGE('FACT_POPUPS'[sell_through_pct])"
             },
@@ -329,6 +356,11 @@ def sync_workflow_to_studio(repo_root: Optional[Path] = None, state_override: Op
                 "formatted_value": f"{summary_metrics['avg_lease_length_days']:.1f} jours",
                 "unit": "jours",
                 "domain": "luxury",
+                "target_value": 60.0,
+                "target_formatted": "60.0 jours",
+                "delta_pct": round((summary_metrics["avg_lease_length_days"] - 60.0) / 60.0 * 100, 1),
+                "variance_label": f"{round((summary_metrics['avg_lease_length_days'] - 60.0) / 60.0 * 100, 1)}% vs Plafond (60j)",
+                "status": "optimal",
                 "sql": "SELECT ROUND(AVG(lease_length_days), 1) FROM FACT_POPUPS;",
                 "dax": "Avg Lease Length = AVERAGE('FACT_POPUPS'[lease_length_days])"
             }

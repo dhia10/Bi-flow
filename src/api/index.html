@@ -163,36 +163,94 @@
       </div>
 
       <div id="heroKpiGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <!-- Rendered dynamically via renderDynamicHeroKpis -->
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Total Activations</div>
-          <div class="text-lg font-bold text-white mt-1 tabular-numbers">2,133</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">COUNT(*)</div>
+        <!-- 1. Chiffre d'Affaires -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Chiffre d'Affaires</span>
+              <span id="kpi-badge-revenue" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-400 border border-emerald-800/50">+9.8% vs Cible</span>
+            </div>
+            <div id="kpi-val-revenue" class="text-base font-bold text-emerald-400 mt-1 tabular-numbers">384,218,932.45 $</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Cible : <strong id="kpi-target-revenue" class="text-slate-300">350.0M $</strong></span>
+            <span>SUM(pxu)</span>
+          </div>
         </div>
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Chiffre d'Affaires</div>
-          <div class="text-lg font-bold text-emerald-400 mt-1 tabular-numbers">384,218,932.45 $</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">SUM(price * units)</div>
+
+        <!-- 2. Unités Vendues -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Unités Vendues</span>
+              <span id="kpi-badge-units" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-400 border border-emerald-800/50">+3.5% vs Cible</span>
+            </div>
+            <div id="kpi-val-units" class="text-base font-bold text-white mt-1 tabular-numbers">4,138,484</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Cible : <strong id="kpi-target-units" class="text-slate-300">4.0M</strong></span>
+            <span>SUM(units)</span>
+          </div>
         </div>
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Unités Vendues</div>
-          <div class="text-lg font-bold text-white mt-1 tabular-numbers">4,138,484</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">SUM(units_sold)</div>
+
+        <!-- 3. Taux d'Écoulement -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Taux d'Écoulement</span>
+              <span id="kpi-badge-sellthrough" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-400 border border-emerald-800/50">+3.1 pts vs Seuil</span>
+            </div>
+            <div id="kpi-val-sellthrough" class="text-base font-bold text-white mt-1 tabular-numbers">73.1 %</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Seuil Min : <strong id="kpi-target-sellthrough" class="text-slate-300">70.0 %</strong></span>
+            <span>AVG(sell_pct)</span>
+          </div>
         </div>
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Fréquentation Quotidienne</div>
-          <div class="text-lg font-bold text-blue-400 mt-1 tabular-numbers">1,385.2 vis/j</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">AVG(avg_daily_footfall)</div>
+
+        <!-- 4. Fréquentation Quotidienne -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Fréquentation</span>
+              <span id="kpi-badge-footfall" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-950/70 text-blue-400 border border-blue-800/50">+15.4% vs Seuil</span>
+            </div>
+            <div id="kpi-val-footfall" class="text-base font-bold text-blue-400 mt-1 tabular-numbers">1,385.2 vis/j</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Seuil : <strong id="kpi-target-footfall" class="text-slate-300">1,200 vis/j</strong></span>
+            <span>AVG(footfall)</span>
+          </div>
         </div>
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Taux d'Écoulement</div>
-          <div class="text-lg font-bold text-white mt-1 tabular-numbers">73.1 %</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">AVG(sell_through_pct)</div>
+
+        <!-- 5. Durée Moyenne Bail -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Durée de Bail</span>
+              <span id="kpi-badge-lease" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/50">-22% vs Plafond</span>
+            </div>
+            <div id="kpi-val-lease" class="text-base font-bold text-white mt-1 tabular-numbers">46.8 jours</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Plafond : <strong id="kpi-target-lease" class="text-slate-300">60 jours</strong></span>
+            <span>AVG(lease)</span>
+          </div>
         </div>
-        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5">
-          <div class="text-[11px] text-slate-400 font-medium truncate">Durée Moyenne Bail</div>
-          <div class="text-lg font-bold text-white mt-1 tabular-numbers">46.8 jours</div>
-          <div class="text-[10px] text-slate-500 mt-1 font-mono">AVG(lease_length_days)</div>
+
+        <!-- 6. Total Activations -->
+        <div class="bg-surface-card border border-surface-border rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-medium truncate">Total Activations</span>
+              <span id="kpi-badge-events" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-emerald-950/70 text-emerald-400 border border-emerald-800/50">+6.7% vs Objectif</span>
+            </div>
+            <div id="kpi-val-events" class="text-base font-bold text-white mt-1 tabular-numbers">2,133 events</div>
+          </div>
+          <div class="mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>Objectif : <strong id="kpi-target-events" class="text-slate-300">2,000</strong></span>
+            <span>COUNT(*)</span>
+          </div>
         </div>
       </div>
     </section>
@@ -446,6 +504,44 @@ price_usd: Prix unitaire moyen du panier produit ($)
 units_sold: Volume total d'unités vendues</textarea>
         </div>
 
+        
+        <!-- Benchmarks & Thresholds Section -->
+        <div class="pt-3 border-t border-surface-border">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <label class="block text-slate-200 font-semibold">Seuils Métier & Benchmarks Décisionnels (Cibles & Objectifs) :</label>
+              <p class="text-[11px] text-slate-400">Permet de comparer les KPIs aux seuils contractuels et budgétaires avec calcul de variance automatique.</p>
+            </div>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Recalcul en Direct</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Chiffre d'Affaires Cible ($) :</label>
+              <input type="number" id="thresholdRevenueInput" value="350000000" step="1000000" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Seuil Minimum Taux d'Écoulement (%) :</label>
+              <input type="number" id="thresholdSellthroughInput" value="70.0" step="0.5" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Seuil Fréquentation Journalière (vis/j) :</label>
+              <input type="number" id="thresholdFootfallInput" value="1200" step="50" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Cible Volume Unités Vendues :</label>
+              <input type="number" id="thresholdUnitsInput" value="4000000" step="50000" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Plafond Durée de Bail Éphémère (jours) :</label>
+              <input type="number" id="thresholdLeaseInput" value="60" step="5" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[11px] mb-0.5">Objectif Réseau Activations Pop-Up :</label>
+              <input type="number" id="thresholdEventsInput" value="2000" step="50" class="w-full bg-surface-200 border border-surface-border rounded px-2.5 py-1.5 text-slate-200 font-mono" oninput="recalculateVariancesLive()">
+            </div>
+          </div>
+        </div>
+
         <!-- Few-Shot Query / SQL Pairs -->
         <div>
           <div class="flex items-center justify-between mb-1">
@@ -584,6 +680,8 @@ units_sold: Volume total d'unités vendues</textarea>
     async function saveContextAndInject() {
       activeContext.domain = document.getElementById('ctxDomainInput').value.trim();
       activeContext.business_context = document.getElementById('ctxBusinessContextInput').value.trim();
+      recalculateVariancesLive();
+      activeContext.thresholds = thresholds;
       
       try {
         await fetch('/api/v1/context/update', {
@@ -596,7 +694,6 @@ units_sold: Volume total d'unités vendues</textarea>
       }
 
       toggleContextModal();
-      alert("Contexte métier et exemples Few-Shot enregistrés. Prêt pour l'exécution.");
     }
 
     function loadContextPreset(preset) {
@@ -808,6 +905,7 @@ units_sold: Volume total d'unités vendues</textarea>
 
     // Auto-chargement par défaut sur le dataset Luxury
     window.addEventListener('DOMContentLoaded', () => {
+      renderHeroKpisWithVariances();
       runDataset('luxury');
     });
   </script>
